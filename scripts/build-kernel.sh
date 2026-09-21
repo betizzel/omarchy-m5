@@ -24,10 +24,17 @@ if [ ! -d "$LINUX" ]; then
     exit 1
 fi
 
-export PATH="$(brew --prefix llvm)/bin:$PATH"
+# brew LLVM for clang/lld; brew gnu-sed's gnubin first because kernel
+# scripts (gen-kernel-hwcaps.sh) use GNU sed syntax BSD sed silently
+# passes through.
+export PATH="$(brew --prefix gnu-sed)/libexec/gnubin:$(brew --prefix llvm)/bin:$PATH"
 # Kernel needs GNU Make >= 4.0; macOS ships 3.81, so prefer brew's gmake.
+# HOSTCFLAGS adds scripts/host-shim: macOS lacks <elf.h>, which the
+# kernel's host tools (sorttable, modpost, ...) require.
 GMAKE="$(command -v gmake || command -v make)"
-KMAKE=("$GMAKE" -C "$LINUX" ARCH=arm64 LLVM=1 -j"$JOBS")
+KMAKE=("$GMAKE" -C "$LINUX" ARCH=arm64 LLVM=1 -j"$JOBS"
+       "HOSTCFLAGS=-I$(pwd)/scripts/host-shim"
+       "HOSTCFLAGS_file2alias.o=-D_POSIX_C_SOURCE=200809L")
 
 echo "==> Overlaying dt/ into $DTS_DIR"
 install -m 0644 dt/t6050.dtsi dt/t6050-pmgr.dtsi dt/t6050-jxxx.dtsi \

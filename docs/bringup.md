@@ -4,15 +4,19 @@ The dev loop is tethered: an installed stage-1 m1n1 chainloads test builds
 over USB, so kernel/DT iterations never touch boot policy. Partitioning and
 `kmutil` happen once, up front; everything after is memory-only.
 
-## Host setup (this Mac)
-
 ```sh
-make setup    # brew llvm/lld/dtc/bc/bison/flex/openssl + rust aarch64 target
+make setup    # brew llvm/lld/dtc/bc/bison/flex/openssl/make/gnu-sed
+              # + rust aarch64-unknown-none-softfloat target
 make fetch    # clone vendor/m1n1 (main) + vendor/linux (asahi-wip-7.2)
 make m1n1     # CHAINLOADING=1 build -> vendor/m1n1/build/m1n1.bin
 make dtbs     # overlay dt/ into the kernel tree, build t6050 DTBs only
 make kernel   # full kernel (defconfig; KCONFIG=asahi_defconfig to override)
 ```
+
+macOS quirks handled by the scripts: GNU Make/sed over the BSD versions
+(kernel scripts use GNU sed syntax BSD sed silently passes through), and
+`scripts/host-shim/` supplies the glibc headers macOS lacks (`elf.h` —
+vendored musl copy — `byteswap.h`, `copy_file_range`, `O_LARGEFILE`).
 
 ## One-time on-device step (the risky part — do it once, carefully)
 
