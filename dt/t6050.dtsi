@@ -1,0 +1,453 @@
+// SPDX-License-Identifier: GPL-2.0+ OR MIT
+/*
+ * Apple T6050 "M5 Pro" SoC (Sotra_S / H17S)
+ *
+ * Skeleton authored for omarchy-m5 Phase 1 bring-up, modeled on
+ * arch/arm64/boot/dts/apple/t8132.dtsi (asahi-wip-7.2).
+ *
+ * Address sources:
+ *   - MMIO addresses decoded from a real J716c (M5 Max, same T6050 die)
+ *     IORegistry/ADT dump (qspqww/m1n1 @ t6050-j716c-bringup, m5-ioreg.txt).
+ *     ADT reg values sit 0x2_0000_0000 below the MMIO address; verified by
+ *     uart0: ADT 0x305200000 + 0x200000000 = 0x505200000 = m1n1
+ *     EARLY_UART_BASE for T6050.
+ *   - CPU topology: 18 cores = 2x6 "M-core" clusters + 1x6 "super" (P) cluster,
+ *     MPIDR = (cluster_id << 8) | core_id, from the same dump.
+ *
+ * TODO(adt): every interrupt number, all PMGR power-state offsets, GPIO pin
+ * counts, and the AIC event-region address must be filled from the target
+ * machine's own ADT dump (m1n1 proxyclient: `adt` / dump_pmgr.py +
+ * pmgr_adt2dt.py). Values marked TODO are placeholders, not verified.
+ *
+ * Copyright The Asahi Linux Contributors / omarchy-m5 contributors
+ */
+
+#include <dt-bindings/interrupt-controller/apple-aic.h>
+#include <dt-bindings/interrupt-controller/irq.h>
+#include <dt-bindings/pinctrl/apple.h>
+
+/ {
+	compatible = "apple,t6050", "apple,arm-platform";
+
+	#address-cells = <2>;
+	#size-cells = <2>;
+
+	cpus {
+		#address-cells = <2>;
+		#size-cells = <0>;
+
+		/*
+		 * M5 Pro: 18 cores in 3 clusters of 6.
+		 *   cluster0: M-cores (cpu0-5),  cluster1: M-cores (cpu6-11),
+		 *   cluster2: "super" P-cores (cpu12-17).
+		 * Boot CPU is cpu0 (an M-core). Secondary cores currently do NOT
+		 * start (see docs/research/kernel-boot-m5.md §6.1) — boot with
+		 * maxcpus=1 until the AppleT6050PMGR enableCPUCore sequence is
+		 * reverse-engineered.
+		 *
+		 * TODO(adt): compatible strings are guesses following the
+		 * "apple,<codename>-<type>" convention (t8132 = apple,donan-e/p).
+		 * ADT reports "apple,sawtooth" for all cores; pick final strings
+		 * to match whatever lands in m1n1/linux-asahi.
+		 */
+		cpu-map {
+			cluster0 {
+				core0 { cpu = <&cpu_m0_0>; };
+				core1 { cpu = <&cpu_m0_1>; };
+				core2 { cpu = <&cpu_m0_2>; };
+				core3 { cpu = <&cpu_m0_3>; };
+				core4 { cpu = <&cpu_m0_4>; };
+				core5 { cpu = <&cpu_m0_5>; };
+			};
+			cluster1 {
+				core0 { cpu = <&cpu_m1_0>; };
+				core1 { cpu = <&cpu_m1_1>; };
+				core2 { cpu = <&cpu_m1_2>; };
+				core3 { cpu = <&cpu_m1_3>; };
+				core4 { cpu = <&cpu_m1_4>; };
+				core5 { cpu = <&cpu_m1_5>; };
+			};
+			cluster2 {
+				core0 { cpu = <&cpu_p0>; };
+				core1 { cpu = <&cpu_p1>; };
+				core2 { cpu = <&cpu_p2>; };
+				core3 { cpu = <&cpu_p3>; };
+				core4 { cpu = <&cpu_p4>; };
+				core5 { cpu = <&cpu_p5>; };
+			};
+		};
+
+		cpu_m0_0: cpu@0 {
+			compatible = "apple,sotra-m";
+			device_type = "cpu";
+			reg = <0x0 0x0>;
+			enable-method = "spin-table";
+			cpu-release-addr = <0 0>;
+			next-level-cache = <&l2_cache_m0>;
+		};
+		cpu_m0_1: cpu@1 {
+			compatible = "apple,sotra-m";
+			device_type = "cpu";
+			reg = <0x0 0x1>;
+			enable-method = "spin-table";
+			cpu-release-addr = <0 0>;
+			next-level-cache = <&l2_cache_m0>;
+		};
+		cpu_m0_2: cpu@2 {
+			compatible = "apple,sotra-m";
+			device_type = "cpu";
+			reg = <0x0 0x2>;
+			enable-method = "spin-table";
+			cpu-release-addr = <0 0>;
+			next-level-cache = <&l2_cache_m0>;
+		};
+		cpu_m0_3: cpu@3 {
+			compatible = "apple,sotra-m";
+			device_type = "cpu";
+			reg = <0x0 0x3>;
+			enable-method = "spin-table";
+			cpu-release-addr = <0 0>;
+			next-level-cache = <&l2_cache_m0>;
+		};
+		cpu_m0_4: cpu@4 {
+			compatible = "apple,sotra-m";
+			device_type = "cpu";
+			reg = <0x0 0x4>;
+			enable-method = "spin-table";
+			cpu-release-addr = <0 0>;
+			next-level-cache = <&l2_cache_m0>;
+		};
+		cpu_m0_5: cpu@5 {
+			compatible = "apple,sotra-m";
+			device_type = "cpu";
+			reg = <0x0 0x5>;
+			enable-method = "spin-table";
+			cpu-release-addr = <0 0>;
+			next-level-cache = <&l2_cache_m0>;
+		};
+
+		cpu_m1_0: cpu@100 {
+			compatible = "apple,sotra-m";
+			device_type = "cpu";
+			reg = <0x0 0x100>;
+			enable-method = "spin-table";
+			cpu-release-addr = <0 0>;
+			next-level-cache = <&l2_cache_m1>;
+		};
+		cpu_m1_1: cpu@101 {
+			compatible = "apple,sotra-m";
+			device_type = "cpu";
+			reg = <0x0 0x101>;
+			enable-method = "spin-table";
+			cpu-release-addr = <0 0>;
+			next-level-cache = <&l2_cache_m1>;
+		};
+		cpu_m1_2: cpu@102 {
+			compatible = "apple,sotra-m";
+			device_type = "cpu";
+			reg = <0x0 0x102>;
+			enable-method = "spin-table";
+			cpu-release-addr = <0 0>;
+			next-level-cache = <&l2_cache_m1>;
+		};
+		cpu_m1_3: cpu@103 {
+			compatible = "apple,sotra-m";
+			device_type = "cpu";
+			reg = <0x0 0x103>;
+			enable-method = "spin-table";
+			cpu-release-addr = <0 0>;
+			next-level-cache = <&l2_cache_m1>;
+		};
+		cpu_m1_4: cpu@104 {
+			compatible = "apple,sotra-m";
+			device_type = "cpu";
+			reg = <0x0 0x104>;
+			enable-method = "spin-table";
+			cpu-release-addr = <0 0>;
+			next-level-cache = <&l2_cache_m1>;
+		};
+		cpu_m1_5: cpu@105 {
+			compatible = "apple,sotra-m";
+			device_type = "cpu";
+			reg = <0x0 0x105>;
+			enable-method = "spin-table";
+			cpu-release-addr = <0 0>;
+			next-level-cache = <&l2_cache_m1>;
+		};
+
+		cpu_p0: cpu@200 {
+			compatible = "apple,sotra-p";
+			device_type = "cpu";
+			reg = <0x0 0x200>;
+			enable-method = "spin-table";
+			cpu-release-addr = <0 0>;
+			next-level-cache = <&l2_cache_p>;
+		};
+		cpu_p1: cpu@201 {
+			compatible = "apple,sotra-p";
+			device_type = "cpu";
+			reg = <0x0 0x201>;
+			enable-method = "spin-table";
+			cpu-release-addr = <0 0>;
+			next-level-cache = <&l2_cache_p>;
+		};
+		cpu_p2: cpu@202 {
+			compatible = "apple,sotra-p";
+			device_type = "cpu";
+			reg = <0x0 0x202>;
+			enable-method = "spin-table";
+			cpu-release-addr = <0 0>;
+			next-level-cache = <&l2_cache_p>;
+		};
+		cpu_p3: cpu@203 {
+			compatible = "apple,sotra-p";
+			device_type = "cpu";
+			reg = <0x0 0x203>;
+			enable-method = "spin-table";
+			cpu-release-addr = <0 0>;
+			next-level-cache = <&l2_cache_p>;
+		};
+		cpu_p4: cpu@204 {
+			compatible = "apple,sotra-p";
+			device_type = "cpu";
+			reg = <0x0 0x204>;
+			enable-method = "spin-table";
+			cpu-release-addr = <0 0>;
+			next-level-cache = <&l2_cache_p>;
+		};
+		cpu_p5: cpu@205 {
+			compatible = "apple,sotra-p";
+			device_type = "cpu";
+			reg = <0x0 0x205>;
+			enable-method = "spin-table";
+			cpu-release-addr = <0 0>;
+			next-level-cache = <&l2_cache_p>;
+		};
+
+		/* TODO(adt): L2 cache sizes per cluster from ADT l2-cache-size */
+		l2_cache_m0: l2-cache-m0 {
+			compatible = "cache";
+			cache-level = <2>;
+			cache-unified;
+		};
+		l2_cache_m1: l2-cache-m1 {
+			compatible = "cache";
+			cache-level = <2>;
+			cache-unified;
+		};
+		l2_cache_p: l2-cache-p {
+			compatible = "cache";
+			cache-level = <2>;
+			cache-unified;
+		};
+	};
+
+	timer {
+		compatible = "arm,armv8-timer";
+		interrupt-parent = <&aic>;
+		interrupt-names = "phys", "virt", "hyp-phys", "hyp-virt";
+		interrupts = <AIC_FIQ AIC_TMR_GUEST_PHYS IRQ_TYPE_LEVEL_HIGH>,
+		             <AIC_FIQ AIC_TMR_GUEST_VIRT IRQ_TYPE_LEVEL_HIGH>,
+		             <AIC_FIQ AIC_TMR_HV_PHYS IRQ_TYPE_LEVEL_HIGH>,
+		             <AIC_FIQ AIC_TMR_HV_VIRT IRQ_TYPE_LEVEL_HIGH>;
+	};
+
+	clkref: clock-ref {
+		compatible = "fixed-clock";
+		#clock-cells = <0>;
+		clock-frequency = <24000000>;
+		clock-output-names = "clkref";
+	};
+
+	soc: soc {
+		compatible = "simple-bus";
+		#address-cells = <2>;
+		#size-cells = <2>;
+
+		ranges;
+		nonposted-mmio;
+
+		/*
+		 * PMGR: ADT reg[0] = 0x80600000 (+0x2_0000_0000) = 0x280600000,
+		 * size 0x1fc000. Consistent with qspqww's CPU_START writes at
+		 * 0x280688004/0x280688008 (base + 0x88000, CPU_START_OFF_T6031).
+		 * Additional ADT regions (0x280900000/0x58000, 0x280000000/0x80000,
+		 * 0x280210000/0x8000, CPM windows 0x210e40000/0x211e40000/
+		 * 0x212e40000) are not yet mapped to Linux reg-names.
+		 */
+		pmgr: power-management@280600000 {
+			compatible = "apple,t6050-pmgr", "apple,t8103-pmgr", "syscon", "simple-mfd";
+			#address-cells = <1>;
+			#size-cells = <1>;
+			reg = <0x2 0x80600000 0 0x1fc000>;
+			/* child nodes are added in t6050-pmgr.dtsi */
+		};
+
+		/*
+		 * AICv3. ADT: core 0x80400000 (+0x2_0000_0000) = 0x280400000,
+		 * size 0x1cc000 (same size as t8132). The t8132 DT also carries a
+		 * second "event" region; on j716c the ADT lists a separate
+		 * aic-timebase node at 0x80580000 — TODO(adt): determine whether
+		 * t6050 AICv3 needs an event region and its address.
+		 */
+		aic: interrupt-controller@280400000 {
+			compatible = "apple,t6050-aic3", "apple,t8122-aic3";
+			#interrupt-cells = <3>;
+			interrupt-controller;
+			reg = <0x2 0x80400000 0x0 0x1cc000>;
+			/* TODO(adt): power-domains = <&ps_aic>; offset unknown */
+			/* TODO(adt): PMU FIQ affinities — M-core vs P-core FIQ indices */
+		};
+
+		/* ADT: 0x8836c000 -> 0x28836c000; IRQ 0x1d7 = 471 (TODO: verify) */
+		wdt: watchdog@28836c000 {
+			compatible = "apple,t6050-wdt", "apple,t8103-wdt";
+			reg = <0x2 0x8836c000 0x0 0x4000>;
+			clocks = <&clkref>;
+			interrupt-parent = <&aic>;
+			interrupts = <AIC_IRQ 471 IRQ_TYPE_LEVEL_HIGH>; /* TODO(adt) */
+		};
+
+		/* ADT: nub-gpio0 0x881e4000 -> 0x2881e4000; npins TODO(adt) */
+		pinctrl_nub: pinctrl@2881e4000 {
+			compatible = "apple,t6050-pinctrl", "apple,t8103-pinctrl";
+			reg = <0x2 0x881e4000 0x0 0x4000>;
+
+			gpio-controller;
+			#gpio-cells = <2>;
+			gpio-ranges = <&pinctrl_nub 0 0 32>; /* TODO(adt): npins */
+			apple,npins = <32>;
+
+			interrupt-controller;
+			#interrupt-cells = <2>;
+			interrupt-parent = <&aic>;
+			/* TODO(adt): 7 pin-group IRQs */
+		};
+
+		/* ADT: aop-gpio0 0x90824000 -> 0x290824000; npins TODO(adt) */
+		pinctrl_aop: pinctrl@290824000 {
+			compatible = "apple,t6050-pinctrl", "apple,t8103-pinctrl";
+			reg = <0x2 0x90824000 0x0 0x4000>;
+
+			gpio-controller;
+			#gpio-cells = <2>;
+			gpio-ranges = <&pinctrl_aop 0 0 57>; /* TODO(adt): npins */
+			apple,npins = <57>;
+
+			interrupt-controller;
+			#interrupt-cells = <2>;
+			interrupt-parent = <&aic>;
+			/* TODO(adt): pin-group IRQs */
+		};
+
+		/* ADT: gpio0 0x9c000000 -> 0x29c000000, size 0x44000; npins TODO(adt) */
+		pinctrl_ap: pinctrl@29c000000 {
+			compatible = "apple,t6050-pinctrl", "apple,t8103-pinctrl";
+			reg = <0x2 0x9c000000 0x0 0x44000>;
+
+			gpio-controller;
+			#gpio-cells = <2>;
+			gpio-ranges = <&pinctrl_ap 0 0 224>; /* TODO(adt): npins */
+			apple,npins = <224>;
+
+			interrupt-controller;
+			#interrupt-cells = <2>;
+			interrupt-parent = <&aic>;
+			/* TODO(adt): pin-group IRQs + pinmux tables for i2c/spi/uart */
+		};
+
+		/*
+		 * Debug UART. ADT uart0 0x305200000 -> 0x505200000, which matches
+		 * m1n1 EARLY_UART_BASE for T6050. IRQ 0x54f = 1359 (TODO: verify).
+		 * TODO(adt): power-domains = <&ps_uart0>; offset unknown — m1n1
+		 * powers UART before handoff, so this can stay absent for
+		 * early TTY bring-up.
+		 */
+		serial0: serial@505200000 {
+			compatible = "apple,s5l-uart";
+			reg = <0x5 0x05200000 0x0 0x4000>;
+			reg-io-width = <4>;
+			interrupt-parent = <&aic>;
+			interrupts = <AIC_IRQ 1359 IRQ_TYPE_LEVEL_HIGH>; /* TODO(adt) */
+			clocks = <&clkref>, <&clkref>;
+			clock-names = "uart", "clk_uart_baud0";
+			status = "disabled";
+		};
+
+		/*
+		 * Dockchannel UART (USB-C debug). ADT: 0x88e28000 -> 0x288e28000.
+		 * This is the channel m1n1 uses for its secondary console; the
+		 * kernel-side driver is the apple-dockchannel tty driver
+		 * (downstream in linux-asahi). IRQ 0x168 = 360 (TODO: verify).
+		 */
+		dockchannel_uart: dockchannel@288e28000 {
+			compatible = "apple,dockchannel-uart", "apple,dockchannel";
+			reg = <0x2 0x88e28000 0x0 0x10004>,
+			      <0x2 0x88e0c000 0x0 0x18>;
+			interrupt-parent = <&aic>;
+			interrupts = <AIC_IRQ 360 IRQ_TYPE_LEVEL_HIGH>; /* TODO(adt) */
+			status = "disabled";
+		};
+
+		/* ADT: i2c0-2 at 0x30501{0,4,8}000 -> 0x50501{0,4,8}000 */
+		i2c0: i2c@505010000 {
+			compatible = "apple,t6050-i2c", "apple,t8103-i2c";
+			reg = <0x5 0x05010000 0x0 0x4000>;
+			clocks = <&clkref>;
+			interrupt-parent = <&aic>;
+			/* TODO(adt): interrupts, pinctrl, power-domains */
+			#address-cells = <0x1>;
+			#size-cells = <0x0>;
+			status = "disabled";
+		};
+
+		i2c1: i2c@505014000 {
+			compatible = "apple,t6050-i2c", "apple,t8103-i2c";
+			reg = <0x5 0x05014000 0x0 0x4000>;
+			clocks = <&clkref>;
+			interrupt-parent = <&aic>;
+			/* TODO(adt) */
+			#address-cells = <0x1>;
+			#size-cells = <0x0>;
+			status = "disabled";
+		};
+
+		i2c2: i2c@505018000 {
+			compatible = "apple,t6050-i2c", "apple,t8103-i2c";
+			reg = <0x5 0x05018000 0x0 0x4000>;
+			clocks = <&clkref>;
+			interrupt-parent = <&aic>;
+			/* TODO(adt) */
+			#address-cells = <0x1>;
+			#size-cells = <0x0>;
+			status = "disabled";
+		};
+
+		/*
+		 * SPI: ADT spi2 0x305108000 -> 0x505108000, spi4 0x305110000 ->
+		 * 0x505110000. On MBPs the keyboard/trackpad sit on one of these
+		 * (spi3 on M1/M2 Pro/Max; TODO(adt): confirm which on j714s/j716s).
+		 */
+		spi2: spi@505108000 {
+			compatible = "apple,t6050-spi", "apple,t8103-spi";
+			reg = <0x5 0x05108000 0x0 0x4000>;
+			interrupt-parent = <&aic>;
+			/* TODO(adt): interrupts, clocks, power-domains, cs-gpios */
+			#address-cells = <1>;
+			#size-cells = <0>;
+			status = "disabled";
+		};
+
+		spi4: spi@505110000 {
+			compatible = "apple,t6050-spi", "apple,t8103-spi";
+			reg = <0x5 0x05110000 0x0 0x4000>;
+			interrupt-parent = <&aic>;
+			/* TODO(adt) */
+			#address-cells = <1>;
+			#size-cells = <0>;
+			status = "disabled";
+		};
+	};
+};
+
+#include "t6050-pmgr.dtsi"

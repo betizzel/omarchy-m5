@@ -1,0 +1,5 @@
+vendor/
+*.dtb
+*.im4p
+*.img
+.DS_Store

@@ -1,0 +1,181 @@
+// SPDX-License-Identifier: GPL-2.0+ OR MIT
+/*
+ * PMGR power domains for the Apple T6050 "M5 Pro" SoC
+ *
+ * Skeleton for omarchy-m5 Phase 1. Only the CPU/cluster power-state
+ * offsets are known (decoded from the J716c PMGR ADT `devices` table,
+ * qspqww/m1n1 findings.md):
+ *   devices 1-18  = MCPU0_0..5, MCPU1_0..5, PCPU_0..5  -> offsets 0x00..0x88
+ *   devices 19-21 = MCPM0, MCPM1, PCPM (clusters)      -> offsets 0x90..0xa0
+ *
+ * TODO(adt): every other power domain. Generate the bulk of this file on
+ * device with m1n1's proxyclient/tools/dump_pmgr.py + pmgr_adt2dt.py,
+ * which emit exactly this node format from the live ADT. Until then the
+ * domains needed for TTY (ps_aic, ps_uart0, ps_gpio, ps_nub_gpio, ...) are
+ * intentionally absent — m1n1 leaves them powered at handoff.
+ *
+ * Copyright The Asahi Linux Contributors / omarchy-m5 contributors
+ */
+
+&pmgr {
+	/* CPU cores — offsets verified from J716c ADT devices table */
+	ps_mcpu0_0: power-controller@0 {
+		compatible = "apple,t6050-pmgr-pwrstate", "apple,t8103-pmgr-pwrstate";
+		reg = <0x00 4>;
+		#power-domain-cells = <0>;
+		#reset-cells = <0>;
+		label = "MCPU0_0";
+		apple,always-on; /* boot core */
+	};
+	ps_mcpu0_1: power-controller@8 {
+		compatible = "apple,t6050-pmgr-pwrstate", "apple,t8103-pmgr-pwrstate";
+		reg = <0x08 4>;
+		#power-domain-cells = <0>;
+		#reset-cells = <0>;
+		label = "MCPU0_1";
+	};
+	ps_mcpu0_2: power-controller@10 {
+		compatible = "apple,t6050-pmgr-pwrstate", "apple,t8103-pmgr-pwrstate";
+		reg = <0x10 4>;
+		#power-domain-cells = <0>;
+		#reset-cells = <0>;
+		label = "MCPU0_2";
+	};
+	ps_mcpu0_3: power-controller@18 {
+		compatible = "apple,t6050-pmgr-pwrstate", "apple,t8103-pmgr-pwrstate";
+		reg = <0x18 4>;
+		#power-domain-cells = <0>;
+		#reset-cells = <0>;
+		label = "MCPU0_3";
+	};
+	ps_mcpu0_4: power-controller@20 {
+		compatible = "apple,t6050-pmgr-pwrstate", "apple,t8103-pmgr-pwrstate";
+		reg = <0x20 4>;
+		#power-domain-cells = <0>;
+		#reset-cells = <0>;
+		label = "MCPU0_4";
+	};
+	ps_mcpu0_5: power-controller@28 {
+		compatible = "apple,t6050-pmgr-pwrstate", "apple,t8103-pmgr-pwrstate";
+		reg = <0x28 4>;
+		#power-domain-cells = <0>;
+		#reset-cells = <0>;
+		label = "MCPU0_5";
+	};
+	ps_mcpu1_0: power-controller@30 {
+		compatible = "apple,t6050-pmgr-pwrstate", "apple,t8103-pmgr-pwrstate";
+		reg = <0x30 4>;
+		#power-domain-cells = <0>;
+		#reset-cells = <0>;
+		label = "MCPU1_0";
+	};
+	ps_mcpu1_1: power-controller@38 {
+		compatible = "apple,t6050-pmgr-pwrstate", "apple,t8103-pmgr-pwrstate";
+		reg = <0x38 4>;
+		#power-domain-cells = <0>;
+		#reset-cells = <0>;
+		label = "MCPU1_1";
+	};
+	ps_mcpu1_2: power-controller@40 {
+		compatible = "apple,t6050-pmgr-pwrstate", "apple,t8103-pmgr-pwrstate";
+		reg = <0x40 4>;
+		#power-domain-cells = <0>;
+		#reset-cells = <0>;
+		label = "MCPU1_2";
+	};
+	ps_mcpu1_3: power-controller@48 {
+		compatible = "apple,t6050-pmgr-pwrstate", "apple,t8103-pmgr-pwrstate";
+		reg = <0x48 4>;
+		#power-domain-cells = <0>;
+		#reset-cells = <0>;
+		label = "MCPU1_3";
+	};
+	ps_mcpu1_4: power-controller@50 {
+		compatible = "apple,t6050-pmgr-pwrstate", "apple,t8103-pmgr-pwrstate";
+		reg = <0x50 4>;
+		#power-domain-cells = <0>;
+		#reset-cells = <0>;
+		label = "MCPU1_4";
+	};
+	ps_mcpu1_5: power-controller@58 {
+		compatible = "apple,t6050-pmgr-pwrstate", "apple,t8103-pmgr-pwrstate";
+		reg = <0x58 4>;
+		#power-domain-cells = <0>;
+		#reset-cells = <0>;
+		label = "MCPU1_5";
+	};
+	ps_pcpu_0: power-controller@60 {
+		compatible = "apple,t6050-pmgr-pwrstate", "apple,t8103-pmgr-pwrstate";
+		reg = <0x60 4>;
+		#power-domain-cells = <0>;
+		#reset-cells = <0>;
+		label = "PCPU_0";
+	};
+	ps_pcpu_1: power-controller@68 {
+		compatible = "apple,t6050-pmgr-pwrstate", "apple,t8103-pmgr-pwrstate";
+		reg = <0x68 4>;
+		#power-domain-cells = <0>;
+		#reset-cells = <0>;
+		label = "PCPU_1";
+	};
+	ps_pcpu_2: power-controller@70 {
+		compatible = "apple,t6050-pmgr-pwrstate", "apple,t8103-pmgr-pwrstate";
+		reg = <0x70 4>;
+		#power-domain-cells = <0>;
+		#reset-cells = <0>;
+		label = "PCPU_2";
+	};
+	ps_pcpu_3: power-controller@78 {
+		compatible = "apple,t6050-pmgr-pwrstate", "apple,t8103-pmgr-pwrstate";
+		reg = <0x78 4>;
+		#power-domain-cells = <0>;
+		#reset-cells = <0>;
+		label = "PCPU_3";
+	};
+	ps_pcpu_4: power-controller@80 {
+		compatible = "apple,t6050-pmgr-pwrstate", "apple,t8103-pmgr-pwrstate";
+		reg = <0x80 4>;
+		#power-domain-cells = <0>;
+		#reset-cells = <0>;
+		label = "PCPU_4";
+	};
+	ps_pcpu_5: power-controller@88 {
+		compatible = "apple,t6050-pmgr-pwrstate", "apple,t8103-pmgr-pwrstate";
+		reg = <0x88 4>;
+		#power-domain-cells = <0>;
+		#reset-cells = <0>;
+		label = "PCPU_5";
+	};
+
+	/* Cluster power domains (devices 19-21) */
+	ps_mcpm0: power-controller@90 {
+		compatible = "apple,t6050-pmgr-pwrstate", "apple,t8103-pmgr-pwrstate";
+		reg = <0x90 4>;
+		#power-domain-cells = <0>;
+		#reset-cells = <0>;
+		label = "MCPM0";
+		apple,always-on; /* boot cluster */
+	};
+	ps_mcpm1: power-controller@98 {
+		compatible = "apple,t6050-pmgr-pwrstate", "apple,t8103-pmgr-pwrstate";
+		reg = <0x98 4>;
+		#power-domain-cells = <0>;
+		#reset-cells = <0>;
+		label = "MCPM1";
+	};
+	ps_pcpm: power-controller@a0 {
+		compatible = "apple,t6050-pmgr-pwrstate", "apple,t8103-pmgr-pwrstate";
+		reg = <0xa0 4>;
+		#power-domain-cells = <0>;
+		#reset-cells = <0>;
+		label = "PCPM";
+	};
+
+	/*
+	 * TODO(adt): all peripheral domains — ps_aic, ps_gpio, ps_nub_gpio,
+	 * ps_uart_p/ps_uart0..N, ps_spi_p/ps_spi0..N, ps_i2c0..N, ps_fpwm*,
+	 * ps_sio_*, ps_dart_*, ps_ans_* / ps_nvme, ps_atc*, ps_usb*, ps_disp*,
+	 * ps_smc, ps_aop, ... — generate from the on-device ADT with
+	 * m1n1 proxyclient/tools/pmgr_adt2dt.py.
+	 */
+};

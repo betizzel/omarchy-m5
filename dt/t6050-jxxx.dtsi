@@ -1,0 +1,49 @@
+// SPDX-License-Identifier: GPL-2.0+ OR MIT
+/*
+ * Apple MacBook Pro (M5 Pro/Max, 2026) — common board parts
+ *
+ * target-type: J714s (14" M5 Pro), J716s (16" M5 Pro), J716c (16" M5 Max)
+ *
+ * Modeled on t8132-jxxx.dtsi (asahi-wip-7.2).
+ *
+ * Copyright The Asahi Linux Contributors / omarchy-m5 contributors
+ */
+
+/ {
+	aliases {
+		serial0 = &serial0;
+	};
+
+	chosen {
+		#address-cells = <2>;
+		#size-cells = <2>;
+		ranges;
+
+		stdout-path = "serial0";
+
+		framebuffer0: framebuffer@0 {
+			compatible = "apple,simple-framebuffer", "simple-framebuffer";
+			reg = <0 0 0 0>; /* To be filled by loader */
+			/* TODO(adt): power-domains for disp_cpu/dptx_phy once the
+			 * t6050 pmgr domain offsets are known */
+			/* Format properties will be added by loader */
+			status = "disabled";
+		};
+	};
+
+	reserved-memory {
+		#address-cells = <2>;
+		#size-cells = <2>;
+		ranges;
+		/* To be filled by loader */
+	};
+
+	memory@800000000 {
+		device_type = "memory";
+		reg = <0x8 0 0x2 0>; /* To be filled by loader */
+	};
+};
+
+&serial0 {
+	status = "okay";
+};

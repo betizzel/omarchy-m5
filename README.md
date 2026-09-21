@@ -9,7 +9,10 @@ This is frontier work. Asahi Linux has M4/M5 *booting* (PCIe + NVMe enumerated, 
 ## Layout
 
 - [`docs/PLAN.md`](docs/PLAN.md) — phased project plan, risks, open questions
+- [`docs/bringup.md`](docs/bringup.md) — Phase 1 dev-loop guide (tethered m1n1, DT TODOs)
 - `docs/research/` — deep-dive reports (kernel/boot chain, hardware matrix, Omarchy ARM ecosystem, dual-boot mechanics)
+- `dt/` — T6050 device trees (skeleton; `TODO(adt)` markers for values needing an on-device ADT dump)
+- `scripts/` — dev harness: `setup.sh`, `fetch-sources.sh`, `build-m1n1.sh`, `build-kernel.sh` (or `make setup fetch m1n1 dtbs kernel`)
 
 ## Status
 
