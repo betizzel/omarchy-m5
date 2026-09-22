@@ -100,28 +100,60 @@ echo "macOS container free space: ${FREE_GB} GB"
 
 # --- plan ----------------------------------------------------------------
 
-NEW_SIZE=$(python3 - "$LINUX_SIZE" <<'EOF'
-import sys, subprocess, re
+# How much do we still need to shrink macOS by? Only the shortfall —
+# free GPT space already sitting after disk0s2 counts toward the goal.
+read -r NEW_SIZE NEED_GB <<<"$(python3 - "$LINUX_SIZE" "$STUB_SIZE" <<'EOF'
+import sys, subprocess, re, plistlib
+
+def gib(s):
+    m = re.match(r'(\d+(?:\.\d+)?)([GgMm])', s)
+    mult = 1024**3 if m.group(2).lower() == 'g' else 1024**2
+    return int(float(m.group(1)) * mult)
+
 info = subprocess.run(["diskutil","info","-plist","disk0s2"],
                       capture_output=True).stdout
-import plistlib
 d = plistlib.loads(info)
-total = d["TotalSize"]          # bytes
-free  = d.get("APFSContainerFreeSpace") or d.get("FreeSpace") or 0
-linux = sys.argv[1]
-need = int(2.5*1024**3) + int(0.5*1024**3)   # stub + EFI
-if linux:
-    m = re.match(r'(\d+)([GgMm])', linux)
-    mult = 1024**3 if m.group(2).lower()=='g' else 1024**2
-    need += int(m.group(1))*mult
-newsize = total - need
-print(f"{newsize // 1024**3}G")
+total = d["TotalSize"]
+
+# free GPT space on disk0 (bytes) — space already reclaimed outside
+# any partition
+listing = subprocess.run(["diskutil","list","-plist","disk0"],
+                         capture_output=True).stdout
+dl = plistlib.loads(listing)
+free_gpt = 0
+for p in dl.get("AllDisksAndPartitions",[]):
+    if p.get("DeviceIdentifier") != "disk0": continue
+    for part in p.get("Partitions",[]):
+        if part.get("Content") == "Free Space" or part.get("Type") == "Free Space":
+            free_gpt += part.get("Size",0)
+# also catch the "(free space)" pseudo-entry format
+for p in dl.get("AllDisksAndPartitions",[]):
+    if p.get("DeviceIdentifier") != "disk0": continue
+    for part in p.get("Partitions",[]):
+        if "free" in str(part.get("Content","")).lower() or \
+           "free" in str(part.get("Type","")).lower():
+            free_gpt += part.get("Size",0)
+
+need = gib(sys.argv[2]) + int(0.5*1024**3)   # stub + EFI
+if sys.argv[1]:
+    need += gib(sys.argv[1])
+
+shortfall = need - free_gpt
+if shortfall <= 0:
+    print("0", need // 1024**3)   # no resize needed
+else:
+    newsize = total - shortfall
+    print(f"{newsize // 1024**3}G", need // 1024**3)
 EOF
-)
+)"
 
 echo
 echo "Plan:"
-echo "  - resize $MACOS_PART (macOS container) -> $NEW_SIZE"
+if [ "$NEW_SIZE" = "0" ]; then
+    echo "  - no resize needed ($NEED_GB GB already free after $MACOS_PART)"
+else
+    echo "  - resize $MACOS_PART (macOS container) -> $NEW_SIZE"
+fi
 echo "  - addPartition $MACOS_PART apfs '$STUB_NAME' $STUB_SIZE"
 echo "    + volumes: Data, System (grouped), Preboot, Recovery"
 echo "  - addPartition <stub> %EFI% %noformat% $EFI_SIZE + newfs_msdos"
@@ -152,8 +184,12 @@ for c in d['Containers']:
 
 STUB_CT=$(find_stub || true)
 if [ -z "$STUB_CT" ]; then
-    step "Resizing macOS container to $NEW_SIZE"
-    diskutil apfs resizeContainer "$MACOS_PART" "$NEW_SIZE"
+    if [ "$NEW_SIZE" != "0" ]; then
+        step "Resizing macOS container to $NEW_SIZE"
+        diskutil apfs resizeContainer "$MACOS_PART" "$NEW_SIZE"
+    else
+        echo "no resize needed — using existing free space"
+    fi
 
     step "Creating stub APFS container ($STUB_SIZE)"
     diskutil addPartition "$MACOS_PART" apfs "$STUB_NAME" "$STUB_SIZE"
