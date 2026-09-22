@@ -32,7 +32,7 @@ set -euo pipefail
 
 MACOS_PART=disk0s2          # the big APFS container partition
 STUB_NAME="Omarchy"
-STUB_SIZE="2.5G"
+STUB_SIZE="6G"   # M5 boot objects (~400M) + recoveryOS (~1.5G) exceed 2.5G
 EFI_SIZE="500M"
 LINUX_SIZE=""
 ASSUME_YES=0
