@@ -170,19 +170,55 @@ print(d['Containers'][0]['PhysicalStores'][0]['DeviceIdentifier'])
 echo "stub container: $STUB_CT (partition $STUB_PART)"
 
 step "Creating stub volumes"
-# addVolume can spuriously fail on the auto-mount step; verify after
-diskutil apfs addVolume "$STUB_CT" apfs "$STUB_NAME" -role D 2>/dev/null || true
-DATA_VOL=$(diskutil apfs list "$STUB_CT" -plist | python3 -c "
+# addPartition leaves a default no-role volume; repurpose it as Data
+# (same as stub.py) rather than adding a second one. addVolume can
+# spuriously fail on the auto-mount step; verify after each call.
+vol_with_role() {
+    diskutil apfs list "$STUB_CT" -plist | python3 -c "
+import plistlib,sys
+d=plistlib.loads(sys.stdin.buffer.read())
+role='$1'
+for c in d['Containers']:
+    for v in c.get('Volumes',[]):
+        if role in v.get('Roles',[]): print(v['DeviceIdentifier'])
+"
+}
+vol_no_role() {
+    diskutil apfs list "$STUB_CT" -plist | python3 -c "
 import plistlib,sys
 d=plistlib.loads(sys.stdin.buffer.read())
 for c in d['Containers']:
     for v in c.get('Volumes',[]):
-        if 'Data' in v.get('Roles',[]): print(v['DeviceIdentifier'])
-")
+        if not v.get('Roles'): print(v['DeviceIdentifier'])
+"
+}
+
+DATA_VOL=$(vol_with_role Data)
+if [ -z "$DATA_VOL" ]; then
+    DEFAULT_VOL=$(vol_no_role)
+    if [ -n "$DEFAULT_VOL" ]; then
+        diskutil apfs changeVolumeRole "$DEFAULT_VOL" D
+        diskutil rename "$DEFAULT_VOL" "$STUB_NAME - Data" 2>/dev/null || true
+    else
+        diskutil apfs addVolume "$STUB_CT" apfs "$STUB_NAME" -role D 2>/dev/null || true
+    fi
+    DATA_VOL=$(vol_with_role Data)
+fi
 [ -n "$DATA_VOL" ] || die "Data volume was not created"
-diskutil apfs addVolume "$STUB_CT" apfs "$STUB_NAME" -role S -groupWith "$DATA_VOL" 2>/dev/null || true
-diskutil apfs addVolume "$STUB_CT" apfs Preboot -role B 2>/dev/null || true
-diskutil apfs addVolume "$STUB_CT" apfs Recovery -role R 2>/dev/null || true
+
+[ -n "$(vol_with_role System)" ] || \
+    diskutil apfs addVolume "$STUB_CT" apfs "$STUB_NAME" -role S -groupWith "$DATA_VOL" 2>/dev/null || true
+[ -n "$(vol_with_role Preboot)" ] || \
+    diskutil apfs addVolume "$STUB_CT" apfs Preboot -role B 2>/dev/null || true
+[ -n "$(vol_with_role Recovery)" ] || \
+    diskutil apfs addVolume "$STUB_CT" apfs Recovery -role R 2>/dev/null || true
+
+# delete any leftover no-role volumes (e.g. a second default vol)
+for v in $(vol_no_role); do
+    echo "deleting stray volume $v"
+    diskutil apfs deleteVolume "$v"
+done
+
 N_VOLS=$(diskutil apfs list "$STUB_CT" -plist | python3 -c "
 import plistlib,sys
 d=plistlib.loads(sys.stdin.buffer.read())
