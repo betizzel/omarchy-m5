@@ -129,22 +129,32 @@ fi
 
 # --- partition -----------------------------------------------------------
 
-step "Resizing macOS container to $NEW_SIZE"
-diskutil apfs resizeContainer "$MACOS_PART" "$NEW_SIZE"
-
-step "Creating stub APFS container ($STUB_SIZE)"
-diskutil addPartition "$MACOS_PART" apfs "$STUB_NAME" "$STUB_SIZE"
-
-# find the new container: the APFS container whose physical store is not
-# one of the three sacred partitions
-STUB_CT=$(diskutil apfs list -plist | python3 -c "
+# find the stub container: an APFS container whose physical store is a
+# disk0 partition that isn't one of the three sacred ones. Re-runnable:
+# if a previous run already created it, we pick it up and continue.
+find_stub() {
+    diskutil apfs list -plist | python3 -c "
 import plistlib,sys
 d=plistlib.loads(sys.stdin.buffer.read())
 for c in d['Containers']:
     for ps in c.get('PhysicalStores',[]):
-        if ps['DeviceIdentifier'] not in ('disk0s1','disk0s2','disk0s3'):
+        dev = ps['DeviceIdentifier']
+        if dev.startswith('disk0s') and dev not in ('disk0s1','disk0s2','disk0s3'):
             print(c['ContainerReference']); sys.exit(0)
-")
+"
+}
+
+STUB_CT=$(find_stub || true)
+if [ -z "$STUB_CT" ]; then
+    step "Resizing macOS container to $NEW_SIZE"
+    diskutil apfs resizeContainer "$MACOS_PART" "$NEW_SIZE"
+
+    step "Creating stub APFS container ($STUB_SIZE)"
+    diskutil addPartition "$MACOS_PART" apfs "$STUB_NAME" "$STUB_SIZE"
+    STUB_CT=$(find_stub)
+else
+    echo "stub container already exists: $STUB_CT (resuming)"
+fi
 [ -n "$STUB_CT" ] || die "could not find new stub container"
 STUB_PART=$(diskutil apfs list "$STUB_CT" -plist | python3 -c "
 import plistlib,sys
@@ -184,16 +194,26 @@ VGID=$(diskutil info "$SYS_VOL" | awk -F': *' '/APFS Volume Group/{print $2}')
 [ -n "$VGID" ] || die "could not determine stub VGID"
 echo "stub VGID: $VGID"
 
-step "Creating EFI partition ($EFI_SIZE)"
-diskutil addPartition "$STUB_PART" '%EFI%' '%noformat%' "$EFI_SIZE"
-EFI_PART=$(diskutil list disk0 | awk '/EFI|Microsoft Basic/{print $NF}' | tail -1)
-newfs_msdos -F 32 -v OMARCHY "/dev/r${EFI_PART}"
+EFI_PART=$(diskutil list disk0 | awk '$2=="EFI" || /Microsoft Basic/{print $NF}' | tail -1)
+if [ -z "$EFI_PART" ]; then
+    step "Creating EFI partition ($EFI_SIZE)"
+    diskutil addPartition "$STUB_PART" '%EFI%' '%noformat%' "$EFI_SIZE"
+    EFI_PART=$(diskutil list disk0 | awk '$2=="EFI" || /Microsoft Basic/{print $NF}' | tail -1)
+    newfs_msdos -F 32 -v OMARCHY "/dev/r${EFI_PART}"
+else
+    echo "EFI partition already exists: $EFI_PART"
+fi
 echo "EFI partition: $EFI_PART"
 
 
 if [ -n "$LINUX_SIZE" ]; then
-    step "Creating Linux partition ($LINUX_SIZE)"
-    diskutil addPartition "$EFI_PART" '%Linux%' '%noformat%' "$LINUX_SIZE"
+    LINUX_PART=$(diskutil list disk0 | awk '/Linux|Linux filesystem/{print $NF}' | tail -1)
+    if [ -z "$LINUX_PART" ]; then
+        step "Creating Linux partition ($LINUX_SIZE)"
+        diskutil addPartition "$EFI_PART" '%Linux%' '%noformat%' "$LINUX_SIZE"
+    else
+        echo "Linux partition already exists: $LINUX_PART"
+    fi
 fi
 
 # --- populate ------------------------------------------------------------
