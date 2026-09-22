@@ -84,10 +84,16 @@ for c in d['Containers']:
             print(v['DeviceIdentifier']); sys.exit(0)
 " 2>/dev/null || true)
 [ -n "$REC_DEV" ] || die "could not find macOS Recovery volume"
-diskutil mount -mountPoint "$REC_MNT" "$REC_DEV" >/dev/null
-trap 'diskutil unmount "$REC_MNT" >/dev/null 2>&1 || true' EXIT
+# mount it; if it's already mounted somewhere, use that mount point
+if ! diskutil mount -mountPoint "$REC_MNT" "$REC_DEV" >/dev/null 2>&1; then
+    EXISTING=$(diskutil info "$REC_DEV" | awk -F': *' '/Mount Point/{print $2}')
+    [ -n "$EXISTING" ] && [ "$EXISTING" != "Not mounted" ] \
+        && REC_MNT="$EXISTING" \
+        || die "could not mount $REC_DEV"
+fi
+trap 'diskutil unmount "$REC_DEV" >/dev/null 2>&1 || true' EXIT
 [ -f "$REC_MNT/$MACOS_VGID/usr/standalone/firmware/arm64eBaseSystem.dmg" ] \
-    || die "arm64eBaseSystem.dmg not found in Recovery volume"
+    || die "arm64eBaseSystem.dmg not found in Recovery volume ($REC_MNT)"
 
 FREE_GB=$(diskutil info "$MACOS_PART" | awk '/Container Free Space/{print $(NF-1)}')
 echo "macOS container free space: ${FREE_GB} GB"
