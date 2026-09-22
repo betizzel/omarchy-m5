@@ -71,13 +71,16 @@ PB=/System/Volumes/Preboot/$MACOS_VGID
 [ -d "$PB/restore" ] || die "macOS restore bundle not found at $PB/restore"
 
 REC_MNT=$(mktemp -d /tmp/recovery-mnt.XXXXXX)
-# find the Recovery-role volume in the recovery container (not disk3's)
+# find the Recovery-role volume inside the macOS container (disk3),
+# NOT the iSC (disk1) or Apple_APFS_Recovery (disk2) containers
 REC_DEV=$(diskutil apfs list -plist 2>/dev/null | python3 -c "
 import plistlib,sys
 d=plistlib.loads(sys.stdin.buffer.read())
 for c in d['Containers']:
+    stores=[p['DeviceIdentifier'] for p in c.get('PhysicalStores',[])]
+    if 'disk0s2' not in stores: continue
     for v in c.get('Volumes',[]):
-        if 'Recovery' in v.get('Roles',[]) and c.get('ContainerReference')!='disk3':
+        if 'Recovery' in v.get('Roles',[]):
             print(v['DeviceIdentifier']); sys.exit(0)
 " 2>/dev/null || true)
 [ -n "$REC_DEV" ] || die "could not find macOS Recovery volume"
