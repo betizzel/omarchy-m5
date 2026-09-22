@@ -311,6 +311,16 @@ cp "$PB/var/db/AdminUserRecoveryInfo.plist" "$PB_MNT/$VGID/var/db/"
 chflags schg "$PB_MNT/$VGID/var/db/AdminUserRecoveryInfo.plist"
 
 step "Populating stub Recovery"
+# the macOS Recovery volume may have been unmounted by the partition
+# operations above — (re)mount it now, right before we need it
+if [ ! -f "$REC_MNT/$MACOS_VGID/usr/standalone/firmware/arm64eBaseSystem.dmg" ]; then
+    diskutil mount -mountPoint "$REC_MNT" "$REC_DEV" >/dev/null 2>&1 || {
+        EXISTING=$(diskutil info "$REC_DEV" | awk -F': *' '/Mount Point/{print $2}')
+        [ -n "$EXISTING" ] && [ "$EXISTING" != "Not mounted" ] && REC_MNT="$EXISTING"
+    }
+fi
+[ -f "$REC_MNT/$MACOS_VGID/usr/standalone/firmware/arm64eBaseSystem.dmg" ] \
+    || die "arm64eBaseSystem.dmg not found in Recovery volume ($REC_MNT)"
 REC2_MNT=$(diskutil info "$(diskutil apfs list "$STUB_CT" -plist | python3 -c "
 import plistlib,sys
 d=plistlib.loads(sys.stdin.buffer.read())
