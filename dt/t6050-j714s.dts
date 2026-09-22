@@ -16,3 +16,8 @@
 	compatible = "apple,j714s", "apple,t6050", "apple,arm-platform";
 	model = "Apple MacBook Pro (14-inch, M5 Pro, 2026)";
 };
+
+/* J714s is a binned SKU: 5 cores per cluster, cpu5/cpu11/cpu17 fused off */
+&cpu_m0_5 { status = "disabled"; };
+&cpu_m1_5 { status = "disabled"; };
+&cpu_p5   { status = "disabled"; };

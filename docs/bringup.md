@@ -55,24 +55,22 @@ from linux-next, or m1n1 PR #672's auto-disable).
 Console: dockchannel-UART (m1n1 secondary channel) and/or simplefb on the
 panel. Serial0 (0x505200000) is the Samsung UART — needs the debug cable.
 
-## Filling the DT TODOs
+## DT state (populated from the real J714s ADT)
 
-`dt/t6050.dtsi` / `t6050-pmgr.dtsi` carry `TODO(adt)` markers for every
-value not yet verified. On the device, via m1n1 proxyclient:
+`dt/t6050-pmgr.dtsi` is generated, not hand-written:
 
-```sh
-vendor/m1n1/proxyclient/tools/dump_pmgr.py      # PMGR device table
-vendor/m1n1/proxyclient/tools/pmgr_adt2dt.py    # emits pmgr dtsi nodes
-# ADT interrupt numbers, GPIO pin counts, AIC event region: read the ADT
-# directly (proxyclient `adt` object) or ioreg -lw0 on macOS.
-```
+1. Extract the ADT: `devicetree.img4` lives in the booted OS's Preboot at
+   `usr/standalone/firmware/devicetree.img4`. Strip the IM4P header and
+   LZFSE-decompress the `bvx2` payload (macOS `libcompression` handles it).
+2. `scripts/adt2pmgr.py adt.bin > dt/t6050-pmgr.dtsi` — a fixed fork of
+   m1n1's `pmgr_adt2dt.py` (upstream crashes on T6050's die-level parent
+   IDs 219/325/609, which have no device entry).
 
-Known-verified values already in the DTs (from J716c ioreg dump +
-m1n1 source): uart0 0x505200000, AIC 0x280400000/0x1cc000, PMGR
-0x280600000/0x1fc000, wdt 0x28836c000, dockchannel 0x288e28000,
-i2c0-2 0x50501{0,4,8}000, spi2/spi4 0x5051{08,10}0000,
-pinctrls 0x2881e4000/0x290824000/0x29c000000, CPU MPIDRs and PMGR
-CPU/cluster power-state offsets.
+Verified on J714s (macOS 26.5): 405 power domains across 6 PMGR blocks;
+real IRQs/npins for uart/i2c/spi/gpio/wdt/dockchannel; CPU topology
+15 cores (5+5+5, binned — cpu5/cpu11/cpu17 disabled in the board DTS).
+Remaining TODO(adt) markers: AIC event region, PMU FIQ affinities,
+pinmux tables, which SPI bus carries keyboard/trackpad.
 
 Note: ADT `reg` values sit 0x2_0000_0000 below the MMIO address on this
 SoC (uart0 ADT 0x305200000 → MMIO 0x505200000, matching m1n1's
