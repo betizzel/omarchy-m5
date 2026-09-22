@@ -20,17 +20,30 @@ vendored musl copy — `byteswap.h`, `copy_file_range`, `O_LARGEFILE`).
 
 ## One-time on-device step (the risky part — do it once, carefully)
 
-Per `docs/research/dualboot-partitioning.md` §7, the manual path:
+`scripts/prep-stub.sh` automates the mechanical half — run it with sudo:
 
-1. `diskutil apfs resizeContainer disk0s2 <newsize>` — shrink macOS.
-2. `diskutil addPartition disk0s2 apfs Omarchy 2.5GB` — stub container.
-3. Populate the stub (System/Data/Preboot/Recovery volumes, copy
-   `AdminUserRecoveryInfo.plist` from macOS Preboot).
-4. Boot the stub's **paired** recoveryOS via 1TR (hold power button).
-5. `bputil -nc -v <vgid>` — Permissive Security + custom kernel.
-6. `kmutil configure-boot -c m1n1.bin --raw --entry-point 2048
-   --lowest-virtual-address 0 -v <stub system volume>`
-   (build with `CHAINLOADING=0` for this installed image).
+```sh
+sudo scripts/prep-stub.sh                  # stub + EFI only
+sudo scripts/prep-stub.sh --linux-size 200G   # also carve the rootfs
+```
+
+It shrinks the macOS container, creates the 2.5 GB "Omarchy" stub
+(Data+System+Preboot+Recovery volume group), clones this install's
+restore bundle / `arm64eBaseSystem.dmg` / `AdminUserRecoveryInfo.plist`
+into it (no IPSW download — everything is on-disk), and makes a 500 MB
+EFI partition for m1n1. It prints the stub's VGID at the end.
+
+Then by hand:
+
+1. `cp vendor/m1n1/build/m1n1.bin /Volumes/OMARCHY/` (EFI partition).
+2. `bless --setBoot --device /dev/<stub system volume>`.
+3. Shut down; power on **holding** the button into 1TR; pick "Omarchy".
+4. In the stub's recoveryOS Terminal:
+   `bputil -d -v <vgid>` must show `: Paired` + `one true recoveryOS`,
+   then `bputil -nc -v <vgid>` (Permissive + custom kernel), then
+   `kmutil configure-boot -c /Volumes/OMARCHY/m1n1.bin --raw
+   --entry-point 2048 --lowest-virtual-address 0 -v <stub sysvol>`
+   (build m1n1 with `CHAINLOADING=0` for this installed image).
 
 After this, the machine boots iBoot → m1n1 stage1 → proxy mode on the
 USB-C DFU/debug port. **Never** re-run kmutil for iterations — chainload.
