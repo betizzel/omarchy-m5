@@ -58,7 +58,7 @@ diskutil info "$MACOS_PART" | grep -q "Apple_APFS" \
 
 MACOS_SYS=$(diskutil apfs list -plist | python3 -c "
 import plistlib,sys
-d=plistlib.load(sys.stdin.buffer)
+d=plistlib.loads(sys.stdin.buffer.read())
 for c in d['Containers']:
     stores=[p['DeviceIdentifier'] for p in c.get('PhysicalStores',[])]
     if 'disk0s2' not in stores: continue
@@ -74,7 +74,7 @@ REC_MNT=$(mktemp -d /tmp/recovery-mnt.XXXXXX)
 # find the Recovery-role volume in the recovery container (not disk3's)
 REC_DEV=$(diskutil apfs list -plist 2>/dev/null | python3 -c "
 import plistlib,sys
-d=plistlib.load(sys.stdin.buffer)
+d=plistlib.loads(sys.stdin.buffer.read())
 for c in d['Containers']:
     for v in c.get('Volumes',[]):
         if 'Recovery' in v.get('Roles',[]) and c.get('ContainerReference')!='disk3':
@@ -136,7 +136,7 @@ diskutil addPartition "$MACOS_PART" apfs "$STUB_NAME" "$STUB_SIZE"
 # one of the three sacred partitions
 STUB_CT=$(diskutil apfs list -plist | python3 -c "
 import plistlib,sys
-d=plistlib.load(sys.stdin.buffer)
+d=plistlib.loads(sys.stdin.buffer.read())
 for c in d['Containers']:
     for ps in c.get('PhysicalStores',[]):
         if ps['DeviceIdentifier'] not in ('disk0s1','disk0s2','disk0s3'):
@@ -145,7 +145,7 @@ for c in d['Containers']:
 [ -n "$STUB_CT" ] || die "could not find new stub container"
 STUB_PART=$(diskutil apfs list "$STUB_CT" -plist | python3 -c "
 import plistlib,sys
-d=plistlib.load(sys.stdin.buffer)
+d=plistlib.loads(sys.stdin.buffer.read())
 print(d['Containers'][0]['PhysicalStores'][0]['DeviceIdentifier'])
 ")
 echo "stub container: $STUB_CT (partition $STUB_PART)"
@@ -155,7 +155,7 @@ step "Creating stub volumes"
 diskutil apfs addVolume "$STUB_CT" apfs "$STUB_NAME" -role D 2>/dev/null || true
 DATA_VOL=$(diskutil apfs list "$STUB_CT" -plist | python3 -c "
 import plistlib,sys
-d=plistlib.load(sys.stdin.buffer)
+d=plistlib.loads(sys.stdin.buffer.read())
 for c in d['Containers']:
     for v in c.get('Volumes',[]):
         if 'Data' in v.get('Roles',[]): print(v['DeviceIdentifier'])
@@ -166,13 +166,13 @@ diskutil apfs addVolume "$STUB_CT" apfs Preboot -role B 2>/dev/null || true
 diskutil apfs addVolume "$STUB_CT" apfs Recovery -role R 2>/dev/null || true
 N_VOLS=$(diskutil apfs list "$STUB_CT" -plist | python3 -c "
 import plistlib,sys
-d=plistlib.load(sys.stdin.buffer)
+d=plistlib.loads(sys.stdin.buffer.read())
 print(len(d['Containers'][0]['Volumes']))
 ")
 [ "$N_VOLS" = 4 ] || die "expected 4 stub volumes, got $N_VOLS"
 SYS_VOL=$(diskutil apfs list "$STUB_CT" -plist | python3 -c "
 import plistlib,sys
-d=plistlib.load(sys.stdin.buffer)
+d=plistlib.loads(sys.stdin.buffer.read())
 for c in d['Containers']:
     for v in c.get('Volumes',[]):
         if 'System' in v.get('Roles',[]): print(v['DeviceIdentifier'])
@@ -198,7 +198,7 @@ fi
 step "Populating stub Preboot"
 PB_MNT=$(diskutil info "$(diskutil apfs list "$STUB_CT" -plist | python3 -c "
 import plistlib,sys
-d=plistlib.load(sys.stdin.buffer)
+d=plistlib.loads(sys.stdin.buffer.read())
 for c in d['Containers']:
     for v in c.get('Volumes',[]):
         if 'Preboot' in v.get('Roles',[]): print(v['DeviceIdentifier'])
@@ -212,7 +212,7 @@ chflags schg "$PB_MNT/$VGID/var/db/AdminUserRecoveryInfo.plist"
 step "Populating stub Recovery"
 REC2_MNT=$(diskutil info "$(diskutil apfs list "$STUB_CT" -plist | python3 -c "
 import plistlib,sys
-d=plistlib.load(sys.stdin.buffer)
+d=plistlib.loads(sys.stdin.buffer.read())
 for c in d['Containers']:
     for v in c.get('Volumes',[]):
         if 'Recovery' in v.get('Roles',[]): print(v['DeviceIdentifier'])
