@@ -307,6 +307,8 @@ for c in d['Containers']:
 mkdir -p "$PB_MNT/$VGID"
 cp -R "$PB/restore" "$PB_MNT/$VGID/restore"
 mkdir -p "$PB_MNT/$VGID/var/db"
+# may already exist + schg-locked from a previous run
+chflags noschg "$PB_MNT/$VGID/var/db/AdminUserRecoveryInfo.plist" 2>/dev/null || true
 cp "$PB/var/db/AdminUserRecoveryInfo.plist" "$PB_MNT/$VGID/var/db/"
 chflags schg "$PB_MNT/$VGID/var/db/AdminUserRecoveryInfo.plist"
 
