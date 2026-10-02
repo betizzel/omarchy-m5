@@ -56,9 +56,16 @@ HEADER = """// SPDX-License-Identifier: GPL-2.0+ OR MIT
 # which ends in an asynchronous SError.
 CPU_COMPLEX = re.compile(r"^[mpe]cp[um]\d*(_\d+)?$")
 
+# The SMC firmware's own I2C masters (charger, fuel gauge, USB-C PD). No
+# Linux driver claims them and Asahi's trees never describe them; described
+# here, the pwrstate probe arms AUTO_ENABLE on the active ones - the same
+# move that auto-gated the USB-C port domains and broke the DWC3 reset.
+SMC_OWNED = re.compile(r"^smc_i2cm\d+$")
+
 
 def skipped(dev) -> bool:
-    return dev.flags.no_ps or bool(CPU_COMPLEX.match(dev.name.lower()))
+    name = dev.name.lower()
+    return dev.flags.no_ps or bool(CPU_COMPLEX.match(name) or SMC_OWNED.match(name))
 
 
 def linux_sees_active(value: int) -> bool:
