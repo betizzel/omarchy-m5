@@ -9,7 +9,7 @@ WAN=${WAN:-$(ip -4 route show default | awk '{print $5; exit}')}
 # n = the M5's UDC index), not by MAC: EEM carries no MAC to the host.
 found=0
 for d in /sys/class/net/*; do
-    u=$(readlink -f "$d/device/..")
+    u=$(readlink -f "$d/device/.." 2>/dev/null) || continue   # lo, bridges: no device
     [ "$(cat "$u/idVendor" 2>/dev/null):$(cat "$u/idProduct" 2>/dev/null)" = 1d6b:0104 ] || continue
     s=$(cat "$u/serial" 2>/dev/null)
     case "$s" in m5pro-[0-9]) n=${s#m5pro-} ;; *) continue ;; esac
