@@ -230,8 +230,45 @@ installed stage 1, a readable MMIO breadcrumb, or tracing macOS's own core
 start under upstream m1n1's SPTM-emulating hypervisor. Linux stays at
 `maxcpus=1`; m1n1 prunes non-alive cores from the FDT anyway.
 
-Next: internal keyboard/trackpad (MTP over DockChannel), NVMe + a real
-rootfs on `disk0s5`, then networking.
+**KEYBOARD (2026-10-01): works.** MTP + DockChannel ring transport
+(`patches/linux/0005`, from GravityLinux PR #1 plus review fixes). The
+trackpad needs `apple/tpmtfw-j714s.bin`: `scripts/extract-tpmtfw.py --ipsw
+<URL>` pulls just the Multitouch im4p out of Apple's restore IPSW by HTTP
+range requests and converts it with asahi-installer's
+`MultitouchFWCollection`. It must match the macOS iBoot boots (26.5 here).
+The initramfs and the rootfs image both carry it, since the driver loads it
+on every open. Not yet confirmed on hardware.
+
+**NVMe (2026-10-01): works bare-metal.** `patches/linux/0006` (ANS2 +
+NVMMU from ADT reg[3]) and `0007` (SARTv4); DT from
+`scripts/gen-storage-net-dt.py`. `nvme0n1` shows p1..p6 matching the GPT
+that `hv/nvme-proxy-probe.py` reads through m1n1 (run it right before
+`./boot-linux.sh`). p5 is ours: LBA 163592953, 62500000 x 4K.
+
+**USB gadget (2026-10-01): enumerates, not configured yet.** The three
+DWC3 cores come up in peripheral mode with no PHY driver, on the eUSB2 PHY
+m1n1 left running. Two fixes so far:
+- leave the `ps_atc*` PMGR domains disabled in DT (probing them armed
+  auto-PM and the soft reset timed out);
+- no USB2 LPM, no SUSPHY/ENBLSLPM (`snps,*` quirks).
+
+The ThinkPad still gets -110 on SET_CONFIGURATION, with nothing logged on
+the M5. `usb-gadget-net.sh` therefore traces dwc3 from boot. When no host
+has configured it after 30 s, it prints a diagnostic screen, then retries
+with ACM only and NCM only. Apple's ADT marks the NCM interrupt endpoint
+disabled on this port.
+
+**Rootfs (2026-10-01): image ready, offline flash path.**
+- `scripts/mkrootfs-image.py` builds Arch Linux ARM as a 2 GiB ext4 image
+  on the host (`mke2fs -d tarball`, no root), without linux-aarch64 and
+  linux-firmware, grown on first boot by `x-systemd.growfs`.
+- `INITRAMFS=boot/initramfs-provision.cpio ./boot-linux.sh` ships it in a
+  second cpio segment. On the M5, `provision-rootfs 163592953 62500000`
+  writes it to nvme0n1p5 (geometry-guarded, read-back verified).
+- Then boot with `BOOTARGS="... m5.root=/dev/nvme0n1p5"`; root/root on
+  tty1, sshd with the host's key.
+
+Next: USB gadget networking, first SSD boot, Claude Code.
 
 ## Remaining DT TODOs (marked `TODO(adt)` in dt/)
 
