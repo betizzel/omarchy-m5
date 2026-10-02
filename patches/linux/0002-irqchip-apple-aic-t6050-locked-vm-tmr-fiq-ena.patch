@@ -1,0 +1,73 @@
+diff --git a/drivers/irqchip/irq-apple-aic.c b/drivers/irqchip/irq-apple-aic.c
+index 4a3141d9f..9f20e0e07 100644
+--- a/drivers/irqchip/irq-apple-aic.c
++++ b/drivers/irqchip/irq-apple-aic.c
+@@ -260,6 +260,12 @@ struct aic_info {
+ 	/* Features */
+ 	bool fast_ipi;
+ 	bool local_fast_ipi;
++	/*
++	 * SYS_IMP_APL_VM_TMR_FIQ_ENA_EL2 reads back with both guest timer
++	 * FIQs enabled and every write to it is UNDEFINED (T6050). The guest
++	 * timer FIQs can then never be masked, so they must not be handed out.
++	 */
++	bool vm_tmr_fiq_locked;
+ };
+ 
+ static const struct aic_info aic1_info __initconst = {
+@@ -306,6 +312,16 @@ static const struct aic_info aic3_info __initconst = {
+ 	.local_fast_ipi = true,
+ };
+ 
++static const struct aic_info aic3_t6050_info __initconst = {
++	.version	= 3,
++
++	.irq_cfg	= AIC3_IRQ_CFG,
++
++	.fast_ipi	= true,
++	.local_fast_ipi = true,
++	.vm_tmr_fiq_locked = true,
++};
++
+ static const struct of_device_id aic_info_match[] = {
+ 	{
+ 		.compatible = "apple,t8103-aic",
+@@ -323,6 +339,10 @@ static const struct of_device_id aic_info_match[] = {
+ 		.compatible = "apple,aic2",
+ 		.data = &aic2_info,
+ 	},
++	{
++		.compatible = "apple,t6050-aic3",
++		.data = &aic3_t6050_info,
++	},
+ 	{
+ 		.compatible = "apple,t8122-aic3",
+ 		.data = &aic3_info,
+@@ -733,6 +753,15 @@ static int aic_irq_domain_translate(struct irq_domain *id,
+ 			default:
+ 				break;
+ 			}
++		} else if (ic->info.vm_tmr_fiq_locked) {
++			/* Unmaskable here: see aic_info.vm_tmr_fiq_locked */
++			switch (args[0]) {
++			case AIC_TMR_GUEST_PHYS:
++			case AIC_TMR_GUEST_VIRT:
++				return -ENOENT;
++			default:
++				break;
++			}
+ 		}
+ 
+ 		/* Merge the two PMUs on a single interrupt */
+@@ -871,8 +900,9 @@ static int aic_init_cpu(unsigned int cpu)
+ 	/* EL2-only (VHE mode) IRQ sources */
+ 	if (is_kernel_in_hyp_mode()) {
+ 		/* Guest timers */
+-		sysreg_clear_set_s(SYS_IMP_APL_VM_TMR_FIQ_ENA_EL2,
+-				   VM_TMR_FIQ_ENABLE_V | VM_TMR_FIQ_ENABLE_P, 0);
++		if (!aic_irqc->info.vm_tmr_fiq_locked)
++			sysreg_clear_set_s(SYS_IMP_APL_VM_TMR_FIQ_ENA_EL2,
++					   VM_TMR_FIQ_ENABLE_V | VM_TMR_FIQ_ENABLE_P, 0);
+ 
+ 		/* vGIC maintenance IRQ */
+ 		sysreg_clear_set_s(SYS_ICH_HCR_EL2, ICH_HCR_EL2_En, 0);

@@ -1,0 +1,30 @@
+diff --git a/drivers/pmdomain/apple/pmgr-pwrstate.c b/drivers/pmdomain/apple/pmgr-pwrstate.c
+index a92db8cf8..65fdde4ec 100644
+--- a/drivers/pmdomain/apple/pmgr-pwrstate.c
++++ b/drivers/pmdomain/apple/pmgr-pwrstate.c
+@@ -292,10 +292,21 @@ static int apple_pmgr_ps_probe(struct platform_device *pdev)
+ 		ps->genpd.flags |= GENPD_FLAG_DEFER_OFF | GENPD_FLAG_ACTIVE_WAKEUP;
+ 	}
+ 
+-	/* Turn on auto-PM if the domain is already on */
+-	if (active)
+-		regmap_update_bits(regmap, ps->offset, APPLE_PMGR_FLAGS | APPLE_PMGR_AUTO_ENABLE,
+-				   APPLE_PMGR_AUTO_ENABLE);
++	/*
++	 * Turn on auto-PM if the domain is already on. A domain the bootloader
++	 * already put under auto-PM needs no write: the update would only store
++	 * 0 to the write-1-to-clear flags. On T6050 such a store, issued while
++	 * the domain is auto-gated, never completes and hangs the bus.
++	 */
++	if (active) {
++		u32 reg = 0;
++
++		regmap_read(regmap, ps->offset, &reg);
++		if (!(reg & APPLE_PMGR_AUTO_ENABLE))
++			regmap_update_bits(regmap, ps->offset,
++					   APPLE_PMGR_FLAGS | APPLE_PMGR_AUTO_ENABLE,
++					   APPLE_PMGR_AUTO_ENABLE);
++	}
+ 
+ 	ret = pm_genpd_init(&ps->genpd, NULL, !active);
+ 	if (ret < 0) {

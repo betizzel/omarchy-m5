@@ -1,0 +1,25 @@
+diff --git a/drivers/pmdomain/core.c b/drivers/pmdomain/core.c
+index 87b5d2f3f..f52923111 100644
+--- a/drivers/pmdomain/core.c
++++ b/drivers/pmdomain/core.c
+@@ -3735,7 +3735,9 @@ void of_genpd_sync_state(struct device_node *np)
+ 		if (genpd->provider == of_fwnode_handle(np)) {
+ 			genpd_lock(genpd);
+ 			genpd->stay_on = false;
+-			genpd_power_off(genpd, false, false, 0);
++			/* pd_ignore_unused: keep what the bootloader enabled */
++			if (!pd_ignore_unused)
++				genpd_power_off(genpd, false, false, 0);
+ 			genpd_unlock(genpd);
+ 		}
+ 	}
+@@ -3763,7 +3765,8 @@ static void genpd_provider_sync_state(struct device *dev)
+ 	case GENPD_SYNC_STATE_SIMPLE:
+ 		genpd_lock(genpd);
+ 		genpd->stay_on = false;
+-		genpd_power_off(genpd, false, false, 0);
++		if (!pd_ignore_unused)
++			genpd_power_off(genpd, false, false, 0);
+ 		genpd_unlock(genpd);
+ 		break;
+ 

@@ -1,0 +1,417 @@
+diff --git a/arch/arm64/Kconfig.debug b/arch/arm64/Kconfig.debug
+index 265c44610..bd794c61e 100644
+--- a/arch/arm64/Kconfig.debug
++++ b/arch/arm64/Kconfig.debug
+@@ -21,3 +21,38 @@ config ARM64_RELOC_TEST
+ 	tristate "Relocation testing module"
+ 
+ source "drivers/hwtracing/coresight/Kconfig"
++
++config OMARCHY_FB_MARKERS
++	bool "omarchy-m5: framebuffer checkpoint markers"
++	depends on ARCH_APPLE
++	help
++	  Paint coloured bands into the framebuffer handed over by the
++	  bootloader at fixed early-boot checkpoints (kernel entry, MMU on,
++	  paging_init, console_init).
++
++	  On a SoC with no working console and no debug cable this is the
++	  only way to distinguish "died in head.S" from "booted fine but has
++	  no console" - both of which look like a frozen bootloader logo.
++
++	  The address below is machine-specific. Bring-up diagnostic only.
++
++config OMARCHY_FB_MARKER_BASE
++	hex "Framebuffer physical base address"
++	depends on OMARCHY_FB_MARKERS
++	default 0x10bd3110000
++	help
++	  Physical address of the framebuffer, as reported by the bootloader
++	  (m1n1 prints it as "fb init: WxH (D) [s=S] @ADDR").
++
++config OMARCHY_FB_MARKER_STRIDE
++	hex "Framebuffer stride in bytes"
++	depends on OMARCHY_FB_MARKERS
++	default 0x2f40
++
++config OMARCHY_FB_MARKER_HEIGHT
++	int "Framebuffer height in pixels"
++	depends on OMARCHY_FB_MARKERS
++	default 1964
++	help
++	  Full panel height (m1n1's "fb init: WxH" before notch hiding). Sizes
++	  the region `earlycon=efifb` draws into, below the marker bands.
+diff --git a/arch/arm64/include/asm/omarchy_fbmarker.h b/arch/arm64/include/asm/omarchy_fbmarker.h
+new file mode 100644
+index 000000000..74fe96cea
+--- /dev/null
++++ b/arch/arm64/include/asm/omarchy_fbmarker.h
+@@ -0,0 +1,58 @@
++/* SPDX-License-Identifier: GPL-2.0-only */
++/*
++ * omarchy-m5 bring-up: framebuffer checkpoint markers.
++ *
++ * On an unsupported SoC with no debug cable the panel is the only output
++ * channel, and every console the kernel has (fbcon via simpledrm, earlycon
++ * via the s5l UART) comes up far too late to describe early boot. A kernel
++ * that dies in head.S and one that dies in console_init() look identical:
++ * the m1n1 logo, frozen.
++ *
++ * These markers paint a band straight into the framebuffer m1n1 handed over,
++ * so each checkpoint is visible with no driver, no console and no DT
++ * involved. Each band is 16 rows of 256 px:
++ *
++ *   rows  0..15  RED     kernel entry (head.S, MMU off, physical stores)
++ *   rows 16..31  GREEN   C reached, MMU on (setup_arch, after fixmap init)
++ *   rows 32..47  BLUE    paging_init() returned
++ *   rows 48..63  WHITE   start_kernel() reached console_init()
++ *   rows 64..79  CYAN    simpledrm probed the framebuffer successfully
++ *   rows 80..95  MAGENTA fbcon took over the console
++ *   rows 96..111 ORANGE  kernel_init is about to exec /init
++ *   rows 144..159 YELLOW painted by m1n1 before the jump
++ *
++ * Yellow is the control: if it appears and red does not, the mechanism is
++ * proven and the kernel genuinely never executed. Diagnostic code.
++ */
++#ifndef __ASM_OMARCHY_FBMARKER_H
++#define __ASM_OMARCHY_FBMARKER_H
++
++#define OMARCHY_MARK_ENTRY	0	/* red     */
++#define OMARCHY_MARK_MMU	1	/* green   */
++#define OMARCHY_MARK_PAGING	2	/* blue    */
++#define OMARCHY_MARK_CONSOLE	3	/* white   */
++#define OMARCHY_MARK_SIMPLEDRM	4	/* cyan    */
++#define OMARCHY_MARK_FBCON	5	/* magenta */
++#define OMARCHY_MARK_USERSPACE	6	/* orange  */
++#define OMARCHY_MARK_NR		7
++
++#define OMARCHY_MARK_ROWS	16
++#define OMARCHY_MARK_COLS	256
++
++/*
++ * Text from `earlycon=efifb` (drawn by drivers/firmware/efi/earlycon.c)
++ * starts below the marker and yellow bands, so those stay readable.
++ */
++#define OMARCHY_EARLYCON_ROW0	160
++
++#ifndef __ASSEMBLY__
++#ifdef CONFIG_OMARCHY_FB_MARKERS
++void omarchy_fb_marker(int slot);
++void omarchy_fb_earlycon_init(void);
++#else
++static inline void omarchy_fb_marker(int slot) { }
++static inline void omarchy_fb_earlycon_init(void) { }
++#endif
++#endif /* __ASSEMBLY__ */
++
++#endif /* __ASM_OMARCHY_FBMARKER_H */
+diff --git a/arch/arm64/kernel/Makefile b/arch/arm64/kernel/Makefile
+index 5d9b49fa9..7da199d7e 100644
+--- a/arch/arm64/kernel/Makefile
++++ b/arch/arm64/kernel/Makefile
+@@ -88,3 +88,4 @@ endif
+ 
+ # for cleaning
+ subdir- += vdso vdso32
++obj-$(CONFIG_OMARCHY_FB_MARKERS)	+= omarchy_fbmarker.o
+diff --git a/arch/arm64/kernel/head.S b/arch/arm64/kernel/head.S
+index 87a822e5c..80e575f5f 100644
+--- a/arch/arm64/kernel/head.S
++++ b/arch/arm64/kernel/head.S
+@@ -35,6 +35,7 @@
+ #include <asm/stacktrace/frame.h>
+ #include <asm/thread_info.h>
+ #include <asm/virt.h>
++#include <asm/omarchy_fbmarker.h>
+ 
+ #include "efi-header.S"
+ 
+@@ -86,6 +87,29 @@ SYM_CODE_START(primary_entry)
+ 	bl	record_mmu_state
+ 	bl	preserve_boot_args
+ 
++#ifdef CONFIG_OMARCHY_FB_MARKERS
++	/*
++	 * omarchy-m5: earliest possible proof of life. The MMU is off here,
++	 * so this writes the framebuffer's physical address directly and the
++	 * display controller scans it straight out of DRAM - no mapping, no
++	 * console, no DT. boot args are already stashed by preserve_boot_args
++	 * above, and x19/x20/x21 are live, so only x8-x13 are touched.
++	 */
++	mov_q	x8, CONFIG_OMARCHY_FB_MARKER_BASE
++	mov_q	x9, 0x3FF00000			// red, x2r10g10b10
++	mov_q	x13, CONFIG_OMARCHY_FB_MARKER_STRIDE
++	mov	x10, #OMARCHY_MARK_ROWS
++8:	mov	x11, #OMARCHY_MARK_COLS
++	mov	x12, x8
++9:	str	w9, [x12], #4
++	subs	x11, x11, #1
++	b.ne	9b
++	add	x8, x8, x13
++	subs	x10, x10, #1
++	b.ne	8b
++	dsb	sy
++#endif
++
+ 	adrp	x1, early_init_stack
+ 	mov	sp, x1
+ 	mov	x29, xzr
+diff --git a/arch/arm64/kernel/omarchy_fbmarker.c b/arch/arm64/kernel/omarchy_fbmarker.c
+new file mode 100644
+index 000000000..183d3f8f1
+--- /dev/null
++++ b/arch/arm64/kernel/omarchy_fbmarker.c
+@@ -0,0 +1,104 @@
++// SPDX-License-Identifier: GPL-2.0-only
++/*
++ * omarchy-m5 bring-up: framebuffer checkpoint markers. See
++ * <asm/omarchy_fbmarker.h> for the row/colour layout and rationale.
++ */
++
++#include <linux/init.h>
++#include <linux/io.h>
++#include <linux/types.h>
++#include <linux/screen_info.h>
++#include <linux/slab.h>
++#include <linux/sysfb.h>
++#include <asm/barrier.h>
++#include <asm/omarchy_fbmarker.h>
++
++/* x2r10g10b10, matching the format m1n1 advertises for this 30bpp panel */
++static const u32 omarchy_marker_color[] = {
++	[OMARCHY_MARK_ENTRY]	= 0x3FF00000,	/* red   */
++	[OMARCHY_MARK_MMU]	= 0x000FFC00,	/* green */
++	[OMARCHY_MARK_PAGING]	= 0x000003FF,	/* blue  */
++	[OMARCHY_MARK_CONSOLE]	= 0x3FFFFFFF,	/* white   */
++	[OMARCHY_MARK_SIMPLEDRM]= 0x000FFFFF,	/* cyan    */
++	[OMARCHY_MARK_FBCON]	= 0x3FF003FF,	/* magenta */
++	[OMARCHY_MARK_USERSPACE]= 0x3FF66000,	/* orange  */
++};
++
++void omarchy_fb_marker(int slot)
++{
++	const u32 stride = CONFIG_OMARCHY_FB_MARKER_STRIDE;
++	phys_addr_t row0 = (phys_addr_t)slot * OMARCHY_MARK_ROWS * stride;
++	void __iomem *fb;
++	bool late;
++	u32 x, y;
++
++	if (slot < 0 || slot >= ARRAY_SIZE(omarchy_marker_color))
++		return;
++
++	/*
++	 * early_ioremap() yields a Device-nGnRE mapping, so the stores reach
++	 * memory with no cache maintenance of our own - which matters because
++	 * the display controller scans this out of DRAM behind the CPU.
++	 */
++	/*
++	 * early_ioremap() only exists during early boot; the simpledrm/fbcon/
++	 * userspace checkpoints run long after it is torn down, so switch to
++	 * the real ioremap once the allocator is up.
++	 */
++	late = slab_is_available();
++	fb = late ? ioremap(CONFIG_OMARCHY_FB_MARKER_BASE + row0,
++			    OMARCHY_MARK_ROWS * stride)
++		  : early_ioremap(CONFIG_OMARCHY_FB_MARKER_BASE + row0,
++				  OMARCHY_MARK_ROWS * stride);
++	if (!fb)
++		return;
++
++	for (y = 0; y < OMARCHY_MARK_ROWS; y++)
++		for (x = 0; x < OMARCHY_MARK_COLS; x++)
++			__raw_writel(omarchy_marker_color[slot],
++				     fb + y * stride + x * 4);
++
++	dsb(sy);
++	if (late)
++		iounmap(fb);
++	else
++		early_iounmap(fb, OMARCHY_MARK_ROWS * stride);
++}
++
++/*
++ * Describe the panel below the marker bands to the EFI framebuffer
++ * earlycon, which then prints the kernel log there from parse_early_param()
++ * on - with no driver, fbcon or interrupts involved. A DT boot never fills
++ * screen_info, so without this `earlycon=efifb` refuses to attach.
++ */
++void __init omarchy_fb_earlycon_init(void)
++{
++	struct screen_info *si = &sysfb_primary_display.screen;
++	const u32 stride = CONFIG_OMARCHY_FB_MARKER_STRIDE;
++	const u64 base = CONFIG_OMARCHY_FB_MARKER_BASE +
++			 (u64)OMARCHY_EARLYCON_ROW0 * stride;
++	const u32 height = CONFIG_OMARCHY_FB_MARKER_HEIGHT - OMARCHY_EARLYCON_ROW0;
++
++	si->orig_video_isVGA = VIDEO_TYPE_EFI;
++	si->capabilities |= VIDEO_CAPABILITY_64BIT_BASE;
++	si->lfb_base = lower_32_bits(base);
++	si->ext_lfb_base = upper_32_bits(base);
++	si->lfb_width = stride / 4;
++	si->lfb_height = height;
++	si->lfb_linelength = stride;
++	si->lfb_depth = 32;
++	si->lfb_size = stride * height;
++}
++
++/*
++ * efifb earlycon remaps the framebuffer at early_initcall. Withdraw the EFI
++ * type before sysfb_init() (subsys_initcall) so sysfb does not hand the same
++ * memory to efifb: simpledrm from the DT stays the only framebuffer driver,
++ * exactly as without the earlycon.
++ */
++static int __init omarchy_fb_earlycon_hide(void)
++{
++	sysfb_primary_display.screen.orig_video_isVGA = 0;
++	return 0;
++}
++arch_initcall(omarchy_fb_earlycon_hide);
+diff --git a/arch/arm64/kernel/setup.c b/arch/arm64/kernel/setup.c
+index 0fa2403c6..8f8a4cbde 100644
+--- a/arch/arm64/kernel/setup.c
++++ b/arch/arm64/kernel/setup.c
+@@ -51,6 +51,7 @@
+ #include <asm/cacheflush.h>
+ #include <asm/tlbflush.h>
+ #include <asm/traps.h>
++#include <asm/omarchy_fbmarker.h>
+ #include <asm/efi.h>
+ #include <asm/xen/hypervisor.h>
+ #include <asm/mmu_context.h>
+@@ -289,6 +290,13 @@ void __init __no_sanitize_address setup_arch(char **cmdline_p)
+ 	early_fixmap_init();
+ 	early_ioremap_init();
+ 
++	/*
++	 * omarchy-m5: MMU is on and C code is running. Deliberately before
++	 * setup_machine_fdt(), so a green band with no blue one points at the
++	 * devicetree rather than at anything earlier.
++	 */
++	omarchy_fb_marker(OMARCHY_MARK_MMU);
++
+ 	setup_machine_fdt(__fdt_pointer);
+ 
+ 	/*
+@@ -296,6 +304,12 @@ void __init __no_sanitize_address setup_arch(char **cmdline_p)
+ 	 * cpufeature code and early parameters.
+ 	 */
+ 	jump_label_init();
++	/*
++	 * omarchy-m5: let `earlycon=efifb` draw the kernel log on the panel;
++	 * it attaches inside parse_early_param().
++	 */
++	omarchy_fb_earlycon_init();
++
+ 	parse_early_param();
+ 
+ 	dynamic_scs_init();
+@@ -333,6 +347,12 @@ void __init __no_sanitize_address setup_arch(char **cmdline_p)
+ 
+ 	paging_init();
+ 
++	/*
++	 * omarchy-m5: memblock and the linear map survived, which means the
++	 * memory nodes m1n1 patched into the FDT were sane.
++	 */
++	omarchy_fb_marker(OMARCHY_MARK_PAGING);
++
+ 	acpi_table_upgrade();
+ 
+ 	/* Parse the ACPI tables for possible boot-time configuration */
+diff --git a/drivers/gpu/drm/sysfb/simpledrm.c b/drivers/gpu/drm/sysfb/simpledrm.c
+index 3358db467..6097fac1b 100644
+--- a/drivers/gpu/drm/sysfb/simpledrm.c
++++ b/drivers/gpu/drm/sysfb/simpledrm.c
+@@ -22,6 +22,9 @@
+ #include <drm/drm_fbdev_shmem.h>
+ #include <drm/drm_framebuffer.h>
+ #include <drm/drm_gem_atomic_helper.h>
++#ifdef CONFIG_OMARCHY_FB_MARKERS
++#include <asm/omarchy_fbmarker.h>
++#endif
+ #include <drm/drm_gem_framebuffer_helper.h>
+ #include <drm/drm_gem_shmem_helper.h>
+ #include <drm/drm_managed.h>
+@@ -879,6 +882,11 @@ static int simpledrm_probe(struct platform_device *pdev)
+ 
+ 	drm_client_setup(dev, sdev->sysfb.fb_format);
+ 
++#ifdef CONFIG_OMARCHY_FB_MARKERS
++	/* omarchy-m5: the framebuffer bound. If this band is missing, the
++	 * simple-framebuffer node never produced a working DRM device. */
++	omarchy_fb_marker(OMARCHY_MARK_SIMPLEDRM);
++#endif
+ 	return 0;
+ }
+ 
+diff --git a/drivers/video/fbdev/core/fbcon.c b/drivers/video/fbdev/core/fbcon.c
+index 23b3c536d..188c7886e 100644
+--- a/drivers/video/fbdev/core/fbcon.c
++++ b/drivers/video/fbdev/core/fbcon.c
+@@ -73,6 +73,9 @@
+ #include <linux/vt_kern.h>
+ #include <linux/selection.h>
+ #include <linux/font.h>
++#ifdef CONFIG_OMARCHY_FB_MARKERS
++#include <asm/omarchy_fbmarker.h>
++#endif
+ #include <linux/smp.h>
+ #include <linux/init.h>
+ #include <linux/interrupt.h>
+@@ -620,6 +623,13 @@ static int do_fbcon_takeover(int show_logo)
+ 	err = do_take_over_console(&fb_con, first_fb_vc, last_fb_vc,
+ 				fbcon_is_default);
+ 
++#ifdef CONFIG_OMARCHY_FB_MARKERS
++	/* omarchy-m5: console handover. Missing band = fbcon never bound, so
++	 * console=tty0 stayed on dummycon and nothing could ever be drawn. */
++	if (!err)
++		omarchy_fb_marker(OMARCHY_MARK_FBCON);
++#endif
++
+ 	if (err) {
+ 		for (i = first_fb_vc; i <= last_fb_vc; i++)
+ 			con2fb_map[i] = -1;
+diff --git a/init/main.c b/init/main.c
+index e363232b4..29eb3d8bd 100644
+--- a/init/main.c
++++ b/init/main.c
+@@ -111,6 +111,9 @@
+ 
+ #include <asm/io.h>
+ #include <asm/setup.h>
++#ifdef CONFIG_OMARCHY_FB_MARKERS
++#include <asm/omarchy_fbmarker.h>
++#endif
+ #include <asm/sections.h>
+ #include <asm/cacheflush.h>
+ 
+@@ -1109,6 +1112,13 @@ void start_kernel(void)
+ 	 * we've done PCI setups etc, and console_init() must be aware of
+ 	 * this. But we do want output early, in case something goes wrong.
+ 	 */
++#ifdef CONFIG_OMARCHY_FB_MARKERS
++	/*
++	 * omarchy-m5: start_kernel() got all the way here. A white band with
++	 * no console output means the kernel is fine and the console is not.
++	 */
++	omarchy_fb_marker(OMARCHY_MARK_CONSOLE);
++#endif
+ 	console_init();
+ 	if (panic_later)
+ 		panic("Too many boot %s vars at `%s'", panic_later,
+@@ -1570,6 +1580,14 @@ static int __ref kernel_init(void *unused)
+ 
+ 	do_sysctl_args();
+ 
++
++#ifdef CONFIG_OMARCHY_FB_MARKERS
++	/*
++	 * omarchy-m5: everything the kernel does on its own worked; the next
++	 * thing to run is /init from the initramfs.
++	 */
++	omarchy_fb_marker(OMARCHY_MARK_USERSPACE);
++#endif
+ 	if (ramdisk_execute_command) {
+ 		ret = run_init_process(ramdisk_execute_command);
+ 		if (!ret)

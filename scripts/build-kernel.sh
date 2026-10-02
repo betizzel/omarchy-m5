@@ -16,29 +16,38 @@ cd "$(dirname "$0")/.."
 
 LINUX=vendor/linux
 DTS_DIR="$LINUX/arch/arm64/boot/dts/apple"
-KCONFIG="${KCONFIG:-defconfig}"
-JOBS="${JOBS:-$(sysctl -n hw.ncpu)}"
+# defconfig alone leaves DRM=m and DRM_SIMPLEDRM unset, which yields a
+# kernel that boots but shows nothing on the panel. Fragments are merged
+# in order; ours wins.
+KCONFIG="${KCONFIG:-defconfig asahi.config omarchy-bringup.config}"
+JOBS="${JOBS:-$(nproc 2>/dev/null || sysctl -n hw.ncpu)}"
 
 if [ ! -d "$LINUX" ]; then
     echo "ERROR: $LINUX missing. Run scripts/fetch-sources.sh first." >&2
     exit 1
 fi
 
-# brew LLVM for clang/lld; brew gnu-sed's gnubin first because kernel
-# scripts (gen-kernel-hwcaps.sh) use GNU sed syntax BSD sed silently
-# passes through.
-export PATH="$(brew --prefix gnu-sed)/libexec/gnubin:$(brew --prefix llvm)/bin:$PATH"
-# Kernel needs GNU Make >= 4.0; macOS ships 3.81, so prefer brew's gmake.
-# HOSTCFLAGS adds scripts/host-shim: macOS lacks <elf.h>, which the
-# kernel's host tools (sorttable, modpost, ...) require.
 GMAKE="$(command -v gmake || command -v make)"
-KMAKE=("$GMAKE" -C "$LINUX" ARCH=arm64 LLVM=1 -j"$JOBS"
-       "HOSTCFLAGS=-I$(pwd)/scripts/host-shim"
-       "HOSTCFLAGS_file2alias.o=-D_POSIX_C_SOURCE=200809L")
+KMAKE=("$GMAKE" -C "$LINUX" ARCH=arm64 LLVM=1 -j"$JOBS")
+
+if [ "$(uname -s)" = Darwin ]; then
+    # brew LLVM for clang/lld; brew gnu-sed's gnubin first because kernel
+    # scripts (gen-kernel-hwcaps.sh) use GNU sed syntax BSD sed silently
+    # passes through. coreutils' gnubin is needed too: kconfig's
+    # merge_config.sh (config fragments) calls `cp -T`, which BSD cp rejects.
+    export PATH="$(brew --prefix coreutils)/libexec/gnubin:$(brew --prefix gnu-sed)/libexec/gnubin:$(brew --prefix llvm)/bin:$PATH"
+    # Kernel needs GNU Make >= 4.0; macOS ships 3.81, so gmake is preferred
+    # above. HOSTCFLAGS adds scripts/host-shim: macOS lacks <elf.h>, which
+    # the kernel's host tools (sorttable, modpost, ...) require.
+    KMAKE+=("HOSTCFLAGS=-I$(pwd)/scripts/host-shim"
+            "HOSTCFLAGS_file2alias.o=-D_POSIX_C_SOURCE=200809L")
+fi
 
 echo "==> Overlaying dt/ into $DTS_DIR"
 install -m 0644 dt/t6050.dtsi dt/t6050-pmgr.dtsi dt/t6050-jxxx.dtsi \
     dt/t6050-j714s.dts dt/t6050-j716s.dts "$DTS_DIR/"
+
+install -m 0644 configs/omarchy-bringup.config "$LINUX/arch/arm64/configs/"
 
 MK="$DTS_DIR/Makefile"
 BEGIN='# >>> omarchy-m5'
@@ -53,12 +62,40 @@ dtb-$(CONFIG_ARCH_APPLE) += t6050-j716s.dtb
 EOF
 fi
 
+# The console symbols below are load-bearing: with any of them unset the
+# kernel boots and prints nothing on the panel, which looks identical to a
+# hang. Assert them instead of trusting the fragment merged cleanly.
+REQUIRED_Y="CONFIG_DRM CONFIG_DRM_SIMPLEDRM CONFIG_DRM_FBDEV_EMULATION
+            CONFIG_FRAMEBUFFER_CONSOLE CONFIG_VT_CONSOLE CONFIG_DEVTMPFS_MOUNT"
+
+config_ok() {
+    [ -f "$LINUX/.config" ] || return 1
+    for sym in $REQUIRED_Y; do
+        grep -qx "$sym=y" "$LINUX/.config" || return 1
+    done
+}
+
+ensure_config() {
+    if config_ok && [ "${KEEP_CONFIG:-0}" = 1 ]; then
+        return
+    fi
+    if ! config_ok; then
+        echo "==> Generating config: $KCONFIG"
+        # shellcheck disable=SC2086 -- KCONFIG is a list of make targets
+        "${KMAKE[@]}" $KCONFIG
+    fi
+    for sym in $REQUIRED_Y; do
+        grep -qx "$sym=y" "$LINUX/.config" \
+            || { echo "ERROR: $sym is not =y after merging $KCONFIG." >&2
+                 echo "       A module or unset symbol here means a silent boot:" >&2
+                 echo "       the bring-up initramfs carries no kernel modules." >&2
+                 exit 1; }
+    done
+}
+
 case "${1:-all}" in
     dtbs)
-        if [ ! -f "$LINUX/.config" ]; then
-            echo "==> Generating $KCONFIG (needed for dtbs)"
-            "${KMAKE[@]}" "$KCONFIG"
-        fi
+        ensure_config
         echo "==> Building DTBs only"
         "${KMAKE[@]}" dtbs
         echo
@@ -69,15 +106,12 @@ case "${1:-all}" in
         "${KMAKE[@]}" "$1"
         ;;
     all)
-        if [ ! -f "$LINUX/.config" ]; then
-            echo "==> Generating $KCONFIG"
-            "${KMAKE[@]}" "$KCONFIG"
-        fi
-        echo "==> Building kernel (Image + dtbs + modules)"
-        "${KMAKE[@]}"
+        ensure_config
+        echo "==> Building kernel (Image.gz + dtbs)"
+        "${KMAKE[@]}" Image.gz dtbs
         echo
         echo "==> Artifacts:"
-        ls -lh "$LINUX/arch/arm64/boot/Image" "$DTS_DIR"/t6050-*.dtb
+        ls -lh "$LINUX/arch/arm64/boot/Image.gz" "$DTS_DIR"/t6050-*.dtb
         ;;
     *)
         "${KMAKE[@]}" "$@"
