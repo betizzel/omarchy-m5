@@ -157,6 +157,9 @@ def main():
     ap.add_argument("--version", default="3.21.3", help="Alpine release")
     ap.add_argument("--out", default="build/initramfs.cpio.gz")
     ap.add_argument("--cache", default="build/cache")
+    ap.add_argument("--firmware", default="build/firmware",
+                    help="tree packed under lib/firmware/ if it exists "
+                         "(apple/tpmtfw-j714s.bin: scripts/extract-tpmtfw.py)")
     args = ap.parse_args()
 
     branch = "v" + ".".join(args.version.split(".")[:2])
@@ -200,6 +203,15 @@ def main():
             else:
                 # char/block/fifo from the rootfs: we synthesize our own
                 counts["skipped"] += 1
+
+    if os.path.isdir(args.firmware):
+        for root, _, files in sorted(os.walk(args.firmware)):
+            for fn in sorted(files):
+                src = os.path.join(root, fn)
+                name = "lib/firmware/" + os.path.relpath(src, args.firmware)
+                cpio.parents(name)
+                cpio.entry(name, stat.S_IFREG | 0o644, open(src, "rb").read())
+                print(f"    firmware: /{name}")
 
     cpio.entry("init", stat.S_IFREG | 0o755, INIT.encode())
     cpio.entry("usr/sbin/usb-gadget-net", stat.S_IFREG | 0o755,
