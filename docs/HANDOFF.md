@@ -237,7 +237,7 @@ trackpad needs `apple/tpmtfw-j714s.bin`: `scripts/extract-tpmtfw.py --ipsw
 range requests and converts it with asahi-installer's
 `MultitouchFWCollection`. It must match the macOS iBoot boots (26.5 here).
 The initramfs and the rootfs image both carry it, since the driver loads it
-on every open. Not yet confirmed on hardware.
+on every open. Confirmed on hardware (see the Arch section).
 
 **NVMe (2026-10-01): works bare-metal.** `patches/linux/0006` (ANS2 +
 NVMMU from ADT reg[3]) and `0007` (SARTv4); DT from
@@ -245,37 +245,53 @@ NVMMU from ADT reg[3]) and `0007` (SARTv4); DT from
 that `hv/nvme-proxy-probe.py` reads through m1n1 (run it right before
 `./boot-linux.sh`). p5 is ours: LBA 163592953, 62500000 x 4K.
 
-**USB gadget (2026-10-01): enumerates, not configured yet.** The three
-DWC3 cores come up in peripheral mode with no PHY driver, on the eUSB2 PHY
-m1n1 left running. Two fixes so far:
+**USB gadget networking (2026-10-01): works (CDC EEM).** The three DWC3 cores
+run in peripheral mode with no PHY driver, on the eUSB2 PHY m1n1 left
+running. What it took:
 - leave the `ps_atc*` PMGR domains disabled in DT (probing them armed
-  auto-PM and the soft reset timed out);
-- no USB2 LPM, no SUSPHY/ENBLSLPM (`snps,*` quirks).
+  auto-PM, and the DWC3 soft reset then timed out);
+- no USB2 LPM, no SUSPHY/ENBLSLPM (`snps,*` quirks);
+- **no interrupt endpoints**. With NCM+ACM, the dwc3 trace showed
+  SET_CONFIGURATION processed and ep0's status stage armed right after NCM
+  queued its first notification on its interrupt IN endpoint. After that
+  the controller raised no further events, GSTS showed no bus error, and the
+  host timed out (-110). m1n1 never transmits on interrupt endpoints, and
+  Apple's ADT has `ncm-interrupt-ep-disabled = 1` on this port. So the
+  gadget is EEM only: Ethernet over two bulk endpoints, `cdc_eem` on the
+  host.
 
-The ThinkPad still gets -110 on SET_CONFIGURATION, with nothing logged on
-the M5. `usb-gadget-net.sh` therefore traces dwc3 from boot. When no host
-has configured it after 30 s, it prints a diagnostic screen, then retries
-with ACM only and NCM only. Apple's ADT marks the NCM interrupt endpoint
-disabled on this port.
+The ThinkPad side is `sudo scripts/host-usbnet.sh`. It takes the interface
+away from NetworkManager, which otherwise fails DHCP after 45 s and strips
+every address, link-local included; adds 10.55.0.1; and sets up NAT. Before
+it runs, the M5 is reachable at `fe80::4d:35ff:fe00:2%<iface>`. dwc3
+tracing stays on from boot (`/sys/kernel/tracing/trace`).
 
-**Rootfs (2026-10-01): image ready, offline flash path.**
-- `scripts/mkrootfs-image.py` builds Arch Linux ARM as a 2 GiB ext4 image
-  on the host (`mke2fs -d tarball`, no root), without linux-aarch64 and
-  linux-firmware, grown on first boot by `x-systemd.growfs`.
-- `INITRAMFS=boot/initramfs-provision.cpio ./boot-linux.sh` ships it in a
-  second cpio segment. On the M5, `provision-rootfs 163592953 62500000`
-  writes it to nvme0n1p5 (geometry-guarded, read-back verified).
-- Then boot with `BOOTARGS="... m5.root=/dev/nvme0n1p5"`; root/root on
-  tty1, sshd with the host's key.
+**Arch Linux ARM from the SSD (2026-10-01): works.**
+- `scripts/mkrootfs-image.py` builds a 2 GiB ext4 image on the host
+  (`mke2fs -d tarball`, no root), without linux-aarch64 and linux-firmware.
+  It ships in `boot/initramfs-provision.cpio`. `provision-rootfs 163592953
+  62500000` wrote it to nvme0n1p5 at 159 MB/s and read it back with a
+  matching md5.
+- The boot cmdline adds `nvme_apple.flush_interval=0
+  m5.root=/dev/nvme0n1p5`. systemd comes up with no failed units, and growfs
+  takes / to 235 GB.
+- `ssh root@10.55.0.2` or `ssh bay@10.55.0.2` with the host key. The bring-up
+  defaults are root/root on tty1 and passwordless sudo for wheel
+  (`/etc/sudoers.d/10-wheel-bringup`); tighten both.
+- Through the NAT: pacman (full -Syu), NTP, DNS. Until a kernel with
+  `CONFIG_SECURITY_LANDLOCK=y` is booted, pacman needs
+  `DisableSandboxFilesystem` (set on the M5).
+- Trackpad: the IPSW-extracted firmware loads (`Touch MT ready`), and swipes
+  produce MT events (13.7k in 90 s).
+- Claude Code 2.1.287 (native installer) runs as user `bay`, and
+  `claude doctor` is clean.
 
-**Checked under QEMU (2026-10-01).** `scripts/qemu-rootfs.sh` boots our
-kernel (FB markers off) plus the real initramfs and image on `virt`/TCG
-with 16K pages. Verified: the `m5.root=` hook, systemd to login, growfs,
-sshd, DHCP, NTP. Claude Code's native installer gave a working
-`claude --version` (2.1.287). Re-run it after changing the image,
-`/init` or the kernel config.
+`scripts/qemu-rootfs.sh` boots the same kernel config (FB markers off),
+initramfs and image under QEMU virt/TCG with 16K pages. Use it to check
+image, /init or config changes without the M5.
 
-Next: USB gadget networking, first SSD boot on the M5, Claude Code there.
+Next: sign Claude Code in, then the Omarchy userland (Hyprland on
+simpledrm), SMP, and Wi-Fi.
 
 ## Remaining DT TODOs (marked `TODO(adt)` in dt/)
 
