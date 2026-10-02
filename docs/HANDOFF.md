@@ -290,6 +290,18 @@ tracing stays on from boot (`/sys/kernel/tracing/trace`).
 - Claude Code 2.1.287 (native installer) runs as user `bay`, and
   `claude doctor` is clean.
 
+**CPU DVFS (2026-10-02).** The boot cluster (cluster 0, M,
+`apple,sawtooth`) comes up at 2.65 GHz, iBoot's p-state 6, because neither
+m1n1 nor Linux knew T6050 cpufreq. Its DVFS block is at `cpm-impl-reg -
+0x40000` = 0x210e00000, with CMD at +0x20020 and STATUS at +0x20050 (T8112
+layout). Live writes measured with `tools/cpuhz.c`: p-state N = pmgr
+`voltage-states22-sram` entry N-2, 6 -> 2649 MHz, 7 -> 2961, 12 -> 4041,
+15 -> 4303. 16 (4380) is refused. `scripts/gen-cpufreq-dt.py` writes
+`dt/t6050-cpufreq.dtsi` (M clusters only; the P cluster's offset is
+unverified), and `CONFIG_ARM_APPLE_SOC_CPUFREQ=y` runs it with the stock
+t8112 path. Built, not yet booted. `tools/devmem.c` peeks and pokes MMIO
+via mmap (`/dev/mem` read() is RAM-only on arm64).
+
 `scripts/qemu-rootfs.sh` boots the same kernel config (FB markers off),
 initramfs and image under QEMU virt/TCG with 16K pages. Use it to check
 image, /init or config changes without the M5.

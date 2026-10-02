@@ -56,7 +56,9 @@ cp build/m1n1-chain.bin      "$STAGE/boot/"
 # earlycon=efifb: kernel log on the panel from setup_arch() on (patch 0001);
 # pd_ignore_unused: T6050 SErrors when genpd powers off unclaimed domains
 # (patch 0004 makes sync_state honour it). See mkpayload.sh for the rest.
-BOOTARGS="maxcpus=1 earlycon=efifb keep_bootcon console=tty0 loglevel=8 pd_ignore_unused clk_ignore_unused no_console_suspend"
+# m5.root: switch_root to Arch on disk0s5 (scripts/provision-rootfs.sh); /init
+# stays in the initramfs shell if it does not mount.
+BOOTARGS="maxcpus=1 earlycon=efifb keep_bootcon console=tty0 loglevel=8 pd_ignore_unused clk_ignore_unused no_console_suspend nvme_apple.flush_interval=0 m5.root=/dev/nvme0n1p5"
 
 cat > "$STAGE/boot-linux.sh" <<EOF
 #!/bin/sh

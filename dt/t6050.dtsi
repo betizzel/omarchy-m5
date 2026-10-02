@@ -606,3 +606,4 @@
 
 #include "t6050-pmgr.dtsi"
 #include "t6050-storage-net.dtsi"
+#include "t6050-cpufreq.dtsi"

@@ -45,7 +45,8 @@ fi
 
 echo "==> Overlaying dt/ into $DTS_DIR"
 install -m 0644 dt/t6050.dtsi dt/t6050-pmgr.dtsi dt/t6050-jxxx.dtsi \
-    dt/t6050-storage-net.dtsi dt/t6050-j714s.dts dt/t6050-j716s.dts "$DTS_DIR/"
+    dt/t6050-storage-net.dtsi dt/t6050-cpufreq.dtsi dt/t6050-j714s.dts dt/t6050-j716s.dts \
+    "$DTS_DIR/"
 
 install -m 0644 configs/omarchy-bringup.config configs/omarchy-storage-net.config \
     "$LINUX/arch/arm64/configs/"
