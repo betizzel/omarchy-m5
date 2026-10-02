@@ -188,11 +188,29 @@ Known noise after the prompt: `b2bd_*` (die-to-die link) domains fail to
 reach 0xf when the driver core powers them up for their child domains'
 probes; harmless deferred probes.
 
-Next: input (no keyboard/USB driver yet - the shell is display-only), an
-m1n1 hypervisor that works on T6050 (it crashes writing the locked
-`VM_TMR_FIQ_ENA_EL2` in `hv_update_fiq()`; the M5 has FEAT_ECV, so it can
-trap the guest's timer accesses and mask via IMASK instead), then NVMe + a
-real rootfs on `disk0s5`, SMP (secondaries never execute the reset vector).
+**HYPERVISOR (2026-10-01).** Linux runs as a guest of the m1n1 hypervisor
+with its console - and the `/init` shell, interactively - on the
+hypervisor's virtual UART, i.e. `/dev/m1n1-sec` on the ThinkPad
+(`./chainload.sh`, `hv/vuart-log.py /dev/m1n1-sec hv/vuart.log &`,
+`./boot-hv.sh`). What it took (patches/m1n1):
+
+- 0002: T6050 locks `VM_TMR_FIQ_ENA_EL2`, the gate the hypervisor uses to
+  hold a guest timer's FIQ while the guest services its vFIQ. `hv_init()`
+  detects the lock (guarded write-back of the register's own value) and
+  `hv_update_fiq()` then masks a firing guest timer through its own IMASK;
+  the ECV-trapped guest `CNT[PV]_CTL_EL0` accesses hide that IMASK.
+- 0001: kboot reads the M4+/M5 `CTRR_M4_*_EL2` registers only at EL2 - as
+  an EL1 guest they are UNDEFINED and the guest m1n1 died there.
+- 0003: `wcslen()` in m1n1's freestanding libc. Current Rust/LLVM turns a
+  loop in the Rust ADT code into a `wcslen` call (any toolchain since at
+  least 1.98).
+
+m1n1 now builds on the ThinkPad too (`scripts/build-m1n1.sh`: distro
+cross gcc + a per-user rustup with `aarch64-unknown-none-softfloat`).
+
+Next: SMP (secondaries never execute the reset vector), internal
+keyboard/trackpad (MTP over DockChannel), NVMe + a real rootfs on
+`disk0s5`, then networking.
 
 ## Remaining DT TODOs (marked `TODO(adt)` in dt/)
 

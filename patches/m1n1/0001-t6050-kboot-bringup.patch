@@ -159,10 +159,25 @@ index 3b4b773..95a61d0 100644
              ret = -1;
          }
 diff --git a/src/kboot.c b/src/kboot.c
-index 17c650e..2418e82 100644
+index 17c650e..68f00b5 100644
 --- a/src/kboot.c
 +++ b/src/kboot.c
-@@ -2916,16 +2916,47 @@ int kboot_prepare_dt(void *fdt)
+@@ -2811,11 +2811,12 @@ int kboot_prepare_dt(void *fdt)
+     if (fdt_add_mem_rsv(dt, (u64)_base, ((u64)_end) - ((u64)_base)))
+         bail("FDT: couldn't add reservation for m1n1\n");
+ 
+-    if (!cpu_features->apple_sysregs_unlocked) {
++    if (!cpu_features->apple_sysregs_unlocked && in_el2()) {
+         // On M4* / A18 Pro / M5*, there is a CTRR instance left enabled only
+         // on the secondary (non-boot) cores. Add a reserved-memory region to
+         // prevent Linux from crashing when allocating this memory and writing
+-        // to it from a secondary core.
++        // to it from a secondary core. These are EL2 registers: as a guest of
++        // the m1n1 hypervisor (EL1) reading them is UNDEFINED.
+         u64 ro_start = mrs(CTRR_M4_LWR_EL2);
+         u64 ro_end = ALIGN_UP(mrs(CTRR_M4_UPR_EL2), SZ_4K);
+         if (ro_end - ro_start > 12 * SZ_4K)
+@@ -2916,16 +2917,47 @@ int kboot_prepare_dt(void *fdt)
  
  int kboot_boot(void *kernel)
  {
@@ -216,7 +231,7 @@ index 17c650e..2418e82 100644
      printf("Preparing to boot kernel at %p with fdt at %p\n", kernel, dt);
  
      next_stage.entry = kernel;
-@@ -2938,3 +2969,8 @@ int kboot_boot(void *kernel)
+@@ -2938,3 +2970,8 @@ int kboot_boot(void *kernel)
  
      return 0;
  }

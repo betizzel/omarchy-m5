@@ -18,15 +18,21 @@ if [ ! -d vendor/m1n1 ]; then
     exit 1
 fi
 
-# brew LLVM provides clang/lld; m1n1's Makefile finds it via llvm-config.
 # Put the active rustup toolchain's bin dir first so its cargo (which has
-# the aarch64-unknown-none-softfloat target) wins over a Homebrew rustc.
-RUSTUP_BIN="$(dirname "$(rustup which cargo)")"
-export PATH="$RUSTUP_BIN:$(brew --prefix llvm)/bin:$PATH"
+# the aarch64-unknown-none-softfloat target) wins over a distro rustc.
+# rustup may be a per-user install that is not on PATH (~/.cargo/bin).
+RUSTUP="$(command -v rustup || echo "$HOME/.cargo/bin/rustup")"
+RUSTUP_BIN="$(dirname "$("$RUSTUP" which cargo)")"
+export PATH="$RUSTUP_BIN:$PATH"
+# On macOS, brew LLVM provides clang/lld (m1n1's Makefile finds it via
+# llvm-config); Linux hosts use the distro clang/lld.
+if [ "$(uname -s)" = Darwin ]; then
+    export PATH="$(brew --prefix llvm)/bin:$PATH"
+fi
 
 CHAINLOADING="${CHAINLOADING:-1}"
 RELEASE="${RELEASE:-0}"
-JOBS="${JOBS:-$(sysctl -n hw.ncpu)}"
+JOBS="${JOBS:-$(nproc 2>/dev/null || sysctl -n hw.ncpu)}"
 
 # m1n1's build/build_cfg.h rule has no prerequisites, so once the file exists
 # make treats it as up to date and never re-evaluates CFG. Flipping

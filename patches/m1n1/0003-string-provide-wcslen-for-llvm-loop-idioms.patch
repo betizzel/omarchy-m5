@@ -1,0 +1,39 @@
+diff --git a/src/string.c b/src/string.c
+index 8681be3..ea95f37 100644
+--- a/src/string.c
++++ b/src/string.c
+@@ -149,6 +149,22 @@ size_t strlen(const char *s)
+     return rc;
+ }
+ 
++/*
++ * Not called by m1n1 itself: LLVM's loop-idiom pass turns hand-written
++ * "count until a zero word" loops into wcslen() calls (seen in the Rust ADT
++ * code with recent toolchains), so a freestanding build has to provide it.
++ */
++size_t wcslen(const wchar_t *s)
++{
++    size_t rc = 0;
++
++    while (s[rc]) {
++        ++rc;
++    }
++
++    return rc;
++}
++
+ size_t strnlen(const char *s, size_t n)
+ {
+     size_t rc = 0;
+diff --git a/sysinc/string.h b/sysinc/string.h
+index def429c..3e287a2 100644
+--- a/sysinc/string.h
++++ b/sysinc/string.h
+@@ -16,6 +16,7 @@ int strcmp(const char *s1, const char *s2);
+ int strncmp(const char *s1, const char *s2, size_t n);
+ size_t strlen(const char *s);
+ size_t strnlen(const char *s, size_t n);
++size_t wcslen(const wchar_t *s);
+ char *strchr(const char *s, int c);
+ char *strrchr(const char *s, int c);
+ char *strstr(const char *s1, const char *s2);

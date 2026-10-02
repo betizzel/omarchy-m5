@@ -206,7 +206,34 @@ print("The machine is still in the proxy; nothing was booted.")
 EOF
 chmod +x "$STAGE/proxyclient/tools/dump_fdt.py" "$STAGE/dump-fdt.sh"
 
-chmod +x "$STAGE/boot-linux.sh" "$STAGE/chainload.sh"
+# Linux as a guest of the m1n1 hypervisor: the kernel console comes back
+# over USB (/dev/m1n1-sec) and survives into userspace, and the host keeps
+# a debugger. The guest is m1n1 + payloads, booted --raw at 0x800. Needs
+# the patched m1n1 running (./chainload.sh): stock m1n1's hypervisor dies
+# on T6050's locked VM_TMR_FIQ_ENA_EL2 (patches/m1n1/0002).
+HV_BOOTARGS="maxcpus=1 earlycon console=tty0 console=ttySAC0 loglevel=8 pd_ignore_unused clk_ignore_unused no_console_suspend"
+cat > "$STAGE/boot-hv.sh" <<EOF
+#!/bin/sh
+# Boot Linux under the m1n1 hypervisor. Run ./chainload.sh first, and keep a
+# reader on the guest console: hv/vuart-log.py (logs to hv/vuart.log) or
+# picocom /dev/m1n1-sec. Ctrl+C here drops into the hypervisor shell.
+set -e
+cd "\${0%/*}"
+: "\${M1N1DEVICE:=/dev/m1n1}"
+export M1N1DEVICE
+if [ ! -e "\$M1N1DEVICE" ]; then
+    echo "\$M1N1DEVICE is gone: the Mac is not sitting in the m1n1 proxy." >&2
+    exit 1
+fi
+{
+    cat boot/m1n1-chain.bin
+    printf 'chosen.bootargs=%s\n' "\${BOOTARGS:-$HV_BOOTARGS}"
+    cat boot/Image.gz boot/t6050-$BOARD.dtb boot/initramfs.cpio.gz
+} > hv/guest-payload.bin
+exec ./proxyclient/tools/run_guest.py -l hv/hv.log --raw hv/guest-payload.bin "\$@"
+EOF
+
+chmod +x "$STAGE/boot-linux.sh" "$STAGE/chainload.sh" "$STAGE/boot-hv.sh"
 
 cat > "$STAGE/README.md" <<EOF
 # omarchy-m5 tether bundle
@@ -241,6 +268,18 @@ The kernel log is drawn on the M5's own panel below the marker bands by
 binds - no cable needed. \`keep_bootcon\` keeps both, so a crash before
 fbcon is still readable. m1n1's messages land on \`/dev/m1n1-sec\`
 (\`picocom -b 1500000 /dev/m1n1-sec\`).
+
+## Boot Linux under the hypervisor (console over USB)
+
+    ./chainload.sh                 # the patched m1n1 hosts the hypervisor
+    hv/vuart-log.py /dev/m1n1-sec hv/vuart.log &   # or: picocom /dev/m1n1-sec
+    ./boot-hv.sh
+
+The guest's \`console=ttySAC0\` is the hypervisor's virtual UART, so the
+kernel log and the \`/init\` shell are on \`/dev/m1n1-sec\` - interactive,
+and still there after Linux takes over. Ctrl+C in \`boot-hv.sh\` gives the
+hypervisor shell (registers, memory, MMIO tracing). The guest runs at EL1,
+single core.
 
 ## Iterate on m1n1 itself
 
