@@ -260,10 +260,14 @@ running. What it took:
   gadget is EEM only: Ethernet over two bulk endpoints, `cdc_eem` on the
   host.
 
-The ThinkPad side is `sudo scripts/host-usbnet.sh`. It takes the interface
-away from NetworkManager, which otherwise fails DHCP after 45 s and strips
-every address, link-local included; adds 10.55.0.1; and sets up NAT. Before
-it runs, the M5 is reachable at `fe80::4d:35ff:fe00:2%<iface>`. dwc3
+The ThinkPad side is `sudo scripts/host-usbnet.sh`, run once per ThinkPad
+boot. It permanently stops NetworkManager from managing `cdc_eem`
+interfaces (otherwise NM fails DHCP after 45 s and strips every address,
+link-local included) and installs a udev rule that gives each gadget
+netdev `10.55.<n>.1`, so M5 reboots need no re-run. Each run also enables
+forwarding, masquerades 10.55/16 on any egress (VPNs like proton0 route
+forwarded traffic too), and adds the docker FORWARD accepts. Before the
+first run, the M5 is reachable at `fe80::4d:35ff:fe00:2%<iface>`. dwc3
 tracing stays on from boot (`/sys/kernel/tracing/trace`).
 
 **Arch Linux ARM from the SSD (2026-10-01): works.**
