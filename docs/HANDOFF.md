@@ -268,7 +268,14 @@ disabled on this port.
 - Then boot with `BOOTARGS="... m5.root=/dev/nvme0n1p5"`; root/root on
   tty1, sshd with the host's key.
 
-Next: USB gadget networking, first SSD boot, Claude Code.
+**Checked under QEMU (2026-10-01).** `scripts/qemu-rootfs.sh` boots our
+kernel (FB markers off) plus the real initramfs and image on `virt`/TCG
+with 16K pages. Verified: the `m5.root=` hook, systemd to login, growfs,
+sshd, DHCP, NTP. Claude Code's native installer gave a working
+`claude --version` (2.1.287). Re-run it after changing the image,
+`/init` or the kernel config.
+
+Next: USB gadget networking, first SSD boot on the M5, Claude Code there.
 
 ## Remaining DT TODOs (marked `TODO(adt)` in dt/)
 

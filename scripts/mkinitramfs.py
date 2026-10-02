@@ -46,6 +46,8 @@ STRIDE=12096               # 0x2f40
 # offset. STRICT_DEVMEM permits this because the framebuffer sits above the
 # usable-RAM window m1n1 reports.
 band() {
+    # FB_BASE is the J714s panel; anywhere else (QEMU) it is unbacked.
+    $BB grep -q 'apple,t6050' /proc/device-tree/compatible 2>/dev/null || return 0
     row="$1"; pattern="$2"
     $BB rm -f /tmp/px
     i=0
