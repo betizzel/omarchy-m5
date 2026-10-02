@@ -401,6 +401,118 @@
 			status = "disabled";
 		};
 
+		/*
+		 * MTP (Multi-Touch Processor): built-in keyboard + trackpad.
+		 * The J714s has NO SPI keyboard: /arm-io/spi2 only has "mesa"
+		 * (Touch ID) and spi4 only the panel's "dp855". Input is an RTKit
+		 * coprocessor (ADT /arm-io/mtp, "iop,ascwrap-v6") speaking HID over
+		 * a DockChannel FIFO pair (/arm-io/dockchannel-mtp/mtp-transport).
+		 *
+		 * All values from build/adt-runtime-j714s.bin (get_reg() already
+		 * translated, raw ADT + 0x2_0000_0000). The raw ADT offsets
+		 * (0x94600000/0x94800000/0x94b14000) are identical to T8132 (M4)
+		 * and the T8142 (M5) address map, i.e. same IP layout.
+		 *
+		 *   mtp reg[0]   0x294600000 size 0x88000  -> ASC block (CPU_CONTROL
+		 *                at +0x44, mailbox at +0x8000)
+		 *   mtp reg[1]   0x294050000 size 0x4000   -> ascwrap-v6 wrapper
+		 *                (unused by Linux)
+		 *   fw segments  __TEXT 0x294c00000+0x54000, __DATA 0x294c54000+0x6c000
+		 *                = MTP SRAM (M2/M3 convention: 1 MiB at B+0xc00000);
+		 *                __OS_LOG 0x10004818000+0x3000 (DRAM, iBoot-owned)
+		 *   iop-mtp-nub  pre-loaded = 1: iBoot already loaded and started the
+		 *                RTKit firmware; Linux only wakes it (rtkit-helper).
+		 *   mailbox IRQs ADT [677,676,679,678] = {send-not-empty, send-empty,
+		 *                recv-not-empty, recv-empty}; Linux order is ascending.
+		 *   dart-mtp     0x294800000 (t8110 DART, m1n1 uses reg[0] as the
+		 *                DART base), IRQ 659, sid-count 16, mapper SID 0,
+		 *                ADT remap = {1,2,3,4}: requestor SIDs 1-4 alias to
+		 *                SID 0, expressed with the in-tree multi-SID remap
+		 *                (iommus lists every SID; the first one owns the
+		 *                TTBR, the rest get TCR.REMAP -> first).
+		 *   dockchannel  irq regs 0x294b14000, IRQ 660; FIFO pairs
+		 *                rmt-config/rmt-data 0x294b28000/0x294b2c000,
+		 *                config/data 0x294b30000/0x294b34000, fifo-size 2048.
+		 * No PMGR domain: the T6050 ADT has no MTP_* pmgr device at all
+		 * (only NUB_DOCK_CHANNEL, which is the debug dockchannel-uart).
+		 */
+		mtp: mtp@294600000 {
+			compatible = "apple,t6050-mtp", "apple,t6050-rtk-helper-asc4",
+				     "apple,mtp", "apple,rtk-helper-asc4";
+			reg = <0x2 0x94600000 0x0 0x4000>,
+			      <0x2 0x94c00000 0x0 0x100000>;
+			reg-names = "asc", "sram";
+			mboxes = <&mtp_mbox>;
+			iommus = <&mtp_dart 0>, <&mtp_dart 1>, <&mtp_dart 2>,
+				 <&mtp_dart 3>, <&mtp_dart 4>;
+			#helper-cells = <0>;
+			status = "disabled";
+		};
+
+		mtp_mbox: mbox@294608000 {
+			compatible = "apple,t6050-asc-mailbox", "apple,asc-mailbox-v4";
+			reg = <0x2 0x94608000 0x0 0x4000>;
+			interrupt-parent = <&aic>;
+			interrupts = <AIC_IRQ 676 IRQ_TYPE_LEVEL_HIGH>,
+				     <AIC_IRQ 677 IRQ_TYPE_LEVEL_HIGH>,
+				     <AIC_IRQ 678 IRQ_TYPE_LEVEL_HIGH>,
+				     <AIC_IRQ 679 IRQ_TYPE_LEVEL_HIGH>;
+			interrupt-names = "send-empty", "send-not-empty",
+					  "recv-empty", "recv-not-empty";
+			#mbox-cells = <0>;
+			status = "disabled";
+		};
+
+		mtp_dart: iommu@294800000 {
+			compatible = "apple,t6050-dart", "apple,t8110-dart";
+			reg = <0x2 0x94800000 0x0 0xc000>;
+			interrupt-parent = <&aic>;
+			interrupts = <AIC_IRQ 659 IRQ_TYPE_LEVEL_HIGH>;
+			#iommu-cells = <1>;
+			/* ADT vm-base 0x10000004000, vm-size 0xffff0000 (same window the
+			 * T8140 MTP/USB DARTs use in aurora-silicon/linux). */
+			apple,dma-range = <0x100 0x00004000 0x0 0xffff0000>;
+			status = "disabled";
+		};
+
+		mtp_dockchannel: fifo@294b14000 {
+			compatible = "apple,t6050-dockchannel", "apple,dockchannel";
+			reg = <0x2 0x94b14000 0x0 0x1000>;
+			reg-names = "irq";
+			interrupt-parent = <&aic>;
+			interrupts = <AIC_IRQ 660 IRQ_TYPE_LEVEL_HIGH>;
+
+			ranges = <0 0x2 0x94b28000 0x10000>;
+			nonposted-mmio;
+			#address-cells = <1>;
+			#size-cells = <1>;
+
+			interrupt-controller;
+			#interrupt-cells = <2>;
+
+			status = "disabled";
+
+			mtp_hid: input@0 {
+				/* t8132 selects the ring transport in dockchannel-hid */
+				compatible = "apple,t6050-dockchannel-hid",
+					     "apple,t8132-dockchannel-hid",
+					     "apple,dockchannel-hid";
+				reg = <0x0000 0x1000>,
+				      <0x4000 0x1000>,
+				      <0x8000 0x1000>,
+				      <0xc000 0x1000>;
+				reg-names = "rmt-config", "rmt-data", "config", "data";
+				iommus = <&mtp_dart 0>, <&mtp_dart 1>, <&mtp_dart 2>,
+					 <&mtp_dart 3>, <&mtp_dart 4>;
+				interrupt-parent = <&mtp_dockchannel>;
+				interrupts = <2 IRQ_TYPE_LEVEL_HIGH>,
+					     <3 IRQ_TYPE_LEVEL_HIGH>;
+				interrupt-names = "tx", "rx";
+				apple,fifo-size = <0x800>;
+				apple,helper-cpu = <&mtp>;
+			};
+		};
+
 		/* ADT: i2c0-4 at 0x30501{0,4,8,c,20}000 -> 0x50501... */
 		i2c0: i2c@505010000 {
 			compatible = "apple,t6050-i2c", "apple,t8103-i2c";
@@ -463,10 +575,10 @@
 		};
 
 		/*
-		 * SPI: ADT spi2 0x305108000 -> 0x505108000 (IRQ 1369),
-		 * spi4 0x305110000 -> 0x505110000 (IRQ 1371). Keyboard/trackpad
-		 * attach to one of these on MBPs — TODO(adt): confirm which on
-		 * j714s (spi3 on M1/M2 Pro/Max).
+		 * SPI: ADT spi2 0x305108000 -> 0x505108000 (IRQ 1369, only child
+		 * "mesa" = Touch ID), spi4 0x305110000 -> 0x505110000 (IRQ 1371,
+		 * only children dp855 + display-temp-sens*). Neither carries the
+		 * keyboard/trackpad: those are on the MTP, see mtp@294600000.
 		 */
 		spi2: spi@505108000 {
 			compatible = "apple,t6050-spi", "apple,t8103-spi";

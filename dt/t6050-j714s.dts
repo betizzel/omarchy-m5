@@ -15,9 +15,65 @@
 / {
 	compatible = "apple,j714s", "apple,t6050", "apple,arm-platform";
 	model = "Apple MacBook Pro (14-inch, M5 Pro, 2026)";
+
+	aliases {
+		/* m1n1 dt_set_ipd(): fills apple,keyboard-layout-id/hid-country-code
+		 * from /arm-io/dockchannel-mtp/mtp-transport/keyboard kblang-calibration */
+		keyboard = &keyboard;
+	};
 };
 
 /* J714s is a binned SKU: 5 cores per cluster, cpu5/cpu11/cpu17 fused off */
 &cpu_m0_5 { status = "disabled"; };
 &cpu_m1_5 { status = "disabled"; };
 &cpu_p5   { status = "disabled"; };
+
+/*
+ * Built-in keyboard + trackpad (MTP). The keyboard needs no firmware; the
+ * trackpad (ADT multi-touch: bootloader-type CBOR, personality C1FD0,8)
+ * needs apple/tpmtfw-j714s.bin extracted from the macOS restore bundle.
+ */
+&mtp {
+	status = "okay";
+};
+
+&mtp_mbox {
+	status = "okay";
+};
+
+&mtp_dart {
+	status = "okay";
+};
+
+&mtp_dockchannel {
+	status = "okay";
+};
+
+&mtp_hid {
+	multi-touch {
+		firmware-name = "apple/tpmtfw-j714s.bin";
+	};
+
+	keyboard: keyboard {
+		hid-country-code = <0>;
+		apple,keyboard-layout-id = <0>;
+	};
+
+	stm {
+	};
+
+	actuator {
+	};
+
+	/* ADT calls it tp-accel; the M2/M3 DTs use tp_accel. Which name the
+	 * firmware announces decides which node binds; the other is inert. */
+	tp-accel {
+	};
+
+	tp_accel {
+	};
+
+	/* an extra "mtp" interface exists on the M4 Air (GravityLinux PR #1) */
+	mtp {
+	};
+};
