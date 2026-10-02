@@ -77,3 +77,8 @@
 	mtp {
 	};
 };
+
+/* SMC sensors: two fans (F0Ac/F1Ac), laptop temperature/power keys (stage-0 probe). */
+#include "hwmon-common.dtsi"
+#include "hwmon-fan-dual.dtsi"
+#include "hwmon-laptop.dtsi"

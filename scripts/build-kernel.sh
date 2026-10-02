@@ -19,7 +19,7 @@ DTS_DIR="$LINUX/arch/arm64/boot/dts/apple"
 # defconfig alone leaves DRM=m and DRM_SIMPLEDRM unset, which yields a
 # kernel that boots but shows nothing on the panel. Fragments are merged
 # in order; ours wins.
-KCONFIG="${KCONFIG:-defconfig asahi.config omarchy-bringup.config omarchy-storage-net.config}"
+KCONFIG="${KCONFIG:-defconfig asahi.config omarchy-bringup.config omarchy-storage-net.config omarchy-smc.config}"
 JOBS="${JOBS:-$(nproc 2>/dev/null || sysctl -n hw.ncpu)}"
 
 if [ ! -d "$LINUX" ]; then
@@ -45,10 +45,11 @@ fi
 
 echo "==> Overlaying dt/ into $DTS_DIR"
 install -m 0644 dt/t6050.dtsi dt/t6050-pmgr.dtsi dt/t6050-jxxx.dtsi \
-    dt/t6050-storage-net.dtsi dt/t6050-cpufreq.dtsi dt/t6050-j714s.dts dt/t6050-j716s.dts \
+    dt/t6050-storage-net.dtsi dt/t6050-cpufreq.dtsi dt/t6050-smc.dtsi \
+    dt/t6050-j714s.dts dt/t6050-j716s.dts \
     "$DTS_DIR/"
 
-install -m 0644 configs/omarchy-bringup.config configs/omarchy-storage-net.config \
+install -m 0644 configs/omarchy-bringup.config configs/omarchy-storage-net.config configs/omarchy-smc.config \
     "$LINUX/arch/arm64/configs/"
 
 MK="$DTS_DIR/Makefile"
