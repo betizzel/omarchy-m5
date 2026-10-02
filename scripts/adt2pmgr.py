@@ -2,18 +2,30 @@
 # SPDX-License-Identifier: MIT
 """Generate t6050-pmgr.dtsi from a raw ADT binary.
 
-Forked from m1n1's proxyclient/tools/pmgr_adt2dt.py with one fix: parent
-IDs that don't resolve to a device (e.g. T6050's die-level/virtual
-domains like id 609) are skipped instead of crashing.
+Forked from m1n1's proxyclient/tools/pmgr_adt2dt.py with two changes:
+parent IDs that don't resolve to a device (e.g. T6050's die-level/virtual
+domains like id 609) are skipped instead of crashing, and --boot-state can
+withhold apple,always-on from domains that are off at handover.
 
 Usage:
-    scripts/adt2pmgr.py /path/to/adt.bin > dt/t6050-pmgr.dtsi
+    scripts/adt2pmgr.py ADT [--boot-state STATE.json] > dt/t6050-pmgr.dtsi
 
-Get adt.bin on-device: extract devicetree.img4 from Preboot
-(usr/standalone/firmware/devicetree.img4), strip the IM4P header, and
-LZFSE-decompress the bvx2 payload — or retrieve it live via m1n1
-proxyclient (`adt` object / adt.py --retrieve).
+ADT must be the *runtime* tree (tether bundle: ./dump-adt.sh). iBoot prunes
+and patches it at boot - e.g. it drops the memory channels this SKU does not
+populate - so the on-disk devicetree.img4 describes domains that do not
+exist here and pairs labels with the wrong registers.
+
+STATE.json maps domain label -> pwrstate register value at m1n1 handover.
+The ADT marks some domains critical that are nevertheless off at handover
+(debug fabric, links to unpopulated memory channels, die-to-die links).
+Linux force-powers every always-on domain it finds off, and on T6050 that
+ends in an asynchronous SError, so those domains are emitted as ordinary
+ones instead - m1n1's dt_set_pmgr() does the same for T8012's unused
+memory channels.
 """
+import argparse
+import json
+import re
 import sys
 import pathlib
 
@@ -35,12 +47,37 @@ HEADER = """// SPDX-License-Identifier: GPL-2.0+ OR MIT
 """
 
 
-def main() -> int:
-    if len(sys.argv) != 2:
-        print(__doc__, file=sys.stderr)
-        return 2
+# CPU cores (mcpu*/pcpu*/ecpu*) and their cluster power managers
+# (mcpm*/pcpm*/ecpm*) belong to the CPUs, not to genpd: Asahi's Apple
+# Silicon trees never describe them. On T6050 the ADT lists them as plain
+# pwrstate devices, and they sit "on, targeted off" (0x1f0) because the
+# hardware holds them up while a core runs; the Linux driver's AUTO_ENABLE
+# write on probe then makes PMGR enforce "off" on the running boot core,
+# which ends in an asynchronous SError.
+CPU_COMPLEX = re.compile(r"^[mpe]cp[um]\d*(_\d+)?$")
 
-    dt = adt.load_adt(pathlib.Path(sys.argv[1]).read_bytes())
+
+def skipped(dev) -> bool:
+    return dev.flags.no_ps or bool(CPU_COMPLEX.match(dev.name.lower()))
+
+
+def linux_sees_active(value: int) -> bool:
+    """Mirror of Linux's apple_pmgr_ps_is_active()."""
+    actual, target = value >> 4 & 0xf, value & 0xf
+    return actual == 0xf or (target == 0xf and bool(value & (1 << 28)))
+
+
+def main() -> int:
+    ap = argparse.ArgumentParser(description=__doc__,
+                                 formatter_class=argparse.RawDescriptionHelpFormatter)
+    ap.add_argument("adt", type=pathlib.Path)
+    ap.add_argument("--boot-state", type=pathlib.Path,
+                    help="JSON {label: pwrstate value at handover}")
+    args = ap.parse_args()
+
+    boot_state = json.loads(args.boot_state.read_text()) if args.boot_state else {}
+
+    dt = adt.load_adt(args.adt.read_bytes())
     pmgr = dt["/arm-io/pmgr"]
 
     dev_by_id = {dt.pmgr_dev_get_id(dev): dev for dev in pmgr.devices}
@@ -48,7 +85,7 @@ def main() -> int:
     blocks = {}
     maxaddr = {}
     for dev in pmgr.devices:
-        if dev.flags.no_ps:
+        if skipped(dev):
             continue
         block = dt.pmgr_dev_get_block(dev)
         blocks.setdefault(block, []).append(dev)
@@ -77,7 +114,7 @@ def main() -> int:
     for i, ((base, size), devices) in enumerate(sorted(blocks.items())):
         print(f"&pmgr{i} {{")
         for dev in sorted(devices, key=dt.pmgr_dev_get_addr):
-            if dev.flags.no_ps:
+            if skipped(dev):
                 continue
             offset = dt.pmgr_dev_get_offset(dev)
             print()
@@ -88,7 +125,11 @@ def main() -> int:
             print("\t\t#reset-cells = <0>;")
             print(f'\t\tlabel = "{dev.name.lower()}";')
             if dev.flags.critical:
-                print("\t\tapple,always-on;")
+                state = boot_state.get(dev.name.lower())
+                if state is not None and not linux_sees_active(state):
+                    print(f"\t\t/* ADT critical, but off at handover ({state:#010x}) */")
+                else:
+                    print("\t\tapple,always-on;")
             domains = []
             for idx in dt.pmgr_dev_get_parents(dev):
                 if not idx:

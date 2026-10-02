@@ -54,165 +54,12 @@
 		#address-cells = <1>;
 		#size-cells = <1>;
 
-		reg = <0x23 0x88300000 0 0x8000>;
+		reg = <0x23 0x88300000 0 0x4000>;
 	};
 
 };
 
 &pmgr0 {
-
-	ps_mcpu0_0: power-controller@0 {
-		compatible = "apple,t6050-pmgr-pwrstate", "apple,t8103-pmgr-pwrstate";
-		reg = <0x0 4>;
-		#power-domain-cells = <0>;
-		#reset-cells = <0>;
-		label = "mcpu0_0";
-	};
-
-	ps_mcpu0_1: power-controller@8 {
-		compatible = "apple,t6050-pmgr-pwrstate", "apple,t8103-pmgr-pwrstate";
-		reg = <0x8 4>;
-		#power-domain-cells = <0>;
-		#reset-cells = <0>;
-		label = "mcpu0_1";
-	};
-
-	ps_mcpu0_2: power-controller@10 {
-		compatible = "apple,t6050-pmgr-pwrstate", "apple,t8103-pmgr-pwrstate";
-		reg = <0x10 4>;
-		#power-domain-cells = <0>;
-		#reset-cells = <0>;
-		label = "mcpu0_2";
-	};
-
-	ps_mcpu0_3: power-controller@18 {
-		compatible = "apple,t6050-pmgr-pwrstate", "apple,t8103-pmgr-pwrstate";
-		reg = <0x18 4>;
-		#power-domain-cells = <0>;
-		#reset-cells = <0>;
-		label = "mcpu0_3";
-	};
-
-	ps_mcpu0_4: power-controller@20 {
-		compatible = "apple,t6050-pmgr-pwrstate", "apple,t8103-pmgr-pwrstate";
-		reg = <0x20 4>;
-		#power-domain-cells = <0>;
-		#reset-cells = <0>;
-		label = "mcpu0_4";
-	};
-
-	ps_mcpu0_5: power-controller@28 {
-		compatible = "apple,t6050-pmgr-pwrstate", "apple,t8103-pmgr-pwrstate";
-		reg = <0x28 4>;
-		#power-domain-cells = <0>;
-		#reset-cells = <0>;
-		label = "mcpu0_5";
-	};
-
-	ps_mcpu1_0: power-controller@30 {
-		compatible = "apple,t6050-pmgr-pwrstate", "apple,t8103-pmgr-pwrstate";
-		reg = <0x30 4>;
-		#power-domain-cells = <0>;
-		#reset-cells = <0>;
-		label = "mcpu1_0";
-	};
-
-	ps_mcpu1_1: power-controller@38 {
-		compatible = "apple,t6050-pmgr-pwrstate", "apple,t8103-pmgr-pwrstate";
-		reg = <0x38 4>;
-		#power-domain-cells = <0>;
-		#reset-cells = <0>;
-		label = "mcpu1_1";
-	};
-
-	ps_mcpu1_2: power-controller@40 {
-		compatible = "apple,t6050-pmgr-pwrstate", "apple,t8103-pmgr-pwrstate";
-		reg = <0x40 4>;
-		#power-domain-cells = <0>;
-		#reset-cells = <0>;
-		label = "mcpu1_2";
-	};
-
-	ps_mcpu1_3: power-controller@48 {
-		compatible = "apple,t6050-pmgr-pwrstate", "apple,t8103-pmgr-pwrstate";
-		reg = <0x48 4>;
-		#power-domain-cells = <0>;
-		#reset-cells = <0>;
-		label = "mcpu1_3";
-	};
-
-	ps_mcpu1_4: power-controller@50 {
-		compatible = "apple,t6050-pmgr-pwrstate", "apple,t8103-pmgr-pwrstate";
-		reg = <0x50 4>;
-		#power-domain-cells = <0>;
-		#reset-cells = <0>;
-		label = "mcpu1_4";
-	};
-
-	ps_mcpu1_5: power-controller@58 {
-		compatible = "apple,t6050-pmgr-pwrstate", "apple,t8103-pmgr-pwrstate";
-		reg = <0x58 4>;
-		#power-domain-cells = <0>;
-		#reset-cells = <0>;
-		label = "mcpu1_5";
-	};
-
-	ps_pcpu_0: power-controller@60 {
-		compatible = "apple,t6050-pmgr-pwrstate", "apple,t8103-pmgr-pwrstate";
-		reg = <0x60 4>;
-		#power-domain-cells = <0>;
-		#reset-cells = <0>;
-		label = "pcpu_0";
-	};
-
-	ps_pcpu_1: power-controller@68 {
-		compatible = "apple,t6050-pmgr-pwrstate", "apple,t8103-pmgr-pwrstate";
-		reg = <0x68 4>;
-		#power-domain-cells = <0>;
-		#reset-cells = <0>;
-		label = "pcpu_1";
-	};
-
-	ps_pcpu_2: power-controller@70 {
-		compatible = "apple,t6050-pmgr-pwrstate", "apple,t8103-pmgr-pwrstate";
-		reg = <0x70 4>;
-		#power-domain-cells = <0>;
-		#reset-cells = <0>;
-		label = "pcpu_2";
-	};
-
-	ps_pcpu_3: power-controller@78 {
-		compatible = "apple,t6050-pmgr-pwrstate", "apple,t8103-pmgr-pwrstate";
-		reg = <0x78 4>;
-		#power-domain-cells = <0>;
-		#reset-cells = <0>;
-		label = "pcpu_3";
-	};
-
-	ps_pcpu_4: power-controller@80 {
-		compatible = "apple,t6050-pmgr-pwrstate", "apple,t8103-pmgr-pwrstate";
-		reg = <0x80 4>;
-		#power-domain-cells = <0>;
-		#reset-cells = <0>;
-		label = "pcpu_4";
-	};
-
-	ps_pcpu_5: power-controller@88 {
-		compatible = "apple,t6050-pmgr-pwrstate", "apple,t8103-pmgr-pwrstate";
-		reg = <0x88 4>;
-		#power-domain-cells = <0>;
-		#reset-cells = <0>;
-		label = "pcpu_5";
-	};
-
-	ps_pms: power-controller@100 {
-		compatible = "apple,t6050-pmgr-pwrstate", "apple,t8103-pmgr-pwrstate";
-		reg = <0x100 4>;
-		#power-domain-cells = <0>;
-		#reset-cells = <0>;
-		label = "pms";
-		apple,always-on;
-	};
 
 	ps_aic: power-controller@108 {
 		compatible = "apple,t6050-pmgr-pwrstate", "apple,t8103-pmgr-pwrstate";
@@ -220,7 +67,6 @@
 		#power-domain-cells = <0>;
 		#reset-cells = <0>;
 		label = "aic";
-		power-domains = <&ps_pms>;
 	};
 
 	ps_pmc: power-controller@110 {
@@ -230,7 +76,6 @@
 		#reset-cells = <0>;
 		label = "pmc";
 		apple,always-on;
-		power-domains = <&ps_pms>;
 	};
 
 	ps_pms_c1ppt: power-controller@118 {
@@ -240,7 +85,6 @@
 		#reset-cells = <0>;
 		label = "pms_c1ppt";
 		apple,always-on;
-		power-domains = <&ps_pms>;
 	};
 
 	ps_soc_dpe: power-controller@120 {
@@ -250,7 +94,6 @@
 		#reset-cells = <0>;
 		label = "soc_dpe";
 		apple,always-on;
-		power-domains = <&ps_pms>;
 	};
 
 	ps_pmp: power-controller@128 {
@@ -260,7 +103,6 @@
 		#reset-cells = <0>;
 		label = "pmp";
 		apple,always-on;
-		power-domains = <&ps_pms>;
 	};
 
 	ps_pms_sram: power-controller@130 {
@@ -270,7 +112,6 @@
 		#reset-cells = <0>;
 		label = "pms_sram";
 		apple,always-on;
-		power-domains = <&ps_pms>;
 	};
 
 	ps_pmgr_soc_ocla: power-controller@138 {
@@ -341,7 +182,7 @@
 		#power-domain-cells = <0>;
 		#reset-cells = <0>;
 		label = "b2bc_afc_0_dfx";
-		apple,always-on;
+		/* ADT critical, but off at handover (0x00000300) */
 		power-domains = <&ps_b2bc_afc_0>;
 	};
 
@@ -360,119 +201,8 @@
 		#power-domain-cells = <0>;
 		#reset-cells = <0>;
 		label = "b2bc_afc_1_dfx";
-		apple,always-on;
+		/* ADT critical, but off at handover (0x00000300) */
 		power-domains = <&ps_b2bc_afc_1>;
-	};
-
-	ps_fab0_afi_0: power-controller@188 {
-		compatible = "apple,t6050-pmgr-pwrstate", "apple,t8103-pmgr-pwrstate";
-		reg = <0x188 4>;
-		#power-domain-cells = <0>;
-		#reset-cells = <0>;
-		label = "fab0_afi_0";
-		apple,always-on;
-	};
-
-	ps_fab0_afi_1: power-controller@190 {
-		compatible = "apple,t6050-pmgr-pwrstate", "apple,t8103-pmgr-pwrstate";
-		reg = <0x190 4>;
-		#power-domain-cells = <0>;
-		#reset-cells = <0>;
-		label = "fab0_afi_1";
-		apple,always-on;
-	};
-
-	ps_fab0_afi_2: power-controller@198 {
-		compatible = "apple,t6050-pmgr-pwrstate", "apple,t8103-pmgr-pwrstate";
-		reg = <0x198 4>;
-		#power-domain-cells = <0>;
-		#reset-cells = <0>;
-		label = "fab0_afi_2";
-		apple,always-on;
-	};
-
-	ps_fab0_afi_3: power-controller@1a0 {
-		compatible = "apple,t6050-pmgr-pwrstate", "apple,t8103-pmgr-pwrstate";
-		reg = <0x1a0 4>;
-		#power-domain-cells = <0>;
-		#reset-cells = <0>;
-		label = "fab0_afi_3";
-		apple,always-on;
-	};
-
-	ps_fab_b2bc_afi_0: power-controller@1a8 {
-		compatible = "apple,t6050-pmgr-pwrstate", "apple,t8103-pmgr-pwrstate";
-		reg = <0x1a8 4>;
-		#power-domain-cells = <0>;
-		#reset-cells = <0>;
-		label = "fab_b2bc_afi_0";
-		apple,always-on;
-	};
-
-	ps_fab_b2bc_afi_1: power-controller@1b0 {
-		compatible = "apple,t6050-pmgr-pwrstate", "apple,t8103-pmgr-pwrstate";
-		reg = <0x1b0 4>;
-		#power-domain-cells = <0>;
-		#reset-cells = <0>;
-		label = "fab_b2bc_afi_1";
-		apple,always-on;
-	};
-
-	ps_b2bc_afi_0: power-controller@1b8 {
-		compatible = "apple,t6050-pmgr-pwrstate", "apple,t8103-pmgr-pwrstate";
-		reg = <0x1b8 4>;
-		#power-domain-cells = <0>;
-		#reset-cells = <0>;
-		label = "b2bc_afi_0";
-		apple,always-on;
-	};
-
-	ps_b2bc_afi_0_dfx: power-controller@1c0 {
-		compatible = "apple,t6050-pmgr-pwrstate", "apple,t8103-pmgr-pwrstate";
-		reg = <0x1c0 4>;
-		#power-domain-cells = <0>;
-		#reset-cells = <0>;
-		label = "b2bc_afi_0_dfx";
-		apple,always-on;
-		power-domains = <&ps_b2bc_afi_0>;
-	};
-
-	ps_b2bc_afi_1: power-controller@1c8 {
-		compatible = "apple,t6050-pmgr-pwrstate", "apple,t8103-pmgr-pwrstate";
-		reg = <0x1c8 4>;
-		#power-domain-cells = <0>;
-		#reset-cells = <0>;
-		label = "b2bc_afi_1";
-		apple,always-on;
-	};
-
-	ps_b2bc_afi_1_dfx: power-controller@1d0 {
-		compatible = "apple,t6050-pmgr-pwrstate", "apple,t8103-pmgr-pwrstate";
-		reg = <0x1d0 4>;
-		#power-domain-cells = <0>;
-		#reset-cells = <0>;
-		label = "b2bc_afi_1_dfx";
-		apple,always-on;
-		power-domains = <&ps_b2bc_afi_1>;
-	};
-
-	ps_fab0_piogw: power-controller@1d8 {
-		compatible = "apple,t6050-pmgr-pwrstate", "apple,t8103-pmgr-pwrstate";
-		reg = <0x1d8 4>;
-		#power-domain-cells = <0>;
-		#reset-cells = <0>;
-		label = "fab0_piogw";
-		apple,always-on;
-	};
-
-	ps_fab3_soc: power-controller@1e0 {
-		compatible = "apple,t6050-pmgr-pwrstate", "apple,t8103-pmgr-pwrstate";
-		reg = <0x1e0 4>;
-		#power-domain-cells = <0>;
-		#reset-cells = <0>;
-		label = "fab3_soc";
-		apple,always-on;
-		power-domains = <&ps_fab0_piogw>;
 	};
 
 	ps_fab4_soc: power-controller@1e8 {
@@ -482,7 +212,6 @@
 		#reset-cells = <0>;
 		label = "fab4_soc";
 		apple,always-on;
-		power-domains = <&ps_fab0_piogw>;
 	};
 
 	ps_fab5_soc: power-controller@1f0 {
@@ -492,17 +221,6 @@
 		#reset-cells = <0>;
 		label = "fab5_soc";
 		apple,always-on;
-		power-domains = <&ps_fab0_piogw>;
-	};
-
-	ps_sbr: power-controller@1f8 {
-		compatible = "apple,t6050-pmgr-pwrstate", "apple,t8103-pmgr-pwrstate";
-		reg = <0x1f8 4>;
-		#power-domain-cells = <0>;
-		#reset-cells = <0>;
-		label = "sbr";
-		apple,always-on;
-		power-domains = <&ps_fab3_soc>;
 	};
 
 	ps_dispext0_sys: power-controller@200 {
@@ -511,7 +229,6 @@
 		#power-domain-cells = <0>;
 		#reset-cells = <0>;
 		label = "dispext0_sys";
-		power-domains = <&ps_fab3_soc>;
 	};
 
 	ps_atc0_common: power-controller@208 {
@@ -520,7 +237,6 @@
 		#power-domain-cells = <0>;
 		#reset-cells = <0>;
 		label = "atc0_common";
-		power-domains = <&ps_fab3_soc>;
 	};
 
 	ps_atc1_common: power-controller@210 {
@@ -529,7 +245,6 @@
 		#power-domain-cells = <0>;
 		#reset-cells = <0>;
 		label = "atc1_common";
-		power-domains = <&ps_fab3_soc>;
 	};
 
 	ps_dispext2_sys: power-controller@220 {
@@ -592,7 +307,6 @@
 		#power-domain-cells = <0>;
 		#reset-cells = <0>;
 		label = "gpio";
-		power-domains = <&ps_sbr>;
 	};
 
 	ps_msg: power-controller@258 {
@@ -601,7 +315,6 @@
 		#power-domain-cells = <0>;
 		#reset-cells = <0>;
 		label = "msg";
-		power-domains = <&ps_sbr>;
 	};
 
 	ps_ap_tmm: power-controller@260 {
@@ -610,7 +323,6 @@
 		#power-domain-cells = <0>;
 		#reset-cells = <0>;
 		label = "ap_tmm";
-		power-domains = <&ps_sbr>;
 	};
 
 	ps_dispext0_fe: power-controller@268 {
@@ -901,22 +613,12 @@
 		power-domains = <&ps_atc3_cio>, <&ps_auss>;
 	};
 
-	ps_fab0_afigw: power-controller@448 {
-		compatible = "apple,t6050-pmgr-pwrstate", "apple,t8103-pmgr-pwrstate";
-		reg = <0x448 4>;
-		#power-domain-cells = <0>;
-		#reset-cells = <0>;
-		label = "fab0_afigw";
-		apple,always-on;
-	};
-
 	ps_fppt: power-controller@450 {
 		compatible = "apple,t6050-pmgr-pwrstate", "apple,t8103-pmgr-pwrstate";
 		reg = <0x450 4>;
 		#power-domain-cells = <0>;
 		#reset-cells = <0>;
 		label = "fppt";
-		power-domains = <&ps_fab0_afigw>;
 	};
 
 	ps_b2bc_dft: power-controller@458 {
@@ -994,14 +696,6 @@
 		label = "apcie_gp";
 	};
 
-	ps_apcie_ge: power-controller@120 {
-		compatible = "apple,t6050-pmgr-pwrstate", "apple,t8103-pmgr-pwrstate";
-		reg = <0x120 4>;
-		#power-domain-cells = <0>;
-		#reset-cells = <0>;
-		label = "apcie_ge";
-	};
-
 	ps_apcie_st0: power-controller@128 {
 		compatible = "apple,t6050-pmgr-pwrstate", "apple,t8103-pmgr-pwrstate";
 		reg = <0x128 4>;
@@ -1025,7 +719,6 @@
 		#reset-cells = <0>;
 		label = "fab6_soc";
 		apple,always-on;
-		power-domains = <&ps_fab0_piogw>;
 	};
 
 	ps_ans: power-controller@140 {
@@ -1098,7 +791,6 @@
 		#reset-cells = <0>;
 		label = "fab7_soc";
 		apple,always-on;
-		power-domains = <&ps_fab0_piogw>;
 	};
 
 	ps_disp_sys: power-controller@180 {
@@ -1108,15 +800,6 @@
 		#reset-cells = <0>;
 		label = "disp_sys";
 		power-domains = <&ps_fab7_soc>;
-	};
-
-	ps_apcie_sys_ge: power-controller@188 {
-		compatible = "apple,t6050-pmgr-pwrstate", "apple,t8103-pmgr-pwrstate";
-		reg = <0x188 4>;
-		#power-domain-cells = <0>;
-		#reset-cells = <0>;
-		label = "apcie_sys_ge";
-		power-domains = <&ps_apcie_ge>, <&ps_fab6_soc>;
 	};
 
 	ps_scodec: power-controller@190 {
@@ -1161,16 +844,7 @@
 		#power-domain-cells = <0>;
 		#reset-cells = <0>;
 		label = "apcie_phy_sw";
-		power-domains = <&ps_apcie_sys_gp>, <&ps_apcie_sys_ge>;
-	};
-
-	ps_apcie_sys_ge_ol: power-controller@1b8 {
-		compatible = "apple,t6050-pmgr-pwrstate", "apple,t8103-pmgr-pwrstate";
-		reg = <0x1b8 4>;
-		#power-domain-cells = <0>;
-		#reset-cells = <0>;
-		label = "apcie_sys_ge_ol";
-		power-domains = <&ps_apcie_sys_ge>;
+		power-domains = <&ps_apcie_sys_gp>;
 	};
 
 	ps_scodec_streaming: power-controller@1c0 {
@@ -1197,15 +871,6 @@
 		#power-domain-cells = <0>;
 		#reset-cells = <0>;
 		label = "aphy_st1_aus5_a";
-		power-domains = <&ps_apcie_phy_sw>;
-	};
-
-	ps_aphy_ge_aus5_a: power-controller@250 {
-		compatible = "apple,t6050-pmgr-pwrstate", "apple,t8103-pmgr-pwrstate";
-		reg = <0x250 4>;
-		#power-domain-cells = <0>;
-		#reset-cells = <0>;
-		label = "aphy_ge_aus5_a";
 		power-domains = <&ps_apcie_phy_sw>;
 	};
 
@@ -1236,15 +901,6 @@
 		power-domains = <&ps_aphy_st1_aus5_a>;
 	};
 
-	ps_aphy_ge_aus5: power-controller@278 {
-		compatible = "apple,t6050-pmgr-pwrstate", "apple,t8103-pmgr-pwrstate";
-		reg = <0x278 4>;
-		#power-domain-cells = <0>;
-		#reset-cells = <0>;
-		label = "aphy_ge_aus5";
-		power-domains = <&ps_aphy_ge_aus5_a>;
-	};
-
 	ps_aphy_gp_aus5: power-controller@280 {
 		compatible = "apple,t6050-pmgr-pwrstate", "apple,t8103-pmgr-pwrstate";
 		reg = <0x280 4>;
@@ -1261,7 +917,6 @@
 		#reset-cells = <0>;
 		label = "fab8_soc";
 		apple,always-on;
-		power-domains = <&ps_fab0_piogw>;
 	};
 
 	ps_sio: power-controller@290 {
@@ -1562,7 +1217,6 @@
 		#reset-cells = <0>;
 		label = "fab9_soc";
 		apple,always-on;
-		power-domains = <&ps_fab0_piogw>;
 	};
 
 	ps_isp_sys: power-controller@3a0 {
@@ -1574,12 +1228,22 @@
 		power-domains = <&ps_fab9_soc>;
 	};
 
+	ps_ane_sys: power-controller@3a8 {
+		compatible = "apple,t6050-pmgr-pwrstate", "apple,t8103-pmgr-pwrstate";
+		reg = <0x3a8 4>;
+		#power-domain-cells = <0>;
+		#reset-cells = <0>;
+		label = "ane_sys";
+		power-domains = <&ps_fab8_soc>, <&ps_fab9_soc>;
+	};
+
 	ps_ane_mpm: power-controller@3c0 {
 		compatible = "apple,t6050-pmgr-pwrstate", "apple,t8103-pmgr-pwrstate";
 		reg = <0x3c0 4>;
 		#power-domain-cells = <0>;
 		#reset-cells = <0>;
 		label = "ane_mpm";
+		power-domains = <&ps_ane_sys>;
 	};
 
 	ps_ane_cpu: power-controller@3c8 {
@@ -1588,6 +1252,7 @@
 		#power-domain-cells = <0>;
 		#reset-cells = <0>;
 		label = "ane_cpu";
+		power-domains = <&ps_ane_sys>;
 	};
 
 	ps_ane_tdbase: power-controller@3d0 {
@@ -1596,6 +1261,7 @@
 		#power-domain-cells = <0>;
 		#reset-cells = <0>;
 		label = "ane_tdbase";
+		power-domains = <&ps_ane_sys>;
 	};
 };
 
@@ -1634,16 +1300,7 @@
 		#power-domain-cells = <0>;
 		#reset-cells = <0>;
 		label = "nub_spmi_a2";
-		apple,always-on;
-	};
-
-	ps_nub_aon: power-controller@78 {
-		compatible = "apple,t6050-pmgr-pwrstate", "apple,t8103-pmgr-pwrstate";
-		reg = <0x78 4>;
-		#power-domain-cells = <0>;
-		#reset-cells = <0>;
-		label = "nub_aon";
-		apple,always-on;
+		/* ADT critical, but off at handover (0x0f000200) */
 	};
 
 	ps_nub_dock_channel: power-controller@80 {
@@ -1653,7 +1310,6 @@
 		#reset-cells = <0>;
 		label = "nub_dock_channel";
 		apple,always-on;
-		power-domains = <&ps_nub_aon>;
 	};
 
 	ps_nub_gpio: power-controller@88 {
@@ -1956,34 +1612,6 @@
 		power-domains = <&ps_atc3_common>, <&ps_atc3_usb_aon>;
 	};
 
-	ps_nub_fabric: power-controller@1a8 {
-		compatible = "apple,t6050-pmgr-pwrstate", "apple,t8103-pmgr-pwrstate";
-		reg = <0x1a8 4>;
-		#power-domain-cells = <0>;
-		#reset-cells = <0>;
-		label = "nub_fabric";
-		apple,always-on;
-	};
-
-	ps_nub_sram: power-controller@1b0 {
-		compatible = "apple,t6050-pmgr-pwrstate", "apple,t8103-pmgr-pwrstate";
-		reg = <0x1b0 4>;
-		#power-domain-cells = <0>;
-		#reset-cells = <0>;
-		label = "nub_sram";
-		apple,always-on;
-		power-domains = <&ps_nub_fabric>;
-	};
-
-	ps_debug_switch: power-controller@1b8 {
-		compatible = "apple,t6050-pmgr-pwrstate", "apple,t8103-pmgr-pwrstate";
-		reg = <0x1b8 4>;
-		#power-domain-cells = <0>;
-		#reset-cells = <0>;
-		label = "debug_switch";
-		apple,always-on;
-	};
-
 	ps_smc_i2cm0: power-controller@8028 {
 		compatible = "apple,t6050-pmgr-pwrstate", "apple,t8103-pmgr-pwrstate";
 		reg = <0x8028 4>;
@@ -2058,7 +1686,7 @@
 		#power-domain-cells = <0>;
 		#reset-cells = <0>;
 		label = "afr";
-		apple,always-on;
+		/* ADT critical, but off at handover (0x0f040300) */
 	};
 
 	ps_cs: power-controller@108 {
@@ -2082,22 +1710,12 @@
 
 &pmgr4 {
 
-	ps_pms_gfx: power-controller@100 {
-		compatible = "apple,t6050-pmgr-pwrstate", "apple,t8103-pmgr-pwrstate";
-		reg = <0x100 4>;
-		#power-domain-cells = <0>;
-		#reset-cells = <0>;
-		label = "pms_gfx";
-		apple,always-on;
-	};
-
 	ps_aic_gfx: power-controller@108 {
 		compatible = "apple,t6050-pmgr-pwrstate", "apple,t8103-pmgr-pwrstate";
 		reg = <0x108 4>;
 		#power-domain-cells = <0>;
 		#reset-cells = <0>;
 		label = "aic_gfx";
-		power-domains = <&ps_pms_gfx>;
 	};
 
 	ps_pms_gfx_c1ppt: power-controller@110 {
@@ -2107,7 +1725,6 @@
 		#reset-cells = <0>;
 		label = "pms_gfx_c1ppt";
 		apple,always-on;
-		power-domains = <&ps_pms_gfx>;
 	};
 
 	ps_soc_dpe_gfx: power-controller@118 {
@@ -2117,7 +1734,6 @@
 		#reset-cells = <0>;
 		label = "soc_dpe_gfx";
 		apple,always-on;
-		power-domains = <&ps_pms_gfx>;
 	};
 
 	ps_pmgr_soc_ocla_g: power-controller@120 {
@@ -2151,7 +1767,7 @@
 		#power-domain-cells = <0>;
 		#reset-cells = <0>;
 		label = "b2bg_afc_0_dfx";
-		apple,always-on;
+		/* ADT critical, but off at handover (0x00000300) */
 		power-domains = <&ps_b2bg_afc_0>;
 	};
 
@@ -2170,72 +1786,8 @@
 		#power-domain-cells = <0>;
 		#reset-cells = <0>;
 		label = "b2bg_afc_1_dfx";
-		apple,always-on;
+		/* ADT critical, but off at handover (0x00000300) */
 		power-domains = <&ps_b2bg_afc_1>;
-	};
-
-	ps_fab1_afi_0: power-controller@150 {
-		compatible = "apple,t6050-pmgr-pwrstate", "apple,t8103-pmgr-pwrstate";
-		reg = <0x150 4>;
-		#power-domain-cells = <0>;
-		#reset-cells = <0>;
-		label = "fab1_afi_0";
-		apple,always-on;
-	};
-
-	ps_fab1_afi_1: power-controller@158 {
-		compatible = "apple,t6050-pmgr-pwrstate", "apple,t8103-pmgr-pwrstate";
-		reg = <0x158 4>;
-		#power-domain-cells = <0>;
-		#reset-cells = <0>;
-		label = "fab1_afi_1";
-		apple,always-on;
-	};
-
-	ps_fab_b2bg_afi_0: power-controller@160 {
-		compatible = "apple,t6050-pmgr-pwrstate", "apple,t8103-pmgr-pwrstate";
-		reg = <0x160 4>;
-		#power-domain-cells = <0>;
-		#reset-cells = <0>;
-		label = "fab_b2bg_afi_0";
-		apple,always-on;
-	};
-
-	ps_fab_b2bg_afi_1: power-controller@168 {
-		compatible = "apple,t6050-pmgr-pwrstate", "apple,t8103-pmgr-pwrstate";
-		reg = <0x168 4>;
-		#power-domain-cells = <0>;
-		#reset-cells = <0>;
-		label = "fab_b2bg_afi_1";
-		apple,always-on;
-	};
-
-	ps_b2bg_afi_0: power-controller@170 {
-		compatible = "apple,t6050-pmgr-pwrstate", "apple,t8103-pmgr-pwrstate";
-		reg = <0x170 4>;
-		#power-domain-cells = <0>;
-		#reset-cells = <0>;
-		label = "b2bg_afi_0";
-		apple,always-on;
-	};
-
-	ps_b2bg_afi_0_dfx: power-controller@178 {
-		compatible = "apple,t6050-pmgr-pwrstate", "apple,t8103-pmgr-pwrstate";
-		reg = <0x178 4>;
-		#power-domain-cells = <0>;
-		#reset-cells = <0>;
-		label = "b2bg_afi_0_dfx";
-		apple,always-on;
-		power-domains = <&ps_b2bg_afi_0>;
-	};
-
-	ps_b2bg_afi_1: power-controller@180 {
-		compatible = "apple,t6050-pmgr-pwrstate", "apple,t8103-pmgr-pwrstate";
-		reg = <0x180 4>;
-		#power-domain-cells = <0>;
-		#reset-cells = <0>;
-		label = "b2bg_afi_1";
-		apple,always-on;
 	};
 
 	ps_b2bg_afi_1_dfx: power-controller@188 {
@@ -2244,17 +1796,7 @@
 		#power-domain-cells = <0>;
 		#reset-cells = <0>;
 		label = "b2bg_afi_1_dfx";
-		apple,always-on;
-		power-domains = <&ps_b2bg_afi_1>;
-	};
-
-	ps_fab1_afigw: power-controller@190 {
-		compatible = "apple,t6050-pmgr-pwrstate", "apple,t8103-pmgr-pwrstate";
-		reg = <0x190 4>;
-		#power-domain-cells = <0>;
-		#reset-cells = <0>;
-		label = "fab1_afigw";
-		apple,always-on;
+		/* ADT critical, but off at handover (0x00000300) */
 	};
 
 	ps_fppt_gfx: power-controller@198 {
@@ -2263,16 +1805,6 @@
 		#power-domain-cells = <0>;
 		#reset-cells = <0>;
 		label = "fppt_gfx";
-		power-domains = <&ps_fab1_afigw>;
-	};
-
-	ps_fab1_piogw: power-controller@1a0 {
-		compatible = "apple,t6050-pmgr-pwrstate", "apple,t8103-pmgr-pwrstate";
-		reg = <0x1a0 4>;
-		#power-domain-cells = <0>;
-		#reset-cells = <0>;
-		label = "fab1_piogw";
-		apple,always-on;
 	};
 
 	ps_fab0_soc: power-controller@1a8 {
@@ -2282,7 +1814,6 @@
 		#reset-cells = <0>;
 		label = "fab0_soc";
 		apple,always-on;
-		power-domains = <&ps_fab1_piogw>;
 	};
 
 	ps_fab1_soc: power-controller@1b0 {
@@ -2292,17 +1823,6 @@
 		#reset-cells = <0>;
 		label = "fab1_soc";
 		apple,always-on;
-		power-domains = <&ps_fab1_piogw>;
-	};
-
-	ps_fab2_soc: power-controller@1b8 {
-		compatible = "apple,t6050-pmgr-pwrstate", "apple,t8103-pmgr-pwrstate";
-		reg = <0x1b8 4>;
-		#power-domain-cells = <0>;
-		#reset-cells = <0>;
-		label = "fab2_soc";
-		apple,always-on;
-		power-domains = <&ps_fab1_piogw>;
 	};
 
 	ps_venc0_sys: power-controller@1c0 {
@@ -2350,32 +1870,12 @@
 		power-domains = <&ps_fab1_soc>;
 	};
 
-	ps_sbr_gfx: power-controller@1e8 {
-		compatible = "apple,t6050-pmgr-pwrstate", "apple,t8103-pmgr-pwrstate";
-		reg = <0x1e8 4>;
-		#power-domain-cells = <0>;
-		#reset-cells = <0>;
-		label = "sbr_gfx";
-		apple,always-on;
-		power-domains = <&ps_fab2_soc>;
-	};
-
-	ps_venc1_sys: power-controller@1f0 {
-		compatible = "apple,t6050-pmgr-pwrstate", "apple,t8103-pmgr-pwrstate";
-		reg = <0x1f0 4>;
-		#power-domain-cells = <0>;
-		#reset-cells = <0>;
-		label = "venc1_sys";
-		power-domains = <&ps_fab2_soc>;
-	};
-
 	ps_msr1: power-controller@1f8 {
 		compatible = "apple,t6050-pmgr-pwrstate", "apple,t8103-pmgr-pwrstate";
 		reg = <0x1f8 4>;
 		#power-domain-cells = <0>;
 		#reset-cells = <0>;
 		label = "msr1";
-		power-domains = <&ps_fab2_soc>;
 	};
 
 	ps_msr0_ase_core: power-controller@200 {
@@ -2396,15 +1896,6 @@
 		power-domains = <&ps_msr1>;
 	};
 
-	ps_fab_afi_amcc_0: power-controller@210 {
-		compatible = "apple,t6050-pmgr-pwrstate", "apple,t8103-pmgr-pwrstate";
-		reg = <0x210 4>;
-		#power-domain-cells = <0>;
-		#reset-cells = <0>;
-		label = "fab_afi_amcc_0";
-		apple,always-on;
-	};
-
 	ps_amcc0: power-controller@218 {
 		compatible = "apple,t6050-pmgr-pwrstate", "apple,t8103-pmgr-pwrstate";
 		reg = <0x218 4>;
@@ -2412,7 +1903,6 @@
 		#reset-cells = <0>;
 		label = "amcc0";
 		apple,always-on;
-		power-domains = <&ps_fab_afi_amcc_0>;
 	};
 
 	ps_amcc1: power-controller@220 {
@@ -2422,7 +1912,6 @@
 		#reset-cells = <0>;
 		label = "amcc1";
 		apple,always-on;
-		power-domains = <&ps_fab_afi_amcc_0>;
 	};
 
 	ps_amcc2: power-controller@228 {
@@ -2432,7 +1921,6 @@
 		#reset-cells = <0>;
 		label = "amcc2";
 		apple,always-on;
-		power-domains = <&ps_fab_afi_amcc_0>;
 	};
 
 	ps_amcc3: power-controller@230 {
@@ -2442,7 +1930,6 @@
 		#reset-cells = <0>;
 		label = "amcc3";
 		apple,always-on;
-		power-domains = <&ps_fab_afi_amcc_0>;
 	};
 
 	ps_fab_afr_amcc_0: power-controller@238 {
@@ -2452,7 +1939,6 @@
 		#reset-cells = <0>;
 		label = "fab_afr_amcc_0";
 		apple,always-on;
-		power-domains = <&ps_fab_afi_amcc_0>;
 	};
 
 	ps_fab_afr_amcc_1: power-controller@240 {
@@ -2462,47 +1948,6 @@
 		#reset-cells = <0>;
 		label = "fab_afr_amcc_1";
 		apple,always-on;
-		power-domains = <&ps_fab_afi_amcc_0>;
-	};
-
-	ps_dcs_00: power-controller@248 {
-		compatible = "apple,t6050-pmgr-pwrstate", "apple,t8103-pmgr-pwrstate";
-		reg = <0x248 4>;
-		#power-domain-cells = <0>;
-		#reset-cells = <0>;
-		label = "dcs_00";
-		apple,always-on;
-		power-domains = <&ps_amcc0>;
-	};
-
-	ps_dcs_01: power-controller@258 {
-		compatible = "apple,t6050-pmgr-pwrstate", "apple,t8103-pmgr-pwrstate";
-		reg = <0x258 4>;
-		#power-domain-cells = <0>;
-		#reset-cells = <0>;
-		label = "dcs_01";
-		apple,always-on;
-		power-domains = <&ps_amcc1>;
-	};
-
-	ps_dcs_02: power-controller@268 {
-		compatible = "apple,t6050-pmgr-pwrstate", "apple,t8103-pmgr-pwrstate";
-		reg = <0x268 4>;
-		#power-domain-cells = <0>;
-		#reset-cells = <0>;
-		label = "dcs_02";
-		apple,always-on;
-		power-domains = <&ps_amcc2>;
-	};
-
-	ps_dcs_03: power-controller@278 {
-		compatible = "apple,t6050-pmgr-pwrstate", "apple,t8103-pmgr-pwrstate";
-		reg = <0x278 4>;
-		#power-domain-cells = <0>;
-		#reset-cells = <0>;
-		label = "dcs_03";
-		apple,always-on;
-		power-domains = <&ps_amcc3>;
 	};
 
 	ps_fab_afc_amcc_0: power-controller@288 {
@@ -2514,15 +1959,6 @@
 		apple,always-on;
 	};
 
-	ps_fab_afi_amcc_1: power-controller@290 {
-		compatible = "apple,t6050-pmgr-pwrstate", "apple,t8103-pmgr-pwrstate";
-		reg = <0x290 4>;
-		#power-domain-cells = <0>;
-		#reset-cells = <0>;
-		label = "fab_afi_amcc_1";
-		apple,always-on;
-	};
-
 	ps_amcc4: power-controller@298 {
 		compatible = "apple,t6050-pmgr-pwrstate", "apple,t8103-pmgr-pwrstate";
 		reg = <0x298 4>;
@@ -2530,7 +1966,6 @@
 		#reset-cells = <0>;
 		label = "amcc4";
 		apple,always-on;
-		power-domains = <&ps_fab_afi_amcc_1>;
 	};
 
 	ps_amcc5: power-controller@2a0 {
@@ -2540,7 +1975,6 @@
 		#reset-cells = <0>;
 		label = "amcc5";
 		apple,always-on;
-		power-domains = <&ps_fab_afi_amcc_1>;
 	};
 
 	ps_amcc6: power-controller@2a8 {
@@ -2550,7 +1984,6 @@
 		#reset-cells = <0>;
 		label = "amcc6";
 		apple,always-on;
-		power-domains = <&ps_fab_afi_amcc_1>;
 	};
 
 	ps_amcc7: power-controller@2b0 {
@@ -2560,7 +1993,6 @@
 		#reset-cells = <0>;
 		label = "amcc7";
 		apple,always-on;
-		power-domains = <&ps_fab_afi_amcc_1>;
 	};
 
 	ps_fab_afr_amcc_2: power-controller@2b8 {
@@ -2570,7 +2002,6 @@
 		#reset-cells = <0>;
 		label = "fab_afr_amcc_2";
 		apple,always-on;
-		power-domains = <&ps_fab_afi_amcc_1>;
 	};
 
 	ps_fab_afr_amcc_3: power-controller@2c0 {
@@ -2580,47 +2011,6 @@
 		#reset-cells = <0>;
 		label = "fab_afr_amcc_3";
 		apple,always-on;
-		power-domains = <&ps_fab_afi_amcc_1>;
-	};
-
-	ps_dcs_04: power-controller@2c8 {
-		compatible = "apple,t6050-pmgr-pwrstate", "apple,t8103-pmgr-pwrstate";
-		reg = <0x2c8 4>;
-		#power-domain-cells = <0>;
-		#reset-cells = <0>;
-		label = "dcs_04";
-		apple,always-on;
-		power-domains = <&ps_amcc4>;
-	};
-
-	ps_dcs_05: power-controller@2d8 {
-		compatible = "apple,t6050-pmgr-pwrstate", "apple,t8103-pmgr-pwrstate";
-		reg = <0x2d8 4>;
-		#power-domain-cells = <0>;
-		#reset-cells = <0>;
-		label = "dcs_05";
-		apple,always-on;
-		power-domains = <&ps_amcc5>;
-	};
-
-	ps_dcs_06: power-controller@2e8 {
-		compatible = "apple,t6050-pmgr-pwrstate", "apple,t8103-pmgr-pwrstate";
-		reg = <0x2e8 4>;
-		#power-domain-cells = <0>;
-		#reset-cells = <0>;
-		label = "dcs_06";
-		apple,always-on;
-		power-domains = <&ps_amcc6>;
-	};
-
-	ps_dcs_07: power-controller@2f8 {
-		compatible = "apple,t6050-pmgr-pwrstate", "apple,t8103-pmgr-pwrstate";
-		reg = <0x2f8 4>;
-		#power-domain-cells = <0>;
-		#reset-cells = <0>;
-		label = "dcs_07";
-		apple,always-on;
-		power-domains = <&ps_amcc7>;
 	};
 
 	ps_fab_afc_amcc_1: power-controller@308 {
@@ -2632,15 +2022,6 @@
 		apple,always-on;
 	};
 
-	ps_fab_afi_amcc_2: power-controller@310 {
-		compatible = "apple,t6050-pmgr-pwrstate", "apple,t8103-pmgr-pwrstate";
-		reg = <0x310 4>;
-		#power-domain-cells = <0>;
-		#reset-cells = <0>;
-		label = "fab_afi_amcc_2";
-		apple,always-on;
-	};
-
 	ps_amcc8: power-controller@318 {
 		compatible = "apple,t6050-pmgr-pwrstate", "apple,t8103-pmgr-pwrstate";
 		reg = <0x318 4>;
@@ -2648,7 +2029,6 @@
 		#reset-cells = <0>;
 		label = "amcc8";
 		apple,always-on;
-		power-domains = <&ps_fab_afi_amcc_2>;
 	};
 
 	ps_amcc9: power-controller@320 {
@@ -2658,7 +2038,6 @@
 		#reset-cells = <0>;
 		label = "amcc9";
 		apple,always-on;
-		power-domains = <&ps_fab_afi_amcc_2>;
 	};
 
 	ps_amcc10: power-controller@328 {
@@ -2668,7 +2047,6 @@
 		#reset-cells = <0>;
 		label = "amcc10";
 		apple,always-on;
-		power-domains = <&ps_fab_afi_amcc_2>;
 	};
 
 	ps_amcc11: power-controller@330 {
@@ -2678,7 +2056,6 @@
 		#reset-cells = <0>;
 		label = "amcc11";
 		apple,always-on;
-		power-domains = <&ps_fab_afi_amcc_2>;
 	};
 
 	ps_fab_afr_amcc_4: power-controller@338 {
@@ -2688,7 +2065,6 @@
 		#reset-cells = <0>;
 		label = "fab_afr_amcc_4";
 		apple,always-on;
-		power-domains = <&ps_fab_afi_amcc_2>;
 	};
 
 	ps_fab_afr_amcc_5: power-controller@340 {
@@ -2698,47 +2074,6 @@
 		#reset-cells = <0>;
 		label = "fab_afr_amcc_5";
 		apple,always-on;
-		power-domains = <&ps_fab_afi_amcc_2>;
-	};
-
-	ps_dcs_08: power-controller@348 {
-		compatible = "apple,t6050-pmgr-pwrstate", "apple,t8103-pmgr-pwrstate";
-		reg = <0x348 4>;
-		#power-domain-cells = <0>;
-		#reset-cells = <0>;
-		label = "dcs_08";
-		apple,always-on;
-		power-domains = <&ps_amcc8>;
-	};
-
-	ps_dcs_09: power-controller@358 {
-		compatible = "apple,t6050-pmgr-pwrstate", "apple,t8103-pmgr-pwrstate";
-		reg = <0x358 4>;
-		#power-domain-cells = <0>;
-		#reset-cells = <0>;
-		label = "dcs_09";
-		apple,always-on;
-		power-domains = <&ps_amcc9>;
-	};
-
-	ps_dcs_10: power-controller@368 {
-		compatible = "apple,t6050-pmgr-pwrstate", "apple,t8103-pmgr-pwrstate";
-		reg = <0x368 4>;
-		#power-domain-cells = <0>;
-		#reset-cells = <0>;
-		label = "dcs_10";
-		apple,always-on;
-		power-domains = <&ps_amcc10>;
-	};
-
-	ps_dcs_11: power-controller@378 {
-		compatible = "apple,t6050-pmgr-pwrstate", "apple,t8103-pmgr-pwrstate";
-		reg = <0x378 4>;
-		#power-domain-cells = <0>;
-		#reset-cells = <0>;
-		label = "dcs_11";
-		apple,always-on;
-		power-domains = <&ps_amcc11>;
 	};
 
 	ps_fab_afc_amcc_2: power-controller@388 {
@@ -2750,15 +2085,6 @@
 		apple,always-on;
 	};
 
-	ps_fab_afi_amcc_3: power-controller@390 {
-		compatible = "apple,t6050-pmgr-pwrstate", "apple,t8103-pmgr-pwrstate";
-		reg = <0x390 4>;
-		#power-domain-cells = <0>;
-		#reset-cells = <0>;
-		label = "fab_afi_amcc_3";
-		apple,always-on;
-	};
-
 	ps_amcc12: power-controller@398 {
 		compatible = "apple,t6050-pmgr-pwrstate", "apple,t8103-pmgr-pwrstate";
 		reg = <0x398 4>;
@@ -2766,7 +2092,6 @@
 		#reset-cells = <0>;
 		label = "amcc12";
 		apple,always-on;
-		power-domains = <&ps_fab_afi_amcc_3>;
 	};
 
 	ps_amcc13: power-controller@3a0 {
@@ -2776,7 +2101,6 @@
 		#reset-cells = <0>;
 		label = "amcc13";
 		apple,always-on;
-		power-domains = <&ps_fab_afi_amcc_3>;
 	};
 
 	ps_amcc14: power-controller@3a8 {
@@ -2786,7 +2110,6 @@
 		#reset-cells = <0>;
 		label = "amcc14";
 		apple,always-on;
-		power-domains = <&ps_fab_afi_amcc_3>;
 	};
 
 	ps_amcc15: power-controller@3b0 {
@@ -2796,7 +2119,6 @@
 		#reset-cells = <0>;
 		label = "amcc15";
 		apple,always-on;
-		power-domains = <&ps_fab_afi_amcc_3>;
 	};
 
 	ps_fab_afr_amcc_6: power-controller@3b8 {
@@ -2806,7 +2128,6 @@
 		#reset-cells = <0>;
 		label = "fab_afr_amcc_6";
 		apple,always-on;
-		power-domains = <&ps_fab_afi_amcc_3>;
 	};
 
 	ps_fab_afr_amcc_7: power-controller@3c0 {
@@ -2816,47 +2137,6 @@
 		#reset-cells = <0>;
 		label = "fab_afr_amcc_7";
 		apple,always-on;
-		power-domains = <&ps_fab_afi_amcc_3>;
-	};
-
-	ps_dcs_12: power-controller@3c8 {
-		compatible = "apple,t6050-pmgr-pwrstate", "apple,t8103-pmgr-pwrstate";
-		reg = <0x3c8 4>;
-		#power-domain-cells = <0>;
-		#reset-cells = <0>;
-		label = "dcs_12";
-		apple,always-on;
-		power-domains = <&ps_amcc12>;
-	};
-
-	ps_dcs_13: power-controller@3d8 {
-		compatible = "apple,t6050-pmgr-pwrstate", "apple,t8103-pmgr-pwrstate";
-		reg = <0x3d8 4>;
-		#power-domain-cells = <0>;
-		#reset-cells = <0>;
-		label = "dcs_13";
-		apple,always-on;
-		power-domains = <&ps_amcc13>;
-	};
-
-	ps_dcs_14: power-controller@3e8 {
-		compatible = "apple,t6050-pmgr-pwrstate", "apple,t8103-pmgr-pwrstate";
-		reg = <0x3e8 4>;
-		#power-domain-cells = <0>;
-		#reset-cells = <0>;
-		label = "dcs_14";
-		apple,always-on;
-		power-domains = <&ps_amcc14>;
-	};
-
-	ps_dcs_15: power-controller@3f8 {
-		compatible = "apple,t6050-pmgr-pwrstate", "apple,t8103-pmgr-pwrstate";
-		reg = <0x3f8 4>;
-		#power-domain-cells = <0>;
-		#reset-cells = <0>;
-		label = "dcs_15";
-		apple,always-on;
-		power-domains = <&ps_amcc15>;
 	};
 
 	ps_fab_afc_amcc_3: power-controller@408 {
@@ -2868,63 +2148,13 @@
 		apple,always-on;
 	};
 
-	ps_fab_afi_amcc_4: power-controller@410 {
-		compatible = "apple,t6050-pmgr-pwrstate", "apple,t8103-pmgr-pwrstate";
-		reg = <0x410 4>;
-		#power-domain-cells = <0>;
-		#reset-cells = <0>;
-		label = "fab_afi_amcc_4";
-		apple,always-on;
-	};
-
-	ps_amcc16: power-controller@418 {
-		compatible = "apple,t6050-pmgr-pwrstate", "apple,t8103-pmgr-pwrstate";
-		reg = <0x418 4>;
-		#power-domain-cells = <0>;
-		#reset-cells = <0>;
-		label = "amcc16";
-		apple,always-on;
-		power-domains = <&ps_fab_afi_amcc_4>;
-	};
-
-	ps_amcc17: power-controller@420 {
-		compatible = "apple,t6050-pmgr-pwrstate", "apple,t8103-pmgr-pwrstate";
-		reg = <0x420 4>;
-		#power-domain-cells = <0>;
-		#reset-cells = <0>;
-		label = "amcc17";
-		apple,always-on;
-		power-domains = <&ps_fab_afi_amcc_4>;
-	};
-
-	ps_amcc18: power-controller@428 {
-		compatible = "apple,t6050-pmgr-pwrstate", "apple,t8103-pmgr-pwrstate";
-		reg = <0x428 4>;
-		#power-domain-cells = <0>;
-		#reset-cells = <0>;
-		label = "amcc18";
-		apple,always-on;
-		power-domains = <&ps_fab_afi_amcc_4>;
-	};
-
-	ps_amcc19: power-controller@430 {
-		compatible = "apple,t6050-pmgr-pwrstate", "apple,t8103-pmgr-pwrstate";
-		reg = <0x430 4>;
-		#power-domain-cells = <0>;
-		#reset-cells = <0>;
-		label = "amcc19";
-		apple,always-on;
-		power-domains = <&ps_fab_afi_amcc_4>;
-	};
-
 	ps_fab_afr_amcc_8: power-controller@438 {
 		compatible = "apple,t6050-pmgr-pwrstate", "apple,t8103-pmgr-pwrstate";
 		reg = <0x438 4>;
 		#power-domain-cells = <0>;
 		#reset-cells = <0>;
 		label = "fab_afr_amcc_8";
-		apple,always-on;
-		power-domains = <&ps_fab_afi_amcc_4>;
+		/* ADT critical, but off at handover (0x0f000300) */
 	};
 
 	ps_fab_afr_amcc_9: power-controller@440 {
@@ -2933,48 +2163,7 @@
 		#power-domain-cells = <0>;
 		#reset-cells = <0>;
 		label = "fab_afr_amcc_9";
-		apple,always-on;
-		power-domains = <&ps_fab_afi_amcc_4>;
-	};
-
-	ps_dcs_16: power-controller@448 {
-		compatible = "apple,t6050-pmgr-pwrstate", "apple,t8103-pmgr-pwrstate";
-		reg = <0x448 4>;
-		#power-domain-cells = <0>;
-		#reset-cells = <0>;
-		label = "dcs_16";
-		apple,always-on;
-		power-domains = <&ps_amcc16>;
-	};
-
-	ps_dcs_17: power-controller@458 {
-		compatible = "apple,t6050-pmgr-pwrstate", "apple,t8103-pmgr-pwrstate";
-		reg = <0x458 4>;
-		#power-domain-cells = <0>;
-		#reset-cells = <0>;
-		label = "dcs_17";
-		apple,always-on;
-		power-domains = <&ps_amcc17>;
-	};
-
-	ps_dcs_18: power-controller@468 {
-		compatible = "apple,t6050-pmgr-pwrstate", "apple,t8103-pmgr-pwrstate";
-		reg = <0x468 4>;
-		#power-domain-cells = <0>;
-		#reset-cells = <0>;
-		label = "dcs_18";
-		apple,always-on;
-		power-domains = <&ps_amcc18>;
-	};
-
-	ps_dcs_19: power-controller@478 {
-		compatible = "apple,t6050-pmgr-pwrstate", "apple,t8103-pmgr-pwrstate";
-		reg = <0x478 4>;
-		#power-domain-cells = <0>;
-		#reset-cells = <0>;
-		label = "dcs_19";
-		apple,always-on;
-		power-domains = <&ps_amcc19>;
+		/* ADT critical, but off at handover (0x0f000300) */
 	};
 
 	ps_fab_afc_amcc_4: power-controller@488 {
@@ -2983,56 +2172,7 @@
 		#power-domain-cells = <0>;
 		#reset-cells = <0>;
 		label = "fab_afc_amcc_4";
-		apple,always-on;
-	};
-
-	ps_fab_afi_amcc_5: power-controller@490 {
-		compatible = "apple,t6050-pmgr-pwrstate", "apple,t8103-pmgr-pwrstate";
-		reg = <0x490 4>;
-		#power-domain-cells = <0>;
-		#reset-cells = <0>;
-		label = "fab_afi_amcc_5";
-		apple,always-on;
-	};
-
-	ps_amcc20: power-controller@498 {
-		compatible = "apple,t6050-pmgr-pwrstate", "apple,t8103-pmgr-pwrstate";
-		reg = <0x498 4>;
-		#power-domain-cells = <0>;
-		#reset-cells = <0>;
-		label = "amcc20";
-		apple,always-on;
-		power-domains = <&ps_fab_afi_amcc_5>;
-	};
-
-	ps_amcc21: power-controller@4a0 {
-		compatible = "apple,t6050-pmgr-pwrstate", "apple,t8103-pmgr-pwrstate";
-		reg = <0x4a0 4>;
-		#power-domain-cells = <0>;
-		#reset-cells = <0>;
-		label = "amcc21";
-		apple,always-on;
-		power-domains = <&ps_fab_afi_amcc_5>;
-	};
-
-	ps_amcc22: power-controller@4a8 {
-		compatible = "apple,t6050-pmgr-pwrstate", "apple,t8103-pmgr-pwrstate";
-		reg = <0x4a8 4>;
-		#power-domain-cells = <0>;
-		#reset-cells = <0>;
-		label = "amcc22";
-		apple,always-on;
-		power-domains = <&ps_fab_afi_amcc_5>;
-	};
-
-	ps_amcc23: power-controller@4b0 {
-		compatible = "apple,t6050-pmgr-pwrstate", "apple,t8103-pmgr-pwrstate";
-		reg = <0x4b0 4>;
-		#power-domain-cells = <0>;
-		#reset-cells = <0>;
-		label = "amcc23";
-		apple,always-on;
-		power-domains = <&ps_fab_afi_amcc_5>;
+		/* ADT critical, but off at handover (0x0f000200) */
 	};
 
 	ps_fab_afr_amcc_10: power-controller@4b8 {
@@ -3041,8 +2181,7 @@
 		#power-domain-cells = <0>;
 		#reset-cells = <0>;
 		label = "fab_afr_amcc_10";
-		apple,always-on;
-		power-domains = <&ps_fab_afi_amcc_5>;
+		/* ADT critical, but off at handover (0x0f000300) */
 	};
 
 	ps_fab_afr_amcc_11: power-controller@4c0 {
@@ -3051,48 +2190,7 @@
 		#power-domain-cells = <0>;
 		#reset-cells = <0>;
 		label = "fab_afr_amcc_11";
-		apple,always-on;
-		power-domains = <&ps_fab_afi_amcc_5>;
-	};
-
-	ps_dcs_20: power-controller@4c8 {
-		compatible = "apple,t6050-pmgr-pwrstate", "apple,t8103-pmgr-pwrstate";
-		reg = <0x4c8 4>;
-		#power-domain-cells = <0>;
-		#reset-cells = <0>;
-		label = "dcs_20";
-		apple,always-on;
-		power-domains = <&ps_amcc20>;
-	};
-
-	ps_dcs_21: power-controller@4d8 {
-		compatible = "apple,t6050-pmgr-pwrstate", "apple,t8103-pmgr-pwrstate";
-		reg = <0x4d8 4>;
-		#power-domain-cells = <0>;
-		#reset-cells = <0>;
-		label = "dcs_21";
-		apple,always-on;
-		power-domains = <&ps_amcc21>;
-	};
-
-	ps_dcs_22: power-controller@4e8 {
-		compatible = "apple,t6050-pmgr-pwrstate", "apple,t8103-pmgr-pwrstate";
-		reg = <0x4e8 4>;
-		#power-domain-cells = <0>;
-		#reset-cells = <0>;
-		label = "dcs_22";
-		apple,always-on;
-		power-domains = <&ps_amcc22>;
-	};
-
-	ps_dcs_23: power-controller@4f8 {
-		compatible = "apple,t6050-pmgr-pwrstate", "apple,t8103-pmgr-pwrstate";
-		reg = <0x4f8 4>;
-		#power-domain-cells = <0>;
-		#reset-cells = <0>;
-		label = "dcs_23";
-		apple,always-on;
-		power-domains = <&ps_amcc23>;
+		/* ADT critical, but off at handover (0x0f000300) */
 	};
 
 	ps_fab_afc_amcc_5: power-controller@508 {
@@ -3101,56 +2199,7 @@
 		#power-domain-cells = <0>;
 		#reset-cells = <0>;
 		label = "fab_afc_amcc_5";
-		apple,always-on;
-	};
-
-	ps_fab_afi_amcc_6: power-controller@510 {
-		compatible = "apple,t6050-pmgr-pwrstate", "apple,t8103-pmgr-pwrstate";
-		reg = <0x510 4>;
-		#power-domain-cells = <0>;
-		#reset-cells = <0>;
-		label = "fab_afi_amcc_6";
-		apple,always-on;
-	};
-
-	ps_amcc24: power-controller@518 {
-		compatible = "apple,t6050-pmgr-pwrstate", "apple,t8103-pmgr-pwrstate";
-		reg = <0x518 4>;
-		#power-domain-cells = <0>;
-		#reset-cells = <0>;
-		label = "amcc24";
-		apple,always-on;
-		power-domains = <&ps_fab_afi_amcc_6>;
-	};
-
-	ps_amcc25: power-controller@520 {
-		compatible = "apple,t6050-pmgr-pwrstate", "apple,t8103-pmgr-pwrstate";
-		reg = <0x520 4>;
-		#power-domain-cells = <0>;
-		#reset-cells = <0>;
-		label = "amcc25";
-		apple,always-on;
-		power-domains = <&ps_fab_afi_amcc_6>;
-	};
-
-	ps_amcc26: power-controller@528 {
-		compatible = "apple,t6050-pmgr-pwrstate", "apple,t8103-pmgr-pwrstate";
-		reg = <0x528 4>;
-		#power-domain-cells = <0>;
-		#reset-cells = <0>;
-		label = "amcc26";
-		apple,always-on;
-		power-domains = <&ps_fab_afi_amcc_6>;
-	};
-
-	ps_amcc27: power-controller@530 {
-		compatible = "apple,t6050-pmgr-pwrstate", "apple,t8103-pmgr-pwrstate";
-		reg = <0x530 4>;
-		#power-domain-cells = <0>;
-		#reset-cells = <0>;
-		label = "amcc27";
-		apple,always-on;
-		power-domains = <&ps_fab_afi_amcc_6>;
+		/* ADT critical, but off at handover (0x0f000200) */
 	};
 
 	ps_fab_afr_amcc_12: power-controller@538 {
@@ -3159,8 +2208,7 @@
 		#power-domain-cells = <0>;
 		#reset-cells = <0>;
 		label = "fab_afr_amcc_12";
-		apple,always-on;
-		power-domains = <&ps_fab_afi_amcc_6>;
+		/* ADT critical, but off at handover (0x0f000300) */
 	};
 
 	ps_fab_afr_amcc_13: power-controller@540 {
@@ -3169,48 +2217,7 @@
 		#power-domain-cells = <0>;
 		#reset-cells = <0>;
 		label = "fab_afr_amcc_13";
-		apple,always-on;
-		power-domains = <&ps_fab_afi_amcc_6>;
-	};
-
-	ps_dcs_24: power-controller@548 {
-		compatible = "apple,t6050-pmgr-pwrstate", "apple,t8103-pmgr-pwrstate";
-		reg = <0x548 4>;
-		#power-domain-cells = <0>;
-		#reset-cells = <0>;
-		label = "dcs_24";
-		apple,always-on;
-		power-domains = <&ps_amcc24>;
-	};
-
-	ps_dcs_25: power-controller@558 {
-		compatible = "apple,t6050-pmgr-pwrstate", "apple,t8103-pmgr-pwrstate";
-		reg = <0x558 4>;
-		#power-domain-cells = <0>;
-		#reset-cells = <0>;
-		label = "dcs_25";
-		apple,always-on;
-		power-domains = <&ps_amcc25>;
-	};
-
-	ps_dcs_26: power-controller@568 {
-		compatible = "apple,t6050-pmgr-pwrstate", "apple,t8103-pmgr-pwrstate";
-		reg = <0x568 4>;
-		#power-domain-cells = <0>;
-		#reset-cells = <0>;
-		label = "dcs_26";
-		apple,always-on;
-		power-domains = <&ps_amcc26>;
-	};
-
-	ps_dcs_27: power-controller@578 {
-		compatible = "apple,t6050-pmgr-pwrstate", "apple,t8103-pmgr-pwrstate";
-		reg = <0x578 4>;
-		#power-domain-cells = <0>;
-		#reset-cells = <0>;
-		label = "dcs_27";
-		apple,always-on;
-		power-domains = <&ps_amcc27>;
+		/* ADT critical, but off at handover (0x0f000300) */
 	};
 
 	ps_fab_afc_amcc_6: power-controller@588 {
@@ -3219,56 +2226,7 @@
 		#power-domain-cells = <0>;
 		#reset-cells = <0>;
 		label = "fab_afc_amcc_6";
-		apple,always-on;
-	};
-
-	ps_fab_afi_amcc_7: power-controller@590 {
-		compatible = "apple,t6050-pmgr-pwrstate", "apple,t8103-pmgr-pwrstate";
-		reg = <0x590 4>;
-		#power-domain-cells = <0>;
-		#reset-cells = <0>;
-		label = "fab_afi_amcc_7";
-		apple,always-on;
-	};
-
-	ps_amcc28: power-controller@598 {
-		compatible = "apple,t6050-pmgr-pwrstate", "apple,t8103-pmgr-pwrstate";
-		reg = <0x598 4>;
-		#power-domain-cells = <0>;
-		#reset-cells = <0>;
-		label = "amcc28";
-		apple,always-on;
-		power-domains = <&ps_fab_afi_amcc_7>;
-	};
-
-	ps_amcc29: power-controller@5a0 {
-		compatible = "apple,t6050-pmgr-pwrstate", "apple,t8103-pmgr-pwrstate";
-		reg = <0x5a0 4>;
-		#power-domain-cells = <0>;
-		#reset-cells = <0>;
-		label = "amcc29";
-		apple,always-on;
-		power-domains = <&ps_fab_afi_amcc_7>;
-	};
-
-	ps_amcc30: power-controller@5a8 {
-		compatible = "apple,t6050-pmgr-pwrstate", "apple,t8103-pmgr-pwrstate";
-		reg = <0x5a8 4>;
-		#power-domain-cells = <0>;
-		#reset-cells = <0>;
-		label = "amcc30";
-		apple,always-on;
-		power-domains = <&ps_fab_afi_amcc_7>;
-	};
-
-	ps_amcc31: power-controller@5b0 {
-		compatible = "apple,t6050-pmgr-pwrstate", "apple,t8103-pmgr-pwrstate";
-		reg = <0x5b0 4>;
-		#power-domain-cells = <0>;
-		#reset-cells = <0>;
-		label = "amcc31";
-		apple,always-on;
-		power-domains = <&ps_fab_afi_amcc_7>;
+		/* ADT critical, but off at handover (0x0f000200) */
 	};
 
 	ps_fab_afr_amcc_14: power-controller@5b8 {
@@ -3277,8 +2235,7 @@
 		#power-domain-cells = <0>;
 		#reset-cells = <0>;
 		label = "fab_afr_amcc_14";
-		apple,always-on;
-		power-domains = <&ps_fab_afi_amcc_7>;
+		/* ADT critical, but off at handover (0x0f000300) */
 	};
 
 	ps_fab_afr_amcc_15: power-controller@5c0 {
@@ -3287,48 +2244,7 @@
 		#power-domain-cells = <0>;
 		#reset-cells = <0>;
 		label = "fab_afr_amcc_15";
-		apple,always-on;
-		power-domains = <&ps_fab_afi_amcc_7>;
-	};
-
-	ps_dcs_28: power-controller@5d0 {
-		compatible = "apple,t6050-pmgr-pwrstate", "apple,t8103-pmgr-pwrstate";
-		reg = <0x5d0 4>;
-		#power-domain-cells = <0>;
-		#reset-cells = <0>;
-		label = "dcs_28";
-		apple,always-on;
-		power-domains = <&ps_amcc28>;
-	};
-
-	ps_dcs_29: power-controller@5e0 {
-		compatible = "apple,t6050-pmgr-pwrstate", "apple,t8103-pmgr-pwrstate";
-		reg = <0x5e0 4>;
-		#power-domain-cells = <0>;
-		#reset-cells = <0>;
-		label = "dcs_29";
-		apple,always-on;
-		power-domains = <&ps_amcc29>;
-	};
-
-	ps_dcs_30: power-controller@5f0 {
-		compatible = "apple,t6050-pmgr-pwrstate", "apple,t8103-pmgr-pwrstate";
-		reg = <0x5f0 4>;
-		#power-domain-cells = <0>;
-		#reset-cells = <0>;
-		label = "dcs_30";
-		apple,always-on;
-		power-domains = <&ps_amcc30>;
-	};
-
-	ps_dcs_31: power-controller@600 {
-		compatible = "apple,t6050-pmgr-pwrstate", "apple,t8103-pmgr-pwrstate";
-		reg = <0x600 4>;
-		#power-domain-cells = <0>;
-		#reset-cells = <0>;
-		label = "dcs_31";
-		apple,always-on;
-		power-domains = <&ps_amcc31>;
+		/* ADT critical, but off at handover (0x0f000300) */
 	};
 
 	ps_fab_afc_amcc_7: power-controller@610 {
@@ -3337,63 +2253,7 @@
 		#power-domain-cells = <0>;
 		#reset-cells = <0>;
 		label = "fab_afc_amcc_7";
-		apple,always-on;
-	};
-
-	ps_fab_b2bd_afi_0: power-controller@618 {
-		compatible = "apple,t6050-pmgr-pwrstate", "apple,t8103-pmgr-pwrstate";
-		reg = <0x618 4>;
-		#power-domain-cells = <0>;
-		#reset-cells = <0>;
-		label = "fab_b2bd_afi_0";
-		apple,always-on;
-	};
-
-	ps_fab_b2bd_afi_1: power-controller@620 {
-		compatible = "apple,t6050-pmgr-pwrstate", "apple,t8103-pmgr-pwrstate";
-		reg = <0x620 4>;
-		#power-domain-cells = <0>;
-		#reset-cells = <0>;
-		label = "fab_b2bd_afi_1";
-		apple,always-on;
-	};
-
-	ps_b2bd_afi_0: power-controller@628 {
-		compatible = "apple,t6050-pmgr-pwrstate", "apple,t8103-pmgr-pwrstate";
-		reg = <0x628 4>;
-		#power-domain-cells = <0>;
-		#reset-cells = <0>;
-		label = "b2bd_afi_0";
-		apple,always-on;
-	};
-
-	ps_b2bd_afi_0_dfx: power-controller@630 {
-		compatible = "apple,t6050-pmgr-pwrstate", "apple,t8103-pmgr-pwrstate";
-		reg = <0x630 4>;
-		#power-domain-cells = <0>;
-		#reset-cells = <0>;
-		label = "b2bd_afi_0_dfx";
-		apple,always-on;
-		power-domains = <&ps_b2bd_afi_0>;
-	};
-
-	ps_b2bd_afi_1: power-controller@638 {
-		compatible = "apple,t6050-pmgr-pwrstate", "apple,t8103-pmgr-pwrstate";
-		reg = <0x638 4>;
-		#power-domain-cells = <0>;
-		#reset-cells = <0>;
-		label = "b2bd_afi_1";
-		apple,always-on;
-	};
-
-	ps_b2bd_afi_1_dfx: power-controller@640 {
-		compatible = "apple,t6050-pmgr-pwrstate", "apple,t8103-pmgr-pwrstate";
-		reg = <0x640 4>;
-		#power-domain-cells = <0>;
-		#reset-cells = <0>;
-		label = "b2bd_afi_1_dfx";
-		apple,always-on;
-		power-domains = <&ps_b2bd_afi_1>;
+		/* ADT critical, but off at handover (0x0f000200) */
 	};
 
 	ps_fab_b2bd_afc_0: power-controller@648 {
@@ -3402,7 +2262,7 @@
 		#power-domain-cells = <0>;
 		#reset-cells = <0>;
 		label = "fab_b2bd_afc_0";
-		apple,always-on;
+		/* ADT critical, but off at handover (0x0f000300) */
 	};
 
 	ps_fab_b2bd_afc_1: power-controller@650 {
@@ -3411,7 +2271,7 @@
 		#power-domain-cells = <0>;
 		#reset-cells = <0>;
 		label = "fab_b2bd_afc_1";
-		apple,always-on;
+		/* ADT critical, but off at handover (0x0f000300) */
 	};
 
 	ps_b2bd_afc_0: power-controller@658 {
@@ -3420,7 +2280,7 @@
 		#power-domain-cells = <0>;
 		#reset-cells = <0>;
 		label = "b2bd_afc_0";
-		apple,always-on;
+		/* ADT critical, but off at handover (0x0f000300) */
 	};
 
 	ps_b2bd_afc_0_dfx: power-controller@660 {
@@ -3429,7 +2289,7 @@
 		#power-domain-cells = <0>;
 		#reset-cells = <0>;
 		label = "b2bd_afc_0_dfx";
-		apple,always-on;
+		/* ADT critical, but off at handover (0x00000300) */
 		power-domains = <&ps_b2bd_afc_0>;
 	};
 
@@ -3439,7 +2299,7 @@
 		#power-domain-cells = <0>;
 		#reset-cells = <0>;
 		label = "b2bd_afc_1";
-		apple,always-on;
+		/* ADT critical, but off at handover (0x0f000300) */
 	};
 
 	ps_b2bd_afc_1_dfx: power-controller@670 {
@@ -3448,7 +2308,7 @@
 		#power-domain-cells = <0>;
 		#reset-cells = <0>;
 		label = "b2bd_afc_1_dfx";
-		apple,always-on;
+		/* ADT critical, but off at handover (0x00000300) */
 		power-domains = <&ps_b2bd_afc_1>;
 	};
 
@@ -3458,7 +2318,7 @@
 		#power-domain-cells = <0>;
 		#reset-cells = <0>;
 		label = "b2bd_afr_0";
-		apple,always-on;
+		/* ADT critical, but off at handover (0x0f000300) */
 	};
 
 	ps_b2bd_afr_1: power-controller@680 {
@@ -3467,7 +2327,7 @@
 		#power-domain-cells = <0>;
 		#reset-cells = <0>;
 		label = "b2bd_afr_1";
-		apple,always-on;
+		/* ADT critical, but off at handover (0x0f000300) */
 		power-domains = <&ps_b2bd_afr_0>;
 	};
 
@@ -3477,7 +2337,7 @@
 		#power-domain-cells = <0>;
 		#reset-cells = <0>;
 		label = "b2bd_afr_dfx_0";
-		apple,always-on;
+		/* ADT critical, but off at handover (0x00000300) */
 		power-domains = <&ps_b2bd_afr_0>;
 	};
 
@@ -3487,7 +2347,7 @@
 		#power-domain-cells = <0>;
 		#reset-cells = <0>;
 		label = "b2bd_afr_dfx_1";
-		apple,always-on;
+		/* ADT critical, but off at handover (0x00000300) */
 		power-domains = <&ps_b2bd_afr_1>;
 	};
 
@@ -3497,7 +2357,7 @@
 		#power-domain-cells = <0>;
 		#reset-cells = <0>;
 		label = "b2bd_afr_3";
-		apple,always-on;
+		/* ADT critical, but off at handover (0x0f000300) */
 	};
 
 	ps_b2bd_afr_2: power-controller@6a0 {
@@ -3506,7 +2366,7 @@
 		#power-domain-cells = <0>;
 		#reset-cells = <0>;
 		label = "b2bd_afr_2";
-		apple,always-on;
+		/* ADT critical, but off at handover (0x0f000300) */
 		power-domains = <&ps_b2bd_afr_3>;
 	};
 
@@ -3516,7 +2376,7 @@
 		#power-domain-cells = <0>;
 		#reset-cells = <0>;
 		label = "b2bd_afr_dfx_3";
-		apple,always-on;
+		/* ADT critical, but off at handover (0x00000300) */
 		power-domains = <&ps_b2bd_afr_3>;
 	};
 
@@ -3526,7 +2386,7 @@
 		#power-domain-cells = <0>;
 		#reset-cells = <0>;
 		label = "b2bd_afr_dfx_2";
-		apple,always-on;
+		/* ADT critical, but off at handover (0x00000300) */
 		power-domains = <&ps_b2bd_afr_2>;
 	};
 
@@ -3670,51 +2530,6 @@
 		label = "venc0_me1";
 		power-domains = <&ps_venc0_me0>;
 	};
-
-	ps_venc1_dma: power-controller@8028 {
-		compatible = "apple,t6050-pmgr-pwrstate", "apple,t8103-pmgr-pwrstate";
-		reg = <0x8028 4>;
-		#power-domain-cells = <0>;
-		#reset-cells = <0>;
-		label = "venc1_dma";
-		power-domains = <&ps_venc1_sys>;
-	};
-
-	ps_venc1_pipe4: power-controller@8030 {
-		compatible = "apple,t6050-pmgr-pwrstate", "apple,t8103-pmgr-pwrstate";
-		reg = <0x8030 4>;
-		#power-domain-cells = <0>;
-		#reset-cells = <0>;
-		label = "venc1_pipe4";
-		power-domains = <&ps_venc1_dma>;
-	};
-
-	ps_venc1_pipe5: power-controller@8038 {
-		compatible = "apple,t6050-pmgr-pwrstate", "apple,t8103-pmgr-pwrstate";
-		reg = <0x8038 4>;
-		#power-domain-cells = <0>;
-		#reset-cells = <0>;
-		label = "venc1_pipe5";
-		power-domains = <&ps_venc1_dma>;
-	};
-
-	ps_venc1_me0: power-controller@8040 {
-		compatible = "apple,t6050-pmgr-pwrstate", "apple,t8103-pmgr-pwrstate";
-		reg = <0x8040 4>;
-		#power-domain-cells = <0>;
-		#reset-cells = <0>;
-		label = "venc1_me0";
-		power-domains = <&ps_venc1_dma>;
-	};
-
-	ps_venc1_me1: power-controller@8048 {
-		compatible = "apple,t6050-pmgr-pwrstate", "apple,t8103-pmgr-pwrstate";
-		reg = <0x8048 4>;
-		#power-domain-cells = <0>;
-		#reset-cells = <0>;
-		label = "venc1_me1";
-		power-domains = <&ps_venc1_me0>;
-	};
 };
 
 &pmgr5 {
@@ -3728,15 +2543,6 @@
 		apple,always-on;
 	};
 
-	ps_nub_gfx_aon: power-controller@60 {
-		compatible = "apple,t6050-pmgr-pwrstate", "apple,t8103-pmgr-pwrstate";
-		reg = <0x60 4>;
-		#power-domain-cells = <0>;
-		#reset-cells = <0>;
-		label = "nub_gfx_aon";
-		apple,always-on;
-	};
-
 	ps_nub_gfx_gpio: power-controller@68 {
 		compatible = "apple,t6050-pmgr-pwrstate", "apple,t8103-pmgr-pwrstate";
 		reg = <0x68 4>;
@@ -3744,34 +2550,6 @@
 		#reset-cells = <0>;
 		label = "nub_gfx_gpio";
 		apple,always-on;
-	};
-
-	ps_nub_gfx_fabric: power-controller@78 {
-		compatible = "apple,t6050-pmgr-pwrstate", "apple,t8103-pmgr-pwrstate";
-		reg = <0x78 4>;
-		#power-domain-cells = <0>;
-		#reset-cells = <0>;
-		label = "nub_gfx_fabric";
-		apple,always-on;
-	};
-
-	ps_debug_gfx_switch: power-controller@80 {
-		compatible = "apple,t6050-pmgr-pwrstate", "apple,t8103-pmgr-pwrstate";
-		reg = <0x80 4>;
-		#power-domain-cells = <0>;
-		#reset-cells = <0>;
-		label = "debug_gfx_switch";
-		apple,always-on;
-	};
-
-	ps_nub_gfx_sram: power-controller@4000 {
-		compatible = "apple,t6050-pmgr-pwrstate", "apple,t8103-pmgr-pwrstate";
-		reg = <0x4000 4>;
-		#power-domain-cells = <0>;
-		#reset-cells = <0>;
-		label = "nub_gfx_sram";
-		apple,always-on;
-		power-domains = <&ps_nub_gfx_fabric>;
 	};
 };
 
