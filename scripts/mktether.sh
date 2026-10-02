@@ -235,7 +235,33 @@ fi
 exec ./proxyclient/tools/run_guest.py -l hv/hv.log --raw hv/guest-payload.bin "\$@"
 EOF
 
-chmod +x "$STAGE/boot-linux.sh" "$STAGE/chainload.sh" "$STAGE/boot-hv.sh"
+# The whole cycle after `systemctl reboot` (watchdog reset into m1n1) or a
+# power cycle: wait for the proxy, chainload, put ANS in the state Linux's
+# NVMe driver handles (hv/nvme-proxy-probe.py), boot, wait for SSH.
+cat > "$STAGE/boot-m5.sh" <<'EOF'
+#!/bin/sh
+# Boot the M5 into Arch on the SSD: ./boot-m5.sh [extra boot-linux.sh args]
+set -e
+cd "${0%/*}"
+: "${M1N1DEVICE:=/dev/m1n1}"
+i=0
+until [ -e "$M1N1DEVICE" ]; do
+    i=$((i + 1)); [ $i -gt 90 ] && { echo "no $M1N1DEVICE after 3 min: power-cycle the Mac into m1n1" >&2; exit 1; }
+    sleep 2
+done
+./chainload.sh
+python3 hv/nvme-proxy-probe.py
+./boot-linux.sh "$@" || true    # pyserial raises when the proxy vanishes at handoff
+echo "waiting for ssh bay@10.55.0.2 ..."
+i=0
+until ssh -o ConnectTimeout=5 -o BatchMode=yes bay@10.55.0.2 true 2>/dev/null; do
+    i=$((i + 1)); [ $i -gt 40 ] && { echo "no SSH after ~3 min; check the panel" >&2; exit 1; }
+    sleep 3
+done
+echo "M5 is up: ssh bay@10.55.0.2"
+EOF
+
+chmod +x "$STAGE/boot-linux.sh" "$STAGE/chainload.sh" "$STAGE/boot-hv.sh" "$STAGE/boot-m5.sh"
 
 cat > "$STAGE/README.md" <<EOF
 # omarchy-m5 tether bundle

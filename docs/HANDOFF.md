@@ -299,8 +299,29 @@ layout). Live writes measured with `tools/cpuhz.c`: p-state N = pmgr
 15 -> 4303. 16 (4380) is refused. `scripts/gen-cpufreq-dt.py` writes
 `dt/t6050-cpufreq.dtsi` (M clusters only; the P cluster's offset is
 unverified), and `CONFIG_ARM_APPLE_SOC_CPUFREQ=y` runs it with the stock
-t8112 path. Built, not yet booted. `tools/devmem.c` peeks and pokes MMIO
+t8112 path. Verified on hardware: `apple-cpufreq` with
+`schedutil` scales 1.344-4.308 GHz (60% idle at 1344, 4308 MHz under load). `tools/devmem.c` peeks and pokes MMIO
 via mmap (`/dev/mem` read() is RAM-only on arm64).
+
+**Remote reboot (2026-10-02).** `CONFIG_APPLE_WATCHDOG=y`: `sudo systemctl
+reboot` resets the M5 into stage-1 m1n1 within about 15 s, with no power
+button. `~/tether/boot-m5.sh` (from `mktether.sh`) then runs the whole
+cycle: wait for `/dev/m1n1`, chainload, `hv/nvme-proxy-probe.py`,
+`boot-linux.sh` (SSD root by default), and wait for SSH. The ThinkPad's
+udev rule addresses the gadget automatically.
+
+**SMC (2026-10-02): stage 0 done, nothing enabled yet.** The plan and
+draft DT are in `build/smc-draft/` (PLAN.md), from a research pass over the
+ADT and the Asahi drivers. `hv/smc-proxy-probe.py` started the SMC endpoint
+from m1n1 read-only. shmem is 0x28de84000 (inside the ADT nub region),
+there are 3485 keys (catalogue: `docs/research/smc-keys-j714s.json`), and
+CLKM, MSLD, bHLD, B0AV (13.0 V > BITV 9.0 V), BCF0=0, CHIS, AC-W, MBSE,
+two fans and temperatures are all present. CH0C and CH0I are absent, but
+macsmc-power writes them at probe. The SPMI controller reads without
+SError. Order still to do: SPMI + PMIC nvmem, SMC core, RTC, input,
+gpio/hwmon, battery, then SMC reboot/poweroff last (its restart handler
+outranks the watchdog's). `smc_i2cm*` PMGR domains are no longer described
+(adt2pmgr.py skips them).
 
 `scripts/qemu-rootfs.sh` boots the same kernel config (FB markers off),
 initramfs and image under QEMU virt/TCG with 16K pages. Use it to check
