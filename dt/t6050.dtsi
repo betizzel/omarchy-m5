@@ -69,19 +69,20 @@
 		 * All 18 possible cores are described; boards disable the ones
 		 * fused off on binned SKUs (J714s: cpu5, cpu11, cpu17 absent).
 		 *
-		 * reg is the MPIDR_EL1 affinity, and T6050 does NOT follow the
-		 * M1/M2 "cluster << 8 | core" layout: the boot core of this
-		 * J714s reports MPIDR_EL1 = 0x80040000, i.e. Aff2 = 0x4. m1n1
-		 * keeps a CPU node only when its reg equals
-		 * MPIDR_EL1 & 0xFFFFFF (src/kboot.c), so with the old encoding
-		 * every core — including the boot core — was pruned and Linux
-		 * was handed a DT with no usable CPU.
+		 * reg is MPIDR_EL1[23:0]. Apple's layout (m1n1 src/midr.h:
+		 * MIDR_CORE_TYPE_P = BIT(16), MIDR_CORE_TYPE_M = BIT(18)):
+		 *   Aff2 = core type: 0 E, 1 P, 4 M     <- boot core: 0x80040000
+		 *   Aff1 = cluster-id from the ADT      (M0 = 0, M1 = 1, P = 2)
+		 *   Aff0 = core within the cluster
+		 * so the P cluster is 0x10200 + core, NOT 0x40200: the type lives
+		 * in Aff2 and is not shared with the M cores. Same scheme as
+		 * t6031 (E 0x0, P 0x10100/0x10200).
 		 *
-		 * Aff2 = 0x4 is measured on the boot core only. The per-cluster
-		 * and per-core bits below keep the usual layout; they are
-		 * unverified until secondaries start (SMP is broken on T6050),
-		 * and m1n1 hard-fails on a mismatch for any core that is alive,
-		 * so a wrong guess here will be loud rather than silent.
+		 * Only the boot core (0x40000) is measured; the rest is derived
+		 * from the ADT cluster-id/cluster-core-id. m1n1 compares reg with
+		 * the MPIDR each started core reports and aborts DT preparation
+		 * with "DT CPU %d MPIDR mismatch: <dt> != <hw>", which prints the
+		 * real value, so a wrong guess is loud, not silent.
 		 */
 		cpu_m0_0: cpu@40000 {
 			compatible = "apple,sawtooth";
@@ -181,50 +182,50 @@
 			next-level-cache = <&l2_cache_m1>;
 		};
 
-		cpu_p0: cpu@40200 {
+		cpu_p0: cpu@10200 {
 			compatible = "apple,everest";
 			device_type = "cpu";
-			reg = <0x0 0x40200>;
+			reg = <0x0 0x10200>;
 			enable-method = "spin-table";
 			cpu-release-addr = <0 0>;
 			next-level-cache = <&l2_cache_p>;
 		};
-		cpu_p1: cpu@40201 {
+		cpu_p1: cpu@10201 {
 			compatible = "apple,everest";
 			device_type = "cpu";
-			reg = <0x0 0x40201>;
+			reg = <0x0 0x10201>;
 			enable-method = "spin-table";
 			cpu-release-addr = <0 0>;
 			next-level-cache = <&l2_cache_p>;
 		};
-		cpu_p2: cpu@40202 {
+		cpu_p2: cpu@10202 {
 			compatible = "apple,everest";
 			device_type = "cpu";
-			reg = <0x0 0x40202>;
+			reg = <0x0 0x10202>;
 			enable-method = "spin-table";
 			cpu-release-addr = <0 0>;
 			next-level-cache = <&l2_cache_p>;
 		};
-		cpu_p3: cpu@40203 {
+		cpu_p3: cpu@10203 {
 			compatible = "apple,everest";
 			device_type = "cpu";
-			reg = <0x0 0x40203>;
+			reg = <0x0 0x10203>;
 			enable-method = "spin-table";
 			cpu-release-addr = <0 0>;
 			next-level-cache = <&l2_cache_p>;
 		};
-		cpu_p4: cpu@40204 {
+		cpu_p4: cpu@10204 {
 			compatible = "apple,everest";
 			device_type = "cpu";
-			reg = <0x0 0x40204>;
+			reg = <0x0 0x10204>;
 			enable-method = "spin-table";
 			cpu-release-addr = <0 0>;
 			next-level-cache = <&l2_cache_p>;
 		};
-		cpu_p5: cpu@40205 {
+		cpu_p5: cpu@10205 {
 			compatible = "apple,everest";
 			device_type = "cpu";
-			reg = <0x0 0x40205>;
+			reg = <0x0 0x10205>;
 			enable-method = "spin-table";
 			cpu-release-addr = <0 0>;
 			next-level-cache = <&l2_cache_p>;

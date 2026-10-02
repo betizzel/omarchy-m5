@@ -208,9 +208,30 @@ hypervisor's virtual UART, i.e. `/dev/m1n1-sec` on the ThinkPad
 m1n1 now builds on the ThinkPad too (`scripts/build-m1n1.sh`: distro
 cross gcc + a per-user rustup with `aarch64-unknown-none-softfloat`).
 
-Next: SMP (secondaries never execute the reset vector), internal
-keyboard/trackpad (MTP over DockChannel), NVMe + a real rootfs on
-`disk0s5`, then networking.
+**SMP (2026-10-01): parked.** Secondary start on T6050 is unsolved
+upstream too (m1n1 PR #610: "the cores turn on ... but never start
+executing our code"; same on an M5 Max). Measured here with a read-only
+probe and one diagnostic start attempt:
+
+- all 15 RVBARs are locked by iBoot to m1n1's base page (correct);
+- the PMGR core-alive word (`0x280688004`) is one bit per ADT cpu-id
+  (`0x3fffe` at rest), not m1n1's `4*cluster+core`;
+- on start, each core's `cpu-impl-reg+0x100` status changes within
+  microseconds (`...d800` -> `...caef20d102` / `...4aef205102`), but no core
+  ever checks in;
+- the secondary-only CTRR "SMP-RO" window (`s3_0_c11_c0_{0,1}`,
+  `[0x10005fb0000, 0x10005fbb000)`) is iBoot's WFI parking sled and lies
+  inside m1n1's heap range;
+- AIC3 `SW_SET` does not read back, so it is no breadcrumb channel.
+
+The DT now carries the P-cluster MPIDRs `0x10200+` (Aff2 = core type: P 1,
+M 4). Next steps if resumed: cold boot with the diagnostic m1n1 as the
+installed stage 1, a readable MMIO breadcrumb, or tracing macOS's own core
+start under upstream m1n1's SPTM-emulating hypervisor. Linux stays at
+`maxcpus=1`; m1n1 prunes non-alive cores from the FDT anyway.
+
+Next: internal keyboard/trackpad (MTP over DockChannel), NVMe + a real
+rootfs on `disk0s5`, then networking.
 
 ## Remaining DT TODOs (marked `TODO(adt)` in dt/)
 
