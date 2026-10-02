@@ -5,19 +5,22 @@
 #   ssh root@10.55.<n>.2             # once dropbear/sshd runs on the M5
 set -eu
 WAN=${WAN:-$(ip -4 route show default | awk '{print $5; exit}')}
+# Find the gadget's netdevs by their USB device (1d6b:0104, serial m5pro-<n>,
+# n = the M5's UDC index), not by MAC: EEM carries no MAC to the host.
 found=0
-for n in 0 1 2; do
-    for d in /sys/class/net/*; do
-        [ "$(cat $d/address 2>/dev/null)" = "02:4d:35:00:0$n:01" ] || continue
-        IF=$(basename "$d"); found=1
-        echo "port udc$n -> $IF (WAN=$WAN)"
-        command -v nmcli >/dev/null && nmcli dev set "$IF" managed no || true
-        ip addr flush dev "$IF"
-        ip addr add 10.55.$n.1/24 dev "$IF"
-        ip link set "$IF" up
-    done
+for d in /sys/class/net/*; do
+    u=$(readlink -f "$d/device/..")
+    [ "$(cat "$u/idVendor" 2>/dev/null):$(cat "$u/idProduct" 2>/dev/null)" = 1d6b:0104 ] || continue
+    s=$(cat "$u/serial" 2>/dev/null)
+    case "$s" in m5pro-[0-9]) n=${s#m5pro-} ;; *) continue ;; esac
+    IF=$(basename "$d"); found=1
+    echo "port udc$n -> $IF (WAN=$WAN)"
+    command -v nmcli >/dev/null && nmcli dev set "$IF" managed no || true
+    ip addr flush dev "$IF"
+    ip addr add 10.55.$n.1/24 dev "$IF"
+    ip link set "$IF" up
 done
-[ $found = 1 ] || { echo "no 02:4d:35:00:0n:01 interface; lsusb | grep 1d6b:0104"; exit 1; }
+[ $found = 1 ] || { echo "no M5 gadget netdev (1d6b:0104 serial m5pro-N); lsusb -d 1d6b:0104"; exit 1; }
 
 sysctl -qw net.ipv4.ip_forward=1
 nft list table ip m5nat >/dev/null 2>&1 || {

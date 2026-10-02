@@ -25,7 +25,7 @@ FILES = {
     "etc/hostname": "m5pro\n",
     # growfs: the image is 2 GiB, the partition 256 GB.
     "etc/fstab": "LABEL=m5root / ext4 noatime,x-systemd.growfs 0 1\n",
-    # usb-gadget-net.sh (initramfs) creates the NCM function as usb0; the
+    # usb-gadget-net.sh (initramfs) creates the EEM function as usb0; the
     # ThinkPad side is scripts/host-usbnet.sh (10.55.<n>.1, NAT).
     "etc/systemd/network/10-usb-gadget.network": f"""[Match]
 Name=usb0
@@ -36,11 +36,7 @@ Gateway=10.55.{NET}.1
 DNS=1.1.1.1
 """,
 }
-SYMLINKS = {
-    # root shell on the gadget's CDC-ACM port (ThinkPad: /dev/ttyACM*)
-    "etc/systemd/system/getty.target.wants/serial-getty@ttyGS0.service":
-        "/usr/lib/systemd/system/serial-getty@.service",
-}
+SYMLINKS = {}
 
 
 def is_pkg_db(path):
