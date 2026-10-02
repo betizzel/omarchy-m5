@@ -77,7 +77,7 @@ fi
 exec ./proxyclient/tools/linux.py \\
     boot/Image.gz \\
     boot/t6050-$BOARD.dtb \\
-    boot/initramfs.cpio.gz \\
+    "\${INITRAMFS:-boot/initramfs.cpio.gz}" \\
     -b "\${BOOTARGS:-$BOOTARGS}" "\$@"
 EOF
 

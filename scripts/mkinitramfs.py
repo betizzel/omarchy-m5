@@ -160,6 +160,10 @@ def main():
     ap.add_argument("--firmware", default="build/firmware",
                     help="tree packed under lib/firmware/ if it exists "
                          "(apple/tpmtfw-j714s.bin: scripts/extract-tpmtfw.py)")
+    ap.add_argument("--rootfs-image", metavar="IMG",
+                    help="ship IMG (scripts/mkrootfs-image.py output) as /m5root.img.gz "
+                         "for provision-rootfs, in a second, uncompressed cpio segment "
+                         "(the kernel unpacks concatenated archives; IMG is already gzip)")
     args = ap.parse_args()
 
     branch = "v" + ".".join(args.version.split(".")[:2])
@@ -213,9 +217,12 @@ def main():
                 cpio.entry(name, stat.S_IFREG | 0o644, open(src, "rb").read())
                 print(f"    firmware: /{name}")
 
+    here = os.path.dirname(__file__)
     cpio.entry("init", stat.S_IFREG | 0o755, INIT.encode())
     cpio.entry("usr/sbin/usb-gadget-net", stat.S_IFREG | 0o755,
-               open(os.path.join(os.path.dirname(__file__), "usb-gadget-net.sh"), "rb").read())
+               open(os.path.join(here, "usb-gadget-net.sh"), "rb").read())
+    cpio.entry("usr/sbin/provision-rootfs", stat.S_IFREG | 0o755,
+               open(os.path.join(here, "provision-rootfs.sh"), "rb").read())
     cpio.close()
 
     raw = buf.getvalue()
@@ -224,13 +231,23 @@ def main():
         # mtime=0 so the image is reproducible
         with gzip.GzipFile(fileobj=out, mode="wb", compresslevel=9, mtime=0) as gz:
             gz.write(raw)
+        if args.rootfs_image:
+            # init/initramfs.c skips zero padding between archives but only
+            # starts a new uncompressed one on a 4-byte boundary.
+            out.write(b"\0" * (-out.tell() % 4))
+            seg = CpioWriter(out)
+            seg.entry("m5root.img.gz", stat.S_IFREG | 0o644,
+                      open(args.rootfs_image, "rb").read())
+            seg.close()
+            print(f"    + /m5root.img.gz ({os.path.getsize(args.rootfs_image) / 1e6:.0f} MB, "
+                  "uncompressed cpio segment)")
 
     print(f"    files={counts['file']} dirs={counts['dir']} "
           f"symlinks={counts['link']} device-nodes-synthesized=3 "
           f"(skipped {counts['skipped']} nodes from the rootfs)")
     print(f"\n==> {args.out}  "
-          f"({os.path.getsize(args.out) / 1024:.0f} KiB gz, "
-          f"{len(raw) / 1024 / 1024:.1f} MiB raw)")
+          f"({os.path.getsize(args.out) / 1024:.0f} KiB, "
+          f"{len(raw) / 1024 / 1024:.1f} MiB raw base archive)")
 
 
 if __name__ == "__main__":

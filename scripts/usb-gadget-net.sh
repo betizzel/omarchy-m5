@@ -12,6 +12,9 @@
 # right). Subnet per UDC index: 10.55.<n>.0/24, host .1, M5 .2.
 BB=/bin/busybox
 CFG=/sys/kernel/config
+# m5.root=: /init switch_roots to the SSD right after us; its systemd owns
+# ttyGS0 (serial-getty) and usb0 (networkd), so only set up the gadget.
+case " $(cat /proc/cmdline) " in *" m5.root="*) SSDROOT=1 ;; *) SSDROOT=0 ;; esac
 G=$CFG/usb_gadget
 
 $BB mountpoint -q $CFG || $BB mount -t configfs none $CFG || exit 1
@@ -63,7 +66,7 @@ for udc in $($BB ls /sys/class/udc); do
         $BB ip addr add 10.55.$n.2/24 dev "$IF"
         # ttyGS<n> console: a root shell for the ThinkPad (also covers "no
         # keyboard": type on the ThinkPad, /dev/ttyACM<k> there).
-        ( while :; do
+        [ $SSDROOT = 1 ] || ( while :; do
               $BB setsid $BB cttyhack $BB sh </dev/ttyGS$n >/dev/ttyGS$n 2>&1
               $BB sleep 1
           done ) &
@@ -128,6 +131,8 @@ usb_variants() {
         done
     done
 }
+
+[ $SSDROOT = 1 ] && exit 0
 
 # Default route on whichever UDC the host actually configures (state ==
 # configured). The host script NATs 10.55.0.0/16. Backgrounded so /init (and
