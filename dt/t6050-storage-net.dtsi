@@ -56,6 +56,15 @@
 		dr_mode = "peripheral";
 		maximum-speed = "high-speed";
 		iommus = <&dwc3_0_dart_0 0>, <&dwc3_0_dart_1 1>;
+		/* No PHY driver: the eUSB2 PHY runs as m1n1's usb_phy_bringup() left
+		 * it, and nothing can bring it back out of suspend. So keep the link
+		 * awake like m1n1's own gadget does: no USB 2.0 LPM in the BOS (else
+		 * the host xHCI parks the link in L1 right after enumeration and
+		 * SET_CONFIGURATION times out, -110) and no SUSPHY/ENBLSLPM. */
+		snps,usb2-gadget-lpm-disable;
+		snps,dis_u2_susphy_quirk;
+		snps,dis_u3_susphy_quirk;
+		snps,dis_enblslpm_quirk;
 		/* no phys/power-domains/resets: m1n1 usb_phy_bringup() left the PHY,
 		 * PMGR and DWC3 reset exactly as its own gadget needs them. */
 		status = "okay";
@@ -86,6 +95,15 @@
 		dr_mode = "peripheral";
 		maximum-speed = "high-speed";
 		iommus = <&dwc3_1_dart_0 0>, <&dwc3_1_dart_1 1>;
+		/* No PHY driver: the eUSB2 PHY runs as m1n1's usb_phy_bringup() left
+		 * it, and nothing can bring it back out of suspend. So keep the link
+		 * awake like m1n1's own gadget does: no USB 2.0 LPM in the BOS (else
+		 * the host xHCI parks the link in L1 right after enumeration and
+		 * SET_CONFIGURATION times out, -110) and no SUSPHY/ENBLSLPM. */
+		snps,usb2-gadget-lpm-disable;
+		snps,dis_u2_susphy_quirk;
+		snps,dis_u3_susphy_quirk;
+		snps,dis_enblslpm_quirk;
 		/* no phys/power-domains/resets: m1n1 usb_phy_bringup() left the PHY,
 		 * PMGR and DWC3 reset exactly as its own gadget needs them. */
 		status = "okay";
@@ -116,6 +134,15 @@
 		dr_mode = "peripheral";
 		maximum-speed = "high-speed";
 		iommus = <&dwc3_2_dart_0 0>, <&dwc3_2_dart_1 1>;
+		/* No PHY driver: the eUSB2 PHY runs as m1n1's usb_phy_bringup() left
+		 * it, and nothing can bring it back out of suspend. So keep the link
+		 * awake like m1n1's own gadget does: no USB 2.0 LPM in the BOS (else
+		 * the host xHCI parks the link in L1 right after enumeration and
+		 * SET_CONFIGURATION times out, -110) and no SUSPHY/ENBLSLPM. */
+		snps,usb2-gadget-lpm-disable;
+		snps,dis_u2_susphy_quirk;
+		snps,dis_u3_susphy_quirk;
+		snps,dis_enblslpm_quirk;
 		/* no phys/power-domains/resets: m1n1 usb_phy_bringup() left the PHY,
 		 * PMGR and DWC3 reset exactly as its own gadget needs them. */
 		status = "okay";
