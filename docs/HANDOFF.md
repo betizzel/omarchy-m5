@@ -1,4 +1,4 @@
-# Handoff — omarchy-m5 state as of 2026-09-21
+# Handoff — omarchy-m5 state as of 2026-10-01
 
 > For picking this up in a fresh session (Devin cloud or otherwise).
 > Read `docs/PLAN.md` first; this file is the delta + current state.
@@ -40,47 +40,206 @@
   first real run is the test; it fails closed and never touches
   disk0s1/disk0s3.
 
-## What's next (in order)
+## Phase 1 status — kernel reaches a userspace shell (single core)
 
-1. **Run `sudo scripts/prep-stub.sh`** on the M5 Pro (optionally
-   `--linux-size 200G`). Verify the printed VGID and volume layout.
-2. **Build m1n1** (`make m1n1`, `CHAINLOADING=0` for the installed
-   image), copy `m1n1.bin` to the EFI partition.
-3. **The 1TR ceremony** (manual, on-device): `bless --setBoot` →
-   shutdown → power-hold into 1TR → pick "Omarchy" → in its recoveryOS
-   Terminal: `bputil -d -v <vgid>` (must show `: Paired` + `one true
-   recoveryOS`), `bputil -nc -v <vgid>`, `kmutil configure-boot -c
-   m1n1.bin --raw --entry-point 2048 --lowest-virtual-address 0 -v
-   <sysvol>`. Full steps in `docs/bringup.md`.
-4. **Tethered dev loop**: chainload test m1n1/kernels over USB-C via
-   `proxyclient/tools/chainload.py` / `linux.py`. First kernel boot:
-   `maxcpus=1` + WFI workaround; console via dockchannel-UART or simplefb.
+**The hard part is behind us.** As of 2026-09-21 the machine boots
+iBoot → m1n1 stage1 → framebuffer console (3024x1964, DARTs up) from a
+signed custom boot object. Everything below is memory-only or repeatable.
+
+Stub facts: container `disk0s3` → `disk3` (Data `disk3s1`, System
+`disk3s2`, Preboot `disk3s3`, Recovery `disk3s4`), VGID
+`B931CA67-AA4F-465B-B80D-B24814488E27`, EFI `disk0s4`, Linux rootfs
+partition `disk0s5` (256 GB, unformatted). `nvram boot-volume` points at
+the stub, so an unattended boot goes to m1n1; macOS is power-hold →
+picker → Macintosh HD, still Full Security.
+
+Why the first ceremony attempt failed, for the record: the stub had no
+`.IAPhysicalMedia`, so iBoot booted it as a plain OS, found no
+LocalPolicy, and the picker offered "reinstall". `prep-stub.sh` alone does
+not produce a pickable install-media volume — `finish-install.sh` does
+(app bundle + boot.bin + dslocal + APFS bootable fsctl + bless + the
+media marker, in asahi-installer's order).
+
+Tethered loop is live: Arch ThinkPad T14 over USB-C, `make tether` packs
+`build/tether-bundle.tar.gz` (proxyclient + kernel/DT/initramfs + a
+chainloadable m1n1 + udev rule + runners).
+
+**LINUX BOOTS (2026-09-22).** The checkpoint markers came back
+**red → green → blue → white**: the kernel entered `head.S`, enabled the
+MMU, parsed our `dt/t6050.dtsi`, completed `paging_init()` and reached
+`console_init()`. AIC (AICv3), the timers, memblock and the devicetree all
+appeared to work on T6050 - wrongly: see "USERSPACE" below; the AIC never
+probed, and the "console" failure was a kernel with no interrupts.
+
+Ruled out by inspection along the way:
+
+- AICv3 **is** supported in this tree (`irq-apple-aic.c`,
+  `apple,t8122-aic3`) and our DT uses it.
+- dockchannel exists only as a SoC/HID driver — there is no dockchannel
+  earlycon — so without the debug cable the framebuffer is the *only*
+  output channel. That is why markers, not another console attempt.
+- The framebuffer node is a proper `/chosen` child, so
+  `of_platform_default_populate_init()` creates the platform device; and
+  the framebuffer (`0x10bd3110000`) sits *above* the usable-RAM window
+  m1n1 reports (`..0x10bcaaf8000`), so there is no RAM/aperture conflict.
+- `CONFIG_FRAMEBUFFER_CONSOLE_DEFERRED_TAKEOVER` is off.
+  `..._DETECT_PRIMARY` cannot be turned off (`DRM_CLIENT_SELECTION`
+  selects it, and `olddefconfig` restores it) but is harmless on arm64:
+  without a PCI VGA primary, fbcon falls back to the first framebuffer.
+
+Markers now cover the console chain itself (`patches/linux/0001-*.patch`,
+`<asm/omarchy_fbmarker.h>` for the row map): CYAN on a successful
+`simpledrm_probe()`, MAGENTA on `do_fbcon_takeover()` success, ORANGE
+before `kernel_init` execs `/init`, plus two bands painted from
+**userspace** by the initramfs `/init` via `/dev/mem` (allowed:
+`STRICT_DEVMEM` permits it because the framebuffer is outside usable RAM).
+Late markers use `ioremap()` rather than `early_ioremap()`, chosen at
+runtime with `slab_is_available()`, because the early mapping is long gone
+by then. m1n1's control band moved to rows 144..159 to stay clear.
+
+Row map: 0-15 entry, 16-31 MMU, 32-47 paging, 48-63 console_init, 64-79
+simpledrm, 80-95 fbcon, 96-111 pre-/init, 112-127 /init running, 128-143
+/dev/fb0 or /dev/dri/card0 exists, 144-159 m1n1 control.
+
+`./dump-fdt.sh` captures the **final patched FDT** (new m1n1 proxy op
+`P_KBOOT_GET_DT`) without booting. It and the other proxy tools now fail
+with a clear message instead of a traceback when `/dev/m1n1` is gone —
+they must run *before* `boot-linux.sh`, since the USB gadget disappears at
+handoff.
+
+Triage (resolved by the phase-barrier image):
+
+- Every phase through `pcie_init` prints "done"; the trap is inside
+  `dapf_init_all`, right after
+  `dapf: /arm-io/dart-aop base 0x2890fc000 window 0x4000, dapf-instance-0
+  length 936`. `L2C_ERR_ADR` low 40 bits = `0x2890fc180` = base + 0x180 =
+  **slice 6**, which is *inside* the window (18 slices × 0x40 = 0x480), so
+  this is not an overflow. The hardware appears to expose fewer APF slices
+  than the ADT describes; the on-disk ADT carries
+  `allow-dram-apf-slices-0 = 0` for this DART and m1n1 ignores it.
+- PCIe was never implicated: its "Error getting node" lines are just the
+  last prints before an *asynchronous* SError (`ESR 0xbe000000`, `FAR 0`),
+  which is reported at whatever PC is executing.
+- **The on-disk ADT is not the runtime ADT.** `devicetree.img4` from the
+  restore bundle decompresses to 835984 bytes, but `boot_args.devtree_size`
+  is 737280 — iBoot patches the tree before handing it over. They disagree
+  about this very DART (on disk, `dart-aop` has one reg and *no*
+  `dapf-instance-0`). Analyze only `./dump-adt.sh` output from the target.
+
+Current image: `patches/m1n1/0001-*.patch` skips `/arm-io/dart-aop` DAPF on
+T6050, prints and barriers every slice it does program, and clamps slice
+counts to the reg window.
+
+**Second blocker, fixed in `dt/`: CPU affinities.** The log showed m1n1
+disabling *every* CPU, including the boot core, because `kboot.c` keeps a
+CPU node only when its `reg` equals `MPIDR_EL1 & 0xFFFFFF`. This J714s
+reports `MPIDR_EL1 = 0x80040000` → affinity `0x40000`, but `dt/t6050.dtsi`
+used the M1/M2 `cluster << 8 | core` layout starting at `0x0`, so Linux
+would have been handed a DT with no usable CPU. All 18 cores now carry
+`Aff2 = 0x4`. Only the boot core's value is measured; the cluster/core bits
+are unverified until secondaries run, but m1n1 hard-fails loudly on a
+mismatch for any *live* core.
+
+**USERSPACE (2026-10-01).** Kernel → simpledrm → fbcon (penguin) →
+`/init` → BusyBox `sh` prompt, single core, kernel log on the panel. Built
+and driven entirely from the ThinkPad (`scripts/build-kernel.sh` now runs
+on Linux; incremental rebuild ~40 s). What it took, in order:
+
+1. **On-panel kernel log.** `earlycon=efifb` now works on this DT boot:
+   patch 0001 fills `sysfb_primary_display` from the marker geometry
+   before `parse_early_param()` and withdraws the EFI type at
+   `arch_initcall` so sysfb/efifb stay out of simpledrm's way. Text starts
+   at row 160 (Terminus 16x32). This is what turned every later blocker
+   into a photo of a panic instead of a frozen logo.
+2. **AIC event register.** `dt/t6050.dtsi`'s AIC had one `reg`; AICv2/v3
+   need reg[1] (`aic-iack-offset` = 0x40000 → `0x280440000`). Without it
+   `aic_of_ic_init()` WARNs and returns before installing any handler and
+   arm64 `init_IRQ()` does not panic, so the kernel ran with no interrupts
+   and hung at its first sleep - the "white band, nothing after" symptom.
+3. **`VM_TMR_FIQ_ENA_EL2` is write-locked on T6050** (reads 0xf, every
+   write UNDEFINED at EL2 - probed from the proxy). Patch 0002 adds an
+   `apple,t6050-aic3` variant that skips the write in `aic_init_cpu()` and
+   refuses to map the guest timer FIQs in hyp mode (KVM's timer then fails
+   cleanly instead of storming).
+4. **PMGR tree from the runtime ADT.** The old `t6050-pmgr.dtsi` came from
+   the on-disk ADT (405 domains incl. absent memory channels); the runtime
+   ADT has 301. `scripts/adt2pmgr.py` now also takes `--boot-state`
+   (`dt/t6050-j714s-pmgr-boot-state.json`, a probe snapshot): ADT-critical
+   domains that are off at handover are not marked always-on, and CPU-
+   complex domains (`mcpu*/pcpu*/mcpm*/pcpm*`) are not described at all,
+   as in Asahi's M-series trees - Linux's probe write made PMGR enforce
+   "off" on the running boot core.
+5. **No writes to domains already under auto-PM** (patch 0003): a store
+   to e.g. `dispext0_cpu` while iBoot has it auto-gated never completes.
+6. **genpd sync_state honours `pd_ignore_unused`** (patch 0004); powering
+   off some unclaimed domain SErrors. Which one is still unknown, so
+   `pd_ignore_unused clk_ignore_unused` are part of the default cmdline.
+
+Probe tools used for 3-5 are `scripts/probes/` (shipped as `hv/` in the
+tether bundle): `probe-timer.py`, `probe-aic.py`, `probe-pmgr.py
+hv/t6050-pmgr.dtsi` (also emits the `--boot-state` snapshot) and
+`probe-pmgr-writes.py hv/pmgr-probe.json`. They make guarded sysreg/MMIO
+accesses with `dsb; isb` so SErrors land inside m1n1's exception guard. A
+write that *hangs* (no SError) needs a long power-button hold;
+`journalctl -k` showing a fresh `usb 7-1: new high-speed` is the proof the
+M5 really rebooted.
+
+Known noise after the prompt: `b2bd_*` (die-to-die link) domains fail to
+reach 0xf when the driver core powers them up for their child domains'
+probes; harmless deferred probes.
+
+Next: input (no keyboard/USB driver yet - the shell is display-only), an
+m1n1 hypervisor that works on T6050 (it crashes writing the locked
+`VM_TMR_FIQ_ENA_EL2` in `hv_update_fiq()`; the M5 has FEAT_ECV, so it can
+trap the guest's timer accesses and mask via IMASK instead), then NVMe + a
+real rootfs on `disk0s5`, SMP (secondaries never execute the reset vector).
 
 ## Remaining DT TODOs (marked `TODO(adt)` in dt/)
 
-- AIC event region, PMU FIQ affinities, pinmux tables, which SPI bus is
-  keyboard/trackpad. Sources: the ADT binary (extract again per
-  `docs/bringup.md`), `ioreg -lw0`, or m1n1 proxyclient on-device.
+- PMU FIQ affinities, pinmux tables, which SPI bus is keyboard/trackpad.
+  Sources: the runtime ADT (`./dump-adt.sh`), `ioreg -lw0`, or m1n1
+  proxyclient on-device.
+- Framebuffer `power-domains` (display PMGR domains), so the display
+  survives without `pd_ignore_unused`.
 
 ## Key risks / known blockers
 
 - **SMP is broken on T6050** — secondaries never execute the reset
-  vector. First milestone is single-core TTY (`maxcpus=1`).
-- **prep-stub.sh is untested** — worst realistic failure is a
-  not-paired recoveryOS (retryable); catastrophic case is DFU restore.
-- **Upstream churn** — asahi-wip/dev trees move weekly; rebase often.
+  vector. m1n1 gives each core 100 ms and prints `Failed!` (~1.4 s total,
+  not fatal). First milestone is single-core TTY (`maxcpus=1`).
+- ~~prep-stub.sh is untested~~ — both it and `finish-install.sh` have now
+  run end to end on the real machine; the ceremony completed.
+- **m1n1 must be built with GNU Make >= 4.3** (`gmake`). macOS's 3.81
+  mis-parses the Makefile's grouped targets (`&:`) into a target named
+  `&`, which breaks `build_cfg.h` regeneration. `build-m1n1.sh` now
+  enforces this.
+- **`CHAINLOADING=` changes need `build_cfg.h` removed** — that rule has
+  no prerequisites, so make considers the header up to date forever and
+  silently rebuilds the *previous* config. `build-m1n1.sh` diffs the
+  wanted config and deletes the header when it changes.
+- **vendor/ is gitignored** — every upstream change MUST be captured in
+  `patches/<tree>/` via `scripts/apply-patches.sh --refresh`, or it is lost
+  on the next `make fetch`.
+- **Upstream churn** — asahi-wip/dev trees move weekly; rebase often. The
+  patches are against linux `236788cd2602` and m1n1 `4184923`, but
+  `fetch-sources.sh` still follows branches, not those commits.
 - ADT `reg` values sit `0x2_0000_0000` below MMIO on this SoC
   (uart0 ADT 0x305200000 → MMIO 0x505200000).
 
 ## Repo layout
 
 ```
-Makefile              build entry points (setup/fetch/m1n1/dtbs/kernel)
+Makefile              setup/fetch/m1n1/dtbs/kernel/initramfs/payload/tether
 dt/                   t6050 DTs — source of truth, overlaid into kernel tree
+configs/              kernel config fragment (console path must be built in)
+patches/m1n1/         local m1n1 changes (vendor/ is gitignored)
+patches/linux/        local kernel changes (early fb markers)
 scripts/              build-kernel.sh, build-m1n1.sh, prep-stub.sh,
-                      adt2pmgr.py, host-shim/
+                      finish-install.sh, mkinitramfs.py, mkpayload.sh,
+                      mktether.sh, apply-patches.sh, adt2pmgr.py, host-shim/
 docs/PLAN.md          phase plan
 docs/bringup.md       step-by-step Phase 1 guide
 docs/research/        Phase 0 reports
 vendor/               m1n1 + linux clones (gitignored)
+build/                initramfs + payload artifacts (gitignored)
 ```

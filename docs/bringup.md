@@ -33,40 +33,120 @@ restore bundle / `arm64eBaseSystem.dmg` / `AdminUserRecoveryInfo.plist`
 into it (no IPSW download — everything is on-disk), and makes a 500 MB
 EFI partition for m1n1. It prints the stub's VGID at the end.
 
-Then by hand:
-
-1. `cp vendor/m1n1/build/m1n1.bin /Volumes/OMARCHY/` (EFI partition).
-2. `bless --setBoot --device /dev/<stub system volume>`.
-3. Shut down; power on **holding** the button into 1TR; pick "Omarchy".
-4. In the stub's recoveryOS Terminal:
-   `bputil -d -v <vgid>` must show `: Paired` + `one true recoveryOS`,
-   then `bputil -nc -v <vgid>` (Permissive + custom kernel), then
-   `kmutil configure-boot -c /Volumes/OMARCHY/m1n1.bin --raw
-   --entry-point 2048 --lowest-virtual-address 0 -v <stub sysvol>`
-   (build m1n1 with `CHAINLOADING=0` for this installed image).
-
-After this, the machine boots iBoot → m1n1 stage1 → proxy mode on the
-USB-C DFU/debug port. **Never** re-run kmutil for iterations — chainload.
-
-## Dev loop (every iteration)
+Then arm the stub so the picker hands control to *its* paired recoveryOS:
 
 ```sh
-# terminal 1: m1n1 proxy console over USB-C
-vendor/m1n1/proxyclient/tools/chainload.py build/m1n1-test.bin   # in vendor/m1n1
-# or boot a kernel directly:
-vendor/m1n1/proxyclient/tools/linux.py \
-    --kernel vendor/linux/arch/arm64/boot/Image \
-    --dtb    vendor/linux/arch/arm64/boot/dts/apple/t6050-j714s.dtb \
-    --initramfs <initramfs> \
-    --bootargs "maxcpus=1 earlycon console=ttyS0"
+CHAINLOADING=0 make m1n1          # the installed stage-1 must not be a chainload build
+sudo scripts/finish-install.sh    # asks for your macOS admin password (bless)
 ```
+
+`finish-install.sh` reproduces the state asahi-installer leaves behind
+(`src/stub.py` + `src/step2/`): it writes `Finish Installation.app` with
+m1n1 as `Contents/Resources/boot.bin`, creates `private/var/db/dslocal` on
+the Data volume, sets the APFS bootable fsctl on the System volume,
+`bless --setBoot`es it, then hides `SystemVersion.plist` and drops
+`.IAPhysicalMedia`.
+
+That last marker is the whole trick: without it iBoot treats the stub as a
+normal OS, finds no LocalPolicy, and the picker offers "reinstall". With
+it the volume looks like install media, so the picker boots the volume
+group's paired recoveryOS and auto-launches the app named in the plist.
+
+Then, in one continuous motion:
+
+1. Shut down fully, wait ~15 s.
+2. Press and **hold** power until "Loading startup options..." (tapping
+   twice reaches the picker but *not* 1TR — `step2.sh` will refuse).
+3. Pick "Omarchy". Its recoveryOS opens a Terminal running `step2.sh`,
+   which checks `bputil -d` for `: Paired` + `one true recoveryOS`, runs
+   `bputil -nc` (credentials twice), then `kmutil configure-boot -c
+   boot.bin --raw --entry-point 2048 --lowest-virtual-address 0`, and
+   finally renames `.IAPhysicalMedia` away so the next boot goes straight
+   to m1n1.
+4. If no Terminal opens: Utilities → Terminal, then run
+   `"/Volumes/Omarchy/Finish Installation.app/Contents/Resources/step2.sh"`.
+
+Back out with `sudo scripts/finish-install.sh --undo`.
+
+## Status: boot policy is DONE (2026-09-21)
+
+The ceremony completed on the M5 Pro. `bputil -nc` set Permissive (3rd
+party kexts permitted, CTRR disabled, boot-args filtering disabled),
+`kmutil configure-boot` registered m1n1 as the stub's custom boot object,
+and the machine now boots iBoot → m1n1 stage1 → framebuffer console at
+native 3024x1964 with DARTs initialized. `nvram boot-volume` points at the
+stub VGID, so an unattended power-on lands in m1n1, **not** macOS; get
+macOS back with power-hold → picker → Macintosh HD (still Full Security).
+
+## Dev loop
+
+Two loops. The tethered one is the real one; the standalone one exists
+because the target and the build host are the same laptop when no second
+machine is around.
+
+### Tethered — the normal loop (Arch ThinkPad over USB-C)
+
+The M5 is the target, so the proxyclient has to live on the other
+machine. `scripts/mktether.sh` packs everything it needs — proxyclient,
+kernel, DT, initramfs, a chainloadable m1n1, the udev rule and runners:
+
+```sh
+make initramfs
+CHAINLOADING=1 scripts/build-m1n1.sh && cp vendor/m1n1/build/m1n1.bin build/m1n1-chain.bin
+CHAINLOADING=0 scripts/build-m1n1.sh     # restore the installed-image config
+scripts/mktether.sh                      # -> build/tether-bundle.tar.gz
+scp build/tether-bundle.tar.gz thinkpad:
+```
+
+On the host (once): `pacman -S python-pyserial python-construct`,
+`cp 80-m1n1.rules /etc/udev/rules.d/`, `udevadm control --reload`,
+`usermod -aG uucp $USER`. The rule matches the gadget (1209:316d) and
+creates `/dev/m1n1` (proxy) and `/dev/m1n1-sec` (m1n1's own console).
+Then:
+
+```sh
+./boot-linux.sh                                  # kernel + dt + initramfs
+BOOTARGS="maxcpus=1 initcall_debug" ./boot-linux.sh
+./chainload.sh                                   # iterate on m1n1 itself
+```
+
+Note the upstream tools take **positional** arguments
+(`linux.py <Image.gz> <dtb> [initramfs] -b "<cmdline>"`); the runners in
+the bundle wrap that. Iterations are memory-only — the installed boot
+object is never rewritten, and a bad boot just needs a power-cycle.
+
+Expect `Starting CPU n … Failed!` for every secondary: SMP is broken on
+T6050 and m1n1 gives each core 100 ms before moving on (~1.4 s total,
+not fatal). That is why the cmdline pins `maxcpus=1`.
+
+If proxyclient doesn't enumerate, try the other USB-C ports — the gadget
+binds to one specific dwc3 port.
+
+### Standalone (no second machine — one 1TR ceremony per image)
+
+m1n1 parses everything appended after its own image as a payload chain
+(`src/payload.c`), so the kernel, DT, initramfs and cmdline ship inside
+the boot object itself:
+
+```sh
+make initramfs   # Alpine aarch64 busybox+musl, repacked as newc cpio (no root)
+make payload     # m1n1 | chosen.bootargs=… | Image.gz | dtb | initramfs.cpio.gz
+sudo scripts/finish-install.sh --m1n1 build/m1n1-payload.bin
+# then repeat the power-hold → picker → "Omarchy" ceremony
+```
+
+`mkpayload.sh` re-walks the assembled file with the same magics m1n1 uses
+and fails if the chain doesn't parse, so a bad `cat` never reaches the
+ceremony. Use this for milestone boots; it costs a ceremony per kernel, so
+it is not an iteration loop.
 
 Kernel cmdline for first boots: `maxcpus=1` (SMP is broken — secondaries
 never execute the reset vector), plus the M4+ WFI workaround (`idle=` param
 from linux-next, or m1n1 PR #672's auto-disable).
 
-Console: dockchannel-UART (m1n1 secondary channel) and/or simplefb on the
-panel. Serial0 (0x505200000) is the Samsung UART — needs the debug cable.
+Console: `console=tty0` on m1n1's framebuffer handed over as simplefb is
+the only console needing no cable. dockchannel-UART (m1n1 secondary
+channel) and serial0 (0x505200000, Samsung UART) both need the debug cable.
 
 ## DT state (populated from the real J714s ADT)
 
