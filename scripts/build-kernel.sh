@@ -19,7 +19,7 @@ DTS_DIR="$LINUX/arch/arm64/boot/dts/apple"
 # defconfig alone leaves DRM=m and DRM_SIMPLEDRM unset, which yields a
 # kernel that boots but shows nothing on the panel. Fragments are merged
 # in order; ours wins.
-KCONFIG="${KCONFIG:-defconfig asahi.config omarchy-bringup.config}"
+KCONFIG="${KCONFIG:-defconfig asahi.config omarchy-bringup.config omarchy-storage-net.config}"
 JOBS="${JOBS:-$(nproc 2>/dev/null || sysctl -n hw.ncpu)}"
 
 if [ ! -d "$LINUX" ]; then
@@ -45,9 +45,10 @@ fi
 
 echo "==> Overlaying dt/ into $DTS_DIR"
 install -m 0644 dt/t6050.dtsi dt/t6050-pmgr.dtsi dt/t6050-jxxx.dtsi \
-    dt/t6050-j714s.dts dt/t6050-j716s.dts "$DTS_DIR/"
+    dt/t6050-storage-net.dtsi dt/t6050-j714s.dts dt/t6050-j716s.dts "$DTS_DIR/"
 
-install -m 0644 configs/omarchy-bringup.config "$LINUX/arch/arm64/configs/"
+install -m 0644 configs/omarchy-bringup.config configs/omarchy-storage-net.config \
+    "$LINUX/arch/arm64/configs/"
 
 MK="$DTS_DIR/Makefile"
 BEGIN='# >>> omarchy-m5'
@@ -66,7 +67,10 @@ fi
 # kernel boots and prints nothing on the panel, which looks identical to a
 # hang. Assert them instead of trusting the fragment merged cleanly.
 REQUIRED_Y="CONFIG_DRM CONFIG_DRM_SIMPLEDRM CONFIG_DRM_FBDEV_EMULATION
-            CONFIG_FRAMEBUFFER_CONSOLE CONFIG_VT_CONSOLE CONFIG_DEVTMPFS_MOUNT"
+            CONFIG_FRAMEBUFFER_CONSOLE CONFIG_VT_CONSOLE CONFIG_DEVTMPFS_MOUNT
+            CONFIG_NVME_APPLE CONFIG_APPLE_SART CONFIG_APPLE_DART
+            CONFIG_USB_DWC3 CONFIG_USB_CONFIGFS CONFIG_USB_CONFIGFS_NCM
+            CONFIG_USB_CONFIGFS_ACM"
 
 config_ok() {
     [ -f "$LINUX/.config" ] || return 1

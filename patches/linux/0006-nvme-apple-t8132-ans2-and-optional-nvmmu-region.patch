@@ -1,0 +1,195 @@
+diff --git a/drivers/nvme/host/apple.c b/drivers/nvme/host/apple.c
+index e7ba7b95d..501fe2463 100644
+--- a/drivers/nvme/host/apple.c
++++ b/drivers/nvme/host/apple.c
+@@ -42,7 +42,16 @@
+ #define APPLE_ANS_ACQ_DB  0x1004
+ #define APPLE_ANS_IOCQ_DB 0x100c
+ 
+-#define APPLE_ANS_MAX_PEND_CMDS_CTRL 0x1210
++/*
++ * Since T8132 (M4) the IO queues have to be registered with the ANS through
++ * three extra registers; IOQ_SIZE sits where earlier SoCs have
++ * MAX_PEND_CMDS_CTRL and is 0-based.
++ */
++#define APPLE_ANS_T8132_IOQ_CMDS 0x1200
++#define APPLE_ANS_T8132_IOQ_CQES 0x1208
++#define APPLE_ANS_T8132_IOQ_SIZE 0x1210
++
++#define APPLE_ANS_T8103_MAX_PEND_CMDS_CTRL 0x1210
+ 
+ #define APPLE_ANS_BOOT_STATUS	 0x1300
+ #define APPLE_ANS_BOOT_STATUS_OK 0xde71ce55
+@@ -167,6 +176,7 @@ struct apple_nvme_iod {
+ 
+ struct apple_nvme_hw {
+ 	bool has_lsq_nvmmu;
++	bool needs_ioq_register;
+ 	u32 max_queue_depth;
+ };
+ 
+@@ -175,6 +185,8 @@ struct apple_nvme {
+ 
+ 	void __iomem *mmio_coproc;
+ 	void __iomem *mmio_nvme;
++	/* NVMMU registers; separate "nvmmu" region on T6050, else mmio_nvme */
++	void __iomem *mmio_nvmmu;
+ 	const struct apple_nvme_hw *hw;
+ 
+ 	struct device **pd_dev;
+@@ -214,6 +226,11 @@ unsigned int flush_interval = 1000;
+ module_param(flush_interval, uint, 0644);
+ MODULE_PARM_DESC(flush_interval, "Grace period in msecs between flushes");
+ 
++static bool force_cold_reset;
++module_param(force_cold_reset, bool, 0444);
++MODULE_PARM_DESC(force_cold_reset,
++		 "Stop an ANS CPU that is already running and take the full reset path instead of waking the inherited RTKit session");
++
+ static_assert(sizeof(struct nvme_command) == 64);
+ static_assert(sizeof(struct apple_nvmmu_tcb) == 128);
+ 
+@@ -293,8 +310,8 @@ static void apple_nvmmu_inval(struct apple_nvme_queue *q, unsigned int tag)
+ {
+ 	struct apple_nvme *anv = queue_to_apple_nvme(q);
+ 
+-	writel(tag, anv->mmio_nvme + APPLE_NVMMU_TCB_INVAL);
+-	if (readl(anv->mmio_nvme + APPLE_NVMMU_TCB_STAT))
++	writel(tag, anv->mmio_nvmmu + APPLE_NVMMU_TCB_INVAL);
++	if (readl(anv->mmio_nvmmu + APPLE_NVMMU_TCB_STAT))
+ 		dev_warn_ratelimited(anv->dev,
+ 				     "NVMMU TCB invalidation failed\n");
+ }
+@@ -1092,6 +1109,16 @@ static void apple_nvme_reset_work(struct work_struct *work)
+ 		writel(0, anv->mmio_coproc + APPLE_ANS_COPROC_CPU_CONTROL);
+ 	}
+ 
++	/*
++	 * Some bootloaders (iBoot on T6050) hand ANS over with its CPU running
++	 * in an RTKit state we never booted. If waking that session does not
++	 * work, force_cold_reset=1 stops the CPU so the reset path below runs.
++	 */
++	if (force_cold_reset &&
++	    (readl(anv->mmio_coproc + APPLE_ANS_COPROC_CPU_CONTROL) &
++	     APPLE_ANS_COPROC_CPU_CONTROL_RUN))
++		writel(0, anv->mmio_coproc + APPLE_ANS_COPROC_CPU_CONTROL);
++
+ 	/*
+ 	 * Only do the soft-reset if the CPU is not running, which means either we
+ 	 * or the previous stage shut it down cleanly.
+@@ -1153,14 +1180,20 @@ static void apple_nvme_reset_work(struct work_struct *work)
+ 		writel(APPLE_ANS_LINEAR_SQ_EN,
+ 			anv->mmio_nvme + APPLE_ANS_LINEAR_SQ_CTRL);
+ 
+-		/* Allow as many pending command as possible for both queues */
+-		writel(anv->hw->max_queue_depth
+-			| (anv->hw->max_queue_depth << 16), anv->mmio_nvme
+-			+ APPLE_ANS_MAX_PEND_CMDS_CTRL);
++		if (!anv->hw->needs_ioq_register) {
++			/*
++			 * Since T8132 this register is replaced by IOQ_SIZE
++			 * which is set up together with the IO queues below.
++			 */
++			/* Allow as many pending command as possible for both queues */
++			writel(anv->hw->max_queue_depth
++				| (anv->hw->max_queue_depth << 16), anv->mmio_nvme
++				+ APPLE_ANS_T8103_MAX_PEND_CMDS_CTRL);
++		}
+ 
+ 		/* Setup the NVMMU for the maximum admin and IO queue depth */
+ 		writel(anv->hw->max_queue_depth - 1,
+-			anv->mmio_nvme + APPLE_NVMMU_NUM_TCBS);
++			anv->mmio_nvmmu + APPLE_NVMMU_NUM_TCBS);
+ 	}
+ 
+ 	/* Setup the admin queue */
+@@ -1173,9 +1206,9 @@ static void apple_nvme_reset_work(struct work_struct *work)
+ 	if (anv->hw->has_lsq_nvmmu) {
+ 		/* Setup NVMMU for both queues */
+ 		writeq(anv->adminq.tcb_dma_addr,
+-			anv->mmio_nvme + APPLE_NVMMU_ASQ_TCB_BASE);
++			anv->mmio_nvmmu + APPLE_NVMMU_ASQ_TCB_BASE);
+ 		writeq(anv->ioq.tcb_dma_addr,
+-			anv->mmio_nvme + APPLE_NVMMU_IOSQ_TCB_BASE);
++			anv->mmio_nvmmu + APPLE_NVMMU_IOSQ_TCB_BASE);
+ 	}
+ 
+ 	anv->ctrl.sqsize =
+@@ -1211,6 +1244,21 @@ static void apple_nvme_reset_work(struct work_struct *work)
+ 	if (ret)
+ 		goto out_remove_cq;
+ 
++	if (anv->hw->needs_ioq_register) {
++		/*
++		 * The ANS ignores the queue size of Create I/O CQ/SQ and
++		 * crashes (crashlog shows I/O SQ/CQ == 0) unless the queues
++		 * are also registered here. IOQ_SIZE is 0-based.
++		 */
++		writeq(anv->ioq.cq_dma_addr,
++			anv->mmio_nvme + APPLE_ANS_T8132_IOQ_CQES);
++		writeq(anv->ioq.sq_dma_addr,
++			anv->mmio_nvme + APPLE_ANS_T8132_IOQ_CMDS);
++		writel((anv->hw->max_queue_depth - 1) |
++			((anv->hw->max_queue_depth - 1) << 16),
++			anv->mmio_nvme + APPLE_ANS_T8132_IOQ_SIZE);
++	}
++
+ 	apple_nvme_init_queue(&anv->ioq);
+ 	nr_io_queues = 1;
+ 	ret = nvme_set_queue_count(&anv->ctrl, &nr_io_queues);
+@@ -1497,6 +1545,7 @@ static struct apple_nvme *apple_nvme_alloc(struct platform_device *pdev)
+ {
+ 	struct device *dev = &pdev->dev;
+ 	struct apple_nvme *anv;
++	struct resource *res;
+ 	int ret;
+ 
+ 	anv = devm_kzalloc(dev, sizeof(*anv), GFP_KERNEL);
+@@ -1543,6 +1592,20 @@ static struct apple_nvme *apple_nvme_alloc(struct platform_device *pdev)
+ 		ret = PTR_ERR(anv->mmio_nvme);
+ 		goto put_dev;
+ 	}
++	/*
++	 * M4+ (nvme-secure-bar) ADTs describe the NVMMU as its own region;
++	 * everything before has it inside the NVMe register block.
++	 */
++	res = platform_get_resource_byname(pdev, IORESOURCE_MEM, "nvmmu");
++	if (res) {
++		anv->mmio_nvmmu = devm_ioremap_resource(dev, res);
++		if (IS_ERR(anv->mmio_nvmmu)) {
++			ret = PTR_ERR(anv->mmio_nvmmu);
++			goto put_dev;
++		}
++	} else {
++		anv->mmio_nvmmu = anv->mmio_nvme;
++	}
+ 
+ 	if (anv->hw->has_lsq_nvmmu) {
+ 		anv->adminq.sq_db = anv->mmio_nvme + APPLE_ANS_LINEAR_ASQ_DB;
+@@ -1753,17 +1816,26 @@ static DEFINE_SIMPLE_DEV_PM_OPS(apple_nvme_pm_ops, apple_nvme_suspend,
+ 
+ static const struct apple_nvme_hw apple_nvme_t8015_hw = {
+ 	.has_lsq_nvmmu = false,
++	.needs_ioq_register = false,
+ 	.max_queue_depth = 16,
+ };
+ 
+ static const struct apple_nvme_hw apple_nvme_t8103_hw = {
+ 	.has_lsq_nvmmu = true,
++	.needs_ioq_register = false,
++	.max_queue_depth = 64,
++};
++
++static const struct apple_nvme_hw apple_nvme_t8132_hw = {
++	.has_lsq_nvmmu = true,
++	.needs_ioq_register = true,
+ 	.max_queue_depth = 64,
+ };
+ 
+ static const struct of_device_id apple_nvme_of_match[] = {
+ 	{ .compatible = "apple,t8015-nvme-ans2", .data = &apple_nvme_t8015_hw },
+ 	{ .compatible = "apple,t8103-nvme-ans2", .data = &apple_nvme_t8103_hw },
++	{ .compatible = "apple,t8132-nvme-ans2", .data = &apple_nvme_t8132_hw },
+ 	{ .compatible = "apple,nvme-ans2", .data = &apple_nvme_t8103_hw },
+ 	{},
+ };

@@ -1,0 +1,153 @@
+// SPDX-License-Identifier: GPL-2.0+ OR MIT
+/*
+ * T6050 storage (ANS NVMe) + USB device-mode (gadget) nodes.
+ * GENERATED from the runtime ADT (build/adt-runtime-j714s.bin) by
+ * gen-storage-net-dt.py. ADT reg values are translated through /arm-io
+ * ranges (+0x200000000 for the low window).
+ */
+
+&soc {
+	ans_mbox: mbox@419608000 {
+		compatible = "apple,t6050-asc-mailbox", "apple,asc-mailbox-v4";
+		reg = <0x4 0x19608000 0x0 0x4000>;
+		interrupt-parent = <&aic>;
+		/* ADT order is [n+1, n, n+3, n+2]; Asahi DTs use n..n+3 in name order */
+		interrupts = <AIC_IRQ 1347 IRQ_TYPE_LEVEL_HIGH>,
+			<AIC_IRQ 1348 IRQ_TYPE_LEVEL_HIGH>,
+			<AIC_IRQ 1349 IRQ_TYPE_LEVEL_HIGH>,
+			<AIC_IRQ 1350 IRQ_TYPE_LEVEL_HIGH>;
+		interrupt-names = "send-empty", "send-not-empty",
+			"recv-empty", "recv-not-empty";
+		#mbox-cells = <0>;
+		power-domains = <&ps_ans>;
+	};
+
+	sart_ans: sart@41dc50000 {
+		/* ADT sart-version = 4 (compatible "sart,coastguard") */
+		compatible = "apple,t6050-sart", "apple,t8132-sart";
+		reg = <0x4 0x1dc50000 0x0 0xc000>;
+		power-domains = <&ps_ans>;
+	};
+
+	nvme: nvme@45dcc0000 {
+		compatible = "apple,t6050-nvme-ans2", "apple,t8132-nvme-ans2";
+		/* nvme = ADT reg[9] (real NVMe regs; ADT size 0x10000 is too small, the
+		 * doorbells/LINEAR_SQ regs sit at +0x24908; use 0x60000 like t6030),
+		 * ans = reg[0] (ASC CPU control, +0x44),
+		 * nvmmu = reg[3] (NVMMU at +0x28100; m1n1 src/nvme.c T8132 layout) */
+		reg = <0x4 0x5dcc0000 0x0 0x60000>,
+		      <0x4 0x19600000 0x0 0x4000>,
+		      <0x4 0x1dcc0000 0x0 0x60000>;
+		reg-names = "nvme", "ans", "nvmmu";
+		interrupt-parent = <&aic>;
+		interrupts = <AIC_IRQ 2338 IRQ_TYPE_LEVEL_HIGH>;  /* ADT interrupts[4] */
+		mboxes = <&ans_mbox>;
+		apple,sart = <&sart_ans>;
+		power-domains = <&ps_ans>;
+		resets = <&ps_ans>;
+	};
+
+	/* usb-drd0: port-number 1 */
+	dwc3_0: usb@2a2280000 {
+		compatible = "snps,dwc3";
+		reg = <0x2 0xa2280000 0x0 0xcd00>;
+		interrupt-parent = <&aic>;
+		interrupts = <AIC_IRQ 1419 IRQ_TYPE_LEVEL_HIGH>;
+		dr_mode = "peripheral";
+		maximum-speed = "high-speed";
+		iommus = <&dwc3_0_dart_0 0>, <&dwc3_0_dart_1 1>;
+		/* no phys/power-domains/resets: m1n1 usb_phy_bringup() left the PHY,
+		 * PMGR and DWC3 reset exactly as its own gadget needs them. */
+		status = "okay";
+	};
+
+	dwc3_0_dart_0: iommu@2a2f00000 {
+		compatible = "apple,t6050-dart", "apple,t8110-dart";
+		reg = <0x2 0xa2f00000 0x0 0xc000>;
+		interrupt-parent = <&aic>;
+		interrupts = <AIC_IRQ 1423 IRQ_TYPE_LEVEL_HIGH>;
+		#iommu-cells = <1>;
+	};
+
+	dwc3_0_dart_1: iommu@2a2f80000 {
+		compatible = "apple,t6050-dart", "apple,t8110-dart";
+		reg = <0x2 0xa2f80000 0x0 0xc000>;
+		interrupt-parent = <&aic>;
+		interrupts = <AIC_IRQ 1423 IRQ_TYPE_LEVEL_HIGH>;
+		#iommu-cells = <1>;
+	};
+
+	/* usb-drd1: port-number 2 */
+	dwc3_1: usb@2aa280000 {
+		compatible = "snps,dwc3";
+		reg = <0x2 0xaa280000 0x0 0xcd00>;
+		interrupt-parent = <&aic>;
+		interrupts = <AIC_IRQ 1451 IRQ_TYPE_LEVEL_HIGH>;
+		dr_mode = "peripheral";
+		maximum-speed = "high-speed";
+		iommus = <&dwc3_1_dart_0 0>, <&dwc3_1_dart_1 1>;
+		/* no phys/power-domains/resets: m1n1 usb_phy_bringup() left the PHY,
+		 * PMGR and DWC3 reset exactly as its own gadget needs them. */
+		status = "okay";
+	};
+
+	dwc3_1_dart_0: iommu@2aaf00000 {
+		compatible = "apple,t6050-dart", "apple,t8110-dart";
+		reg = <0x2 0xaaf00000 0x0 0xc000>;
+		interrupt-parent = <&aic>;
+		interrupts = <AIC_IRQ 1455 IRQ_TYPE_LEVEL_HIGH>;
+		#iommu-cells = <1>;
+	};
+
+	dwc3_1_dart_1: iommu@2aaf80000 {
+		compatible = "apple,t6050-dart", "apple,t8110-dart";
+		reg = <0x2 0xaaf80000 0x0 0xc000>;
+		interrupt-parent = <&aic>;
+		interrupts = <AIC_IRQ 1455 IRQ_TYPE_LEVEL_HIGH>;
+		#iommu-cells = <1>;
+	};
+
+	/* usb-drd2: port-number 3 */
+	dwc3_2: usb@382280000 {
+		compatible = "snps,dwc3";
+		reg = <0x3 0x82280000 0x0 0xcd00>;
+		interrupt-parent = <&aic>;
+		interrupts = <AIC_IRQ 1483 IRQ_TYPE_LEVEL_HIGH>;
+		dr_mode = "peripheral";
+		maximum-speed = "high-speed";
+		iommus = <&dwc3_2_dart_0 0>, <&dwc3_2_dart_1 1>;
+		/* no phys/power-domains/resets: m1n1 usb_phy_bringup() left the PHY,
+		 * PMGR and DWC3 reset exactly as its own gadget needs them. */
+		status = "okay";
+	};
+
+	dwc3_2_dart_0: iommu@382f00000 {
+		compatible = "apple,t6050-dart", "apple,t8110-dart";
+		reg = <0x3 0x82f00000 0x0 0xc000>;
+		interrupt-parent = <&aic>;
+		interrupts = <AIC_IRQ 1487 IRQ_TYPE_LEVEL_HIGH>;
+		#iommu-cells = <1>;
+	};
+
+	dwc3_2_dart_1: iommu@382f80000 {
+		compatible = "apple,t6050-dart", "apple,t8110-dart";
+		reg = <0x3 0x82f80000 0x0 0xc000>;
+		interrupt-parent = <&aic>;
+		interrupts = <AIC_IRQ 1487 IRQ_TYPE_LEVEL_HIGH>;
+		#iommu-cells = <1>;
+	};
+};
+
+/* Leave the USB-C port domains as m1n1 left them (see gen-storage-net-dt.py). */
+&ps_atc0_common { status = "disabled"; };
+&ps_atc0_usb_aon { status = "disabled"; };
+&ps_atc0_usb { status = "disabled"; };
+&ps_atc0_phymxwrap { status = "disabled"; };
+&ps_atc1_common { status = "disabled"; };
+&ps_atc1_usb_aon { status = "disabled"; };
+&ps_atc1_usb { status = "disabled"; };
+&ps_atc1_phymxwrap { status = "disabled"; };
+&ps_atc2_common { status = "disabled"; };
+&ps_atc2_usb_aon { status = "disabled"; };
+&ps_atc2_usb { status = "disabled"; };
+&ps_atc2_phymxwrap { status = "disabled"; };

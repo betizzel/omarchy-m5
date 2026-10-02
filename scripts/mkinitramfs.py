@@ -79,6 +79,17 @@ echo
 $BB dmesg | $BB tail -20
 echo
 
+# USB gadget network + serial console (see usb-gadget-net.sh), then root FS.
+[ -x /usr/sbin/usb-gadget-net ] && /usr/sbin/usb-gadget-net
+ROOT=$($BB sed -n 's/.*\bm5\.root=\([^ ]*\).*/\1/p' /proc/cmdline)
+if [ -n "$ROOT" ]; then
+    i=0; while [ ! -b "$ROOT" ] && [ $i -lt 100 ]; do $BB sleep 0.1; i=$((i+1)); done
+    if $BB mount -t ext4 -o noatime "$ROOT" /mnt 2>/dev/null; then
+        $BB umount /proc /sys /dev /tmp 2>/dev/null
+        exec $BB switch_root /mnt /sbin/init
+    fi
+    echo "m5.root=$ROOT did not mount; staying in initramfs"
+fi
 exec $BB sh
 """
 
@@ -191,6 +202,8 @@ def main():
                 counts["skipped"] += 1
 
     cpio.entry("init", stat.S_IFREG | 0o755, INIT.encode())
+    cpio.entry("usr/sbin/usb-gadget-net", stat.S_IFREG | 0o755,
+               open(os.path.join(os.path.dirname(__file__), "usb-gadget-net.sh"), "rb").read())
     cpio.close()
 
     raw = buf.getvalue()
