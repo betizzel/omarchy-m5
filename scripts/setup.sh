@@ -15,7 +15,8 @@ fi
 # The kernel build uses the same LLVM toolchain via LLVM=1.
 # dtc: standalone device-tree compiler for quick syntax checks.
 # bc/bison/flex/openssl: kernel build host tools.
-PKGS=(llvm lld dtc bc bison flex openssl make gnu-sed)
+# coreutils: kconfig's merge_config.sh uses `cp -T`, unsupported by BSD cp.
+PKGS=(llvm lld dtc bc bison flex openssl make gnu-sed coreutils)
 echo "==> Installing brew packages: ${PKGS[*]}"
 brew install "${PKGS[@]}"
 

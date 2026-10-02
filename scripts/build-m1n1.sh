@@ -25,10 +25,32 @@ RUSTUP_BIN="$(dirname "$(rustup which cargo)")"
 export PATH="$RUSTUP_BIN:$(brew --prefix llvm)/bin:$PATH"
 
 CHAINLOADING="${CHAINLOADING:-1}"
+RELEASE="${RELEASE:-0}"
 JOBS="${JOBS:-$(sysctl -n hw.ncpu)}"
 
-echo "==> Building m1n1 (CHAINLOADING=$CHAINLOADING, -j$JOBS)"
-make -C vendor/m1n1 -j"$JOBS" CHAINLOADING="$CHAINLOADING"
+# m1n1's build/build_cfg.h rule has no prerequisites, so once the file exists
+# make treats it as up to date and never re-evaluates CFG. Flipping
+# CHAINLOADING/RELEASE would then silently produce the *previous* config.
+# Compare the config ourselves and delete the header when it has to change.
+CFG_FILE=vendor/m1n1/build/build_cfg.h
+WANT=""
+[ "$RELEASE" = 1 ] && WANT="$WANT#define RELEASE"$'\n'
+[ "$CHAINLOADING" = 1 ] && WANT="$WANT#define CHAINLOADING"$'\n'
+if [ -f "$CFG_FILE" ] && [ "$(cat "$CFG_FILE")" != "${WANT%$'\n'}" ]; then
+    echo "==> build config changed -> forcing rebuild"
+    rm -f "$CFG_FILE"
+fi
+
+# m1n1's Makefile uses grouped targets ("&:"), which need GNU Make >= 4.3.
+# macOS ships 3.81, which silently mis-parses them into a target named "&"
+# and then fails to regenerate build_cfg.h.
+GMAKE="$(command -v gmake || command -v make)"
+case "$("$GMAKE" --version | head -1)" in
+    *" 3."*) echo "ERROR: $GMAKE is too old for m1n1; brew install make" >&2; exit 1 ;;
+esac
+
+echo "==> Building m1n1 (CHAINLOADING=$CHAINLOADING, RELEASE=$RELEASE, -j$JOBS)"
+"$GMAKE" -C vendor/m1n1 -j"$JOBS" CHAINLOADING="$CHAINLOADING" RELEASE="$RELEASE"
 
 echo
 echo "==> Artifacts:"
