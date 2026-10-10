@@ -211,7 +211,8 @@ cross gcc + a per-user rustup with `aarch64-unknown-none-softfloat`).
 **SMP (2026-10-01): parked.** Secondary start on T6050 is unsolved
 upstream too (m1n1 PR #610: "the cores turn on ... but never start
 executing our code"; same on an M5 Max). Measured here with a read-only
-probe and one diagnostic start attempt:
+probe and one diagnostic start attempt (`scripts/probes/t6050-smp-probe.py`;
+raw output in `docs/research/probe-logs/t6050-smp-*`):
 
 - all 15 RVBARs are locked by iBoot to m1n1's base page (correct);
 - the PMGR core-alive word (`0x280688004`) is one bit per ADT cpu-id

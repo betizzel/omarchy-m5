@@ -1,0 +1,73 @@
+chip-id 0x6050  boot MPIDR_EL1 = 0x80040000  (Aff2=0x4 Aff1=0 Aff0=0)
+
+== cores (ADT /cpus)  RVBAR=impl+0x0, status=impl+0x100
+cpu   state        reg  exp.MPIDR[23:0]             RVBAR raw ==u.base?        status @+0x100  impl
+cpu0  running      0x0          0x40000    0x00100100057ac001       yes    0x0080802aef201102  0x210050000
+cpu1  waiting      0x1          0x40001    0x00100100057ac001       yes    0x118040000000d800  0x210150000
+cpu2  waiting      0x2          0x40002    0x00100100057ac001       yes    0x228040000000d800  0x210250000
+cpu3  waiting      0x3          0x40003    0x00100100057ac001       yes    0x338040000000d800  0x210350000
+cpu4  waiting      0x4          0x40004    0x00100100057ac001       yes    0x448040000000d800  0x210450000
+cpu6  waiting    0x100          0x40100    0x01100100057ac001       yes    0x008040000000d800  0x211050000
+cpu7  waiting    0x101          0x40101    0x01100100057ac001       yes    0x118040000000d800  0x211150000
+cpu8  waiting    0x102          0x40102    0x01100100057ac001       yes    0x228040000000d800  0x211250000
+cpu9  waiting    0x103          0x40103    0x01100100057ac001       yes    0x338040000000d800  0x211350000
+cpu10 waiting    0x104          0x40104    0x01100100057ac001       yes    0x448040000000d800  0x211450000
+cpu12 waiting    0x200          0x10200    0x02100100057ac001       yes    0x008040000000d800  0x212050000
+cpu13 waiting    0x201          0x10201    0x02100100057ac001       yes    0x118040000000d800  0x212150000
+cpu14 waiting    0x202          0x10202    0x02100100057ac001       yes    0x228040000000d800  0x212250000
+cpu15 waiting    0x203          0x10203    0x02100100057ac001       yes    0x338040000000d800  0x212350000
+cpu16 waiting    0x204          0x10204    0x02100100057ac001       yes    0x448040000000d800  0x212450000
+distinct RVBAR values: ['0x100100057ac001', '0x1100100057ac001', '0x2100100057ac001']
+bit0 (LOCK) set on all: True
+
+== PMGR CPU_START block  (pmgr reg0 = 0x280600000, +0x88000 on this chip)
+  +0x00 stop                         = 0x0003fffe
+  +0x04 core-alive (W1C? 18 bits)    = 0x0003fffe
+  +0x08 start cluster0               = 0x00000000
+  +0x0c start cluster1               = 0x00000000
+  +0x10 start cluster2               = 0x00000000
+  +0x14 ?                            = 0x00000000
+  +0x18 ?                            = 0x00000000
+
+== PMGR power states of the CPU devices (target<<0, actual<<4; 0x1f0 = on)
+  MCPU0_0   @ 0x280600000 = 0x000001f0
+  MCPU0_1   @ 0x280600008 = 0x00000100
+  MCPU0_2   @ 0x280600010 = 0x00000100
+  MCPU0_3   @ 0x280600018 = 0x00000100
+  MCPU0_4   @ 0x280600020 = 0x00000100
+  MCPU0_5   @ 0x280600028 = 0x00000100
+  MCPU1_0   @ 0x280600030 = 0x00000100
+  MCPU1_1   @ 0x280600038 = 0x00000100
+  MCPU1_2   @ 0x280600040 = 0x00000100
+  MCPU1_3   @ 0x280600048 = 0x00000100
+  MCPU1_4   @ 0x280600050 = 0x00000100
+  MCPU1_5   @ 0x280600058 = 0x00000100
+  PCPU_0    @ 0x280600060 = 0x00000100
+  PCPU_1    @ 0x280600068 = 0x00000100
+  PCPU_2    @ 0x280600070 = 0x00000100
+  PCPU_3    @ 0x280600078 = 0x00000100
+  PCPU_4    @ 0x280600080 = 0x00000100
+  PCPU_5    @ 0x280600088 = 0x00000100
+  MCPM0     @ 0x280600090 = 0x000001f0
+  MCPM1     @ 0x280600098 = 0x000001f0
+  PCPM      @ 0x2806000a0 = 0x000001f0
+
+== CTRR 'SMP-RO' window (M4+: enabled on secondaries only; kboot.c reserves it)
+  s3_0_c11_c0_0 = 0x10005fb0000
+  s3_0_c11_c0_1 = 0x10005fbb000
+  s3_0_c11_c1_0 = 0x10005fb0000
+  s3_0_c11_c1_1 = 0x10005fbb000
+  s3_0_c11_c2_2 = 0x10005fb0000
+  s3_0_c11_c2_3 = 0x10005fb3000
+  s3_0_c11_c2_4 = 0x10005fb4000
+  s3_0_c11_c2_5 = 0x10005fb7000
+  using s3_0_c11_c0_{0,1} as the SMP-RO window
+  CTL s3_0_c11_c1_4 = 0x0
+  window = [0x10005fb0000, 0x10005fbb001)  size 0xb001
+  overlaps m1n1 image/heap [0x100057ac000, 0x100067ac000)?  YES  <-- secondaries cannot write m1n1 .data/.bss
+  first 0x200 bytes (full dump -> /home/bay/tether/hv/smp-ro-window.bin):
+10005fb0000  7f 20 03 d5 7f 20 03 d5  7f 20 03 d5 7f 20 03 d5  |. ... ... ... ..|
+10005fb0010  *
+  non-zero bytes in first 0x200: 512
+
+wrote smp-probe.json

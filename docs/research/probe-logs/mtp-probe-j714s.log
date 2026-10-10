@@ -1,0 +1,43 @@
+ASC block   0x294600000   (ADT reg[0], size 0x88000)
+  0x000294600044  CPU_CONTROL                  0x00000000  bit4 RUN expected 1
+      RUN=False
+
+mailbox     0x294608000   (apple,asc-mailbox-v4 layout)
+  0x000294608110  A2I_CONTROL                  0x00020001  EMPTY=bit17 FULL=bit16
+  0x000294608114  I2A_CONTROL                  0x00020001  non-empty => MTP already queued a message (HELLO?)
+
+dart-mtp    0x294800000   (t8110, m1n1 uses reg[0] as base)
+  0x000294800000  PARAMS1                      0x1e311020  
+  0x000294800004  PARAMS2                      0x31111007  
+  0x000294800008  PARAMS3                      0x2a2a0204  VA width [21:16], PA width [29:24]
+  0x00029480000c  PARAMS4                      0x00010010  NUM_SIDS [8:0]
+  0x000294800200  PROTECT                      0x0000001a  bit0 = TTBR/TCR locked (BAD for Linux)
+  0x000294800c00  ENABLE_STREAMS[0]            0x00000000  
+  0x000294801000  TCR[0]                       0x00000001  iBoot state; Linux rewrites it
+  0x000294801004  TCR[1]                       0x00000001  iBoot state; Linux rewrites it
+  0x000294801008  TCR[2]                       0x00000001  iBoot state; Linux rewrites it
+  0x00029480100c  TCR[3]                       0x00000001  iBoot state; Linux rewrites it
+  0x000294801010  TCR[4]                       0x00000001  iBoot state; Linux rewrites it
+  0x000294801014  TCR[5]                       0x00000001  iBoot state; Linux rewrites it
+  0x000294801400  TTBR[0]                      0x00000000  
+  0x000294801404  TTBR[1]                      0x2d6432a8  
+  0x000294800100  ERROR                        0x00000000  bit31 = fault latched
+      VA width = 42, PA width = 42
+      DART locked: False
+
+dockchannel-mtp irq=0x294b14000 cfg=0x294b30000 data=0x294b34000 rmt-cfg=0x294b28000 rmt-data=0x294b2c000
+  0x000294b14000  IRQ_MASK                     0x00000000  
+  0x000294b14004  IRQ_FLAG                     0x00000000  bit2 TX / bit3 RX are what the DT uses
+  0x000294b30000  cfg TX_THRESH                0x00000000  
+  0x000294b30004  cfg RX_THRESH                0x00000000  
+  0x000294b34014  data TX_FREE                 0x00000800  FIFO size 0x800 expected when idle
+  0x000294b3402c  data RX_COUNT                0x00000000  bytes waiting from MTP
+  0x000294b28000  rmt cfg TX_THRESH            0x00000000  
+  0x000294b2c014  rmt data TX_FREE             0x00000800  
+  0x000294b2c02c  rmt data RX_COUNT            0x00000000  
+
+firmware segments (ADT iop-mtp-nub segment-ranges):
+  __TEXT     phys=0x294c00000 iova=0x1000000 remap=0x294c00000 size=0x54000 unk=3
+  __DATA     phys=0x294c54000 iova=0x1054000 remap=0x294c54000 size=0x6c000 unk=2
+  __OS_LOG   phys=0x100059a8000 iova=0x10c0000 remap=0x100059a8000 size=0x3000 unk=10
+pre-loaded: 1

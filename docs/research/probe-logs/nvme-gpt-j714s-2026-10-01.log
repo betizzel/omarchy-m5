@@ -1,0 +1,18 @@
+TTY> Heap limit: 0x10010078000 (128 MiB)
+TTY> nvme: clock-gates not set
+TTY> nvme: ANS is on die 0
+TTY> sart: SARTv4 /arm-io/sart-ans at 0x41dc50000
+TTY> rtkit(nvme): booting with version 12
+TTY> rtkit(nvme): unknown system endpoint 0x0a
+TTY> nvme: initialized at 0x45dcc0000
+GPT signature : b'EFI PART'
+disk guid a7df5a8d-6868-4d72-93fb-5ecdcfaae747 usable LBA 6..244276259 (1000.6 GB)
+  p1: 69646961-6700-11aa-aa11-00306543ecac  uuid=f217eec1-ed2c-4c6c-b24c-89870e92c3fb  LBA 6..140805  (0.6 GB) 'iBootSystemContainer'
+  p2: 7c3457ef-0000-11aa-aa11-00306543ecac  uuid=b9666b26-c316-4909-9d43-4960ab892d74  LBA 140806..162006039  (663.0 GB) 'Container'
+  p3: 7c3457ef-0000-11aa-aa11-00306543ecac  uuid=21f10392-512f-4142-98cd-3014a0b926a5  LBA 162006040..163470882  (6.0 GB) ''
+  p4: c12a7328-f81f-11d2-ba4b-00a0c93ec93b  uuid=cf8eb1ad-b100-48ce-9be3-a71394899995  LBA 163470883..163592952  (0.5 GB) ''
+  p5: 0fc63daf-8483-4772-8e79-3d69d8477de4  uuid=c2759f0d-9f8f-4d14-a568-c1e784360b71  LBA 163592953..226092952  (256.0 GB) ''
+  p6: 52637672-7900-11aa-aa11-00306543ecac  uuid=ce83957b-07d5-449b-afed-2cc4dedd5c42  LBA 242965551..244276259  (5.4 GB) 'RecoveryOSContainer'
+expect: p5 = the empty 256 GB Linux partition (disk0s5); note its LBAs/PARTUUID for provision-rootfs.sh
+TTY> pmgr: resetting device 0.ANS
+TTY> nvme: shutdown done

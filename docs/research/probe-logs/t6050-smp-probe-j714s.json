@@ -1,0 +1,137 @@
+[
+ {
+  "name": "cpu0",
+  "cpu_id": 0,
+  "state": "running",
+  "reg": 0,
+  "exp_mpidr": 262144,
+  "rvbar": 4504699230928897,
+  "status": 36169718907801858
+ },
+ {
+  "name": "cpu1",
+  "cpu_id": 1,
+  "state": "waiting",
+  "reg": 1,
+  "exp_mpidr": 262145,
+  "rvbar": 4504699230928897,
+  "status": 1261078264407971840
+ },
+ {
+  "name": "cpu2",
+  "cpu_id": 2,
+  "state": "waiting",
+  "reg": 2,
+  "exp_mpidr": 262146,
+  "rvbar": 4504699230928897,
+  "status": 2486057363052746752
+ },
+ {
+  "name": "cpu3",
+  "cpu_id": 3,
+  "state": "waiting",
+  "reg": 3,
+  "exp_mpidr": 262147,
+  "rvbar": 4504699230928897,
+  "status": 3711036461697521664
+ },
+ {
+  "name": "cpu4",
+  "cpu_id": 4,
+  "state": "waiting",
+  "reg": 4,
+  "exp_mpidr": 262148,
+  "rvbar": 4504699230928897,
+  "status": 4936015560342296576
+ },
+ {
+  "name": "cpu6",
+  "cpu_id": 6,
+  "state": "waiting",
+  "reg": 256,
+  "exp_mpidr": 262400,
+  "rvbar": 76562293268856833,
+  "status": 36099165763196928
+ },
+ {
+  "name": "cpu7",
+  "cpu_id": 7,
+  "state": "waiting",
+  "reg": 257,
+  "exp_mpidr": 262401,
+  "rvbar": 76562293268856833,
+  "status": 1261078264407971840
+ },
+ {
+  "name": "cpu8",
+  "cpu_id": 8,
+  "state": "waiting",
+  "reg": 258,
+  "exp_mpidr": 262402,
+  "rvbar": 76562293268856833,
+  "status": 2486057363052746752
+ },
+ {
+  "name": "cpu9",
+  "cpu_id": 9,
+  "state": "waiting",
+  "reg": 259,
+  "exp_mpidr": 262403,
+  "rvbar": 76562293268856833,
+  "status": 3711036461697521664
+ },
+ {
+  "name": "cpu10",
+  "cpu_id": 10,
+  "state": "waiting",
+  "reg": 260,
+  "exp_mpidr": 262404,
+  "rvbar": 76562293268856833,
+  "status": 4936015560342296576
+ },
+ {
+  "name": "cpu12",
+  "cpu_id": 12,
+  "state": "waiting",
+  "reg": 512,
+  "exp_mpidr": 66048,
+  "rvbar": 148619887306784769,
+  "status": 36099165763196928
+ },
+ {
+  "name": "cpu13",
+  "cpu_id": 13,
+  "state": "waiting",
+  "reg": 513,
+  "exp_mpidr": 66049,
+  "rvbar": 148619887306784769,
+  "status": 1261078264407971840
+ },
+ {
+  "name": "cpu14",
+  "cpu_id": 14,
+  "state": "waiting",
+  "reg": 514,
+  "exp_mpidr": 66050,
+  "rvbar": 148619887306784769,
+  "status": 2486057363052746752
+ },
+ {
+  "name": "cpu15",
+  "cpu_id": 15,
+  "state": "waiting",
+  "reg": 515,
+  "exp_mpidr": 66051,
+  "rvbar": 148619887306784769,
+  "status": 3711036461697521664
+ },
+ {
+  "name": "cpu16",
+  "cpu_id": 16,
+  "state": "waiting",
+  "reg": 516,
+  "exp_mpidr": 66052,
+  "rvbar": 148619887306784769,
+  "status": 4936015560342296576
+ }
+]

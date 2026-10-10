@@ -1,0 +1,44 @@
+TTY> Heap limit: 0x10010760000 (128 MiB)
+TTY> Starting secondary CPUs...
+TTY> Starting CPU 1 (0:0:1)... smp: AIC SW_SET @0x2804141fc does not read back, MMIO breadcrumbs disabled
+TTY> Failed!
+TTY>     rvbar=0x100100057ac001 status 0x118040000000d800 -> 0x118080caef20d102 crumbs=0x0
+TTY> Starting CPU 2 (0:0:2)... smp: AIC SW_SET @0x2804141fc does not read back, MMIO breadcrumbs disabled
+TTY> Failed!
+TTY>     rvbar=0x100100057ac001 status 0x228040000000d800 -> 0x228080caef20d102 crumbs=0x0
+TTY> Starting CPU 3 (0:0:3)... smp: AIC SW_SET @0x2804141fc does not read back, MMIO breadcrumbs disabled
+TTY> Failed!
+TTY>     rvbar=0x100100057ac001 status 0x338040000000d800 -> 0x338080caef20d102 crumbs=0x0
+TTY> Starting CPU 4 (0:0:4)... smp: AIC SW_SET @0x2804141fc does not read back, MMIO breadcrumbs disabled
+TTY> Failed!
+TTY>     rvbar=0x100100057ac001 status 0x448040000000d800 -> 0x448080caef20d102 crumbs=0x0
+TTY> Starting CPU 6 (0:1:0)... smp: AIC SW_SET @0x2804141fc does not read back, MMIO breadcrumbs disabled
+TTY> Failed!
+TTY>     rvbar=0x1100100057ac001 status 0x8040000000d800 -> 0x80804aef205102 crumbs=0x0
+TTY> Starting CPU 7 (0:1:1)... smp: AIC SW_SET @0x2804141fc does not read back, MMIO breadcrumbs disabled
+TTY> Failed!
+TTY>     rvbar=0x1100100057ac001 status 0x118040000000d800 -> 0x1180804aef205102 crumbs=0x0
+TTY> Starting CPU 8 (0:1:2)... smp: AIC SW_SET @0x2804141fc does not read back, MMIO breadcrumbs disabled
+TTY> Failed!
+TTY>     rvbar=0x1100100057ac001 status 0x228040000000d800 -> 0x2280804aef205102 crumbs=0x0
+TTY> Starting CPU 9 (0:1:3)... smp: AIC SW_SET @0x2804141fc does not read back, MMIO breadcrumbs disabled
+TTY> Failed!
+TTY>     rvbar=0x1100100057ac001 status 0x338040000000d800 -> 0x3380804aef205102 crumbs=0x0
+TTY> Starting CPU 10 (0:1:4)... smp: AIC SW_SET @0x2804141fc does not read back, MMIO breadcrumbs disabled
+TTY> Failed!
+TTY>     rvbar=0x1100100057ac001 status 0x448040000000d800 -> 0x4480804aef205102 crumbs=0x0
+TTY> Starting CPU 12 (0:2:0)... smp: AIC SW_SET @0x2804141fc does not read back, MMIO breadcrumbs disabled
+TTY> Failed!
+TTY>     rvbar=0x2100100057ac001 status 0x8040000000d800 -> 0x80804aef205102 crumbs=0x0
+TTY> Starting CPU 13 (0:2:1)... smp: AIC SW_SET @0x2804141fc does not read back, MMIO breadcrumbs disabled
+TTY> Failed!
+TTY>     rvbar=0x2100100057ac001 status 0x118040000000d800 -> 0x1180804aef205102 crumbs=0x0
+TTY> Starting CPU 14 (0:2:2)... smp: AIC SW_SET @0x2804141fc does not read back, MMIO breadcrumbs disabled
+TTY> Failed!
+TTY>     rvbar=0x2100100057ac001 status 0x228040000000d800 -> 0x2280804aef205102 crumbs=0x0
+TTY> Starting CPU 15 (0:2:3)... smp: AIC SW_SET @0x2804141fc does not read back, MMIO breadcrumbs disabled
+TTY> Failed!
+TTY>     rvbar=0x2100100057ac001 status 0x338040000000d800 -> 0x3380804aef205102 crumbs=0x0
+TTY> Starting CPU 16 (0:2:4)... smp: AIC SW_SET @0x2804141fc does not read back, MMIO breadcrumbs disabled
+TTY> Failed!
+TTY>     rvbar=0x2100100057ac001 status 0x448040000000d800 -> 0x4480804aef205102 crumbs=0x0
