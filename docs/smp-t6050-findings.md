@@ -79,7 +79,7 @@ path, the leading idea is an execute restriction on secondaries that m1n1's
 RVBAR target cannot satisfy. Next we reverse iBoot (and SPTM, for the macOS
 path) to see how a raw-image boot is meant to hand secondaries over.
 
-## Firmware RE: the SPTM CPU handoff (in progress)
+## Firmware RE: iBoot/LLB reset entry and the (absent) SPTM path
 
 Disassembling `sptm.t6050.release` (the SPTM blob iBoot loads for macOS on
 this chip; symbols survive in log strings) with Ghidra:
@@ -96,14 +96,48 @@ this chip; symbols survive in log strings) with Ghidra:
   `%s: CTRR-A/B per-core register not locked by iBoot` checks confirm it);
   they are the family m1n1 PR #688 named for exactly this SoC.
 
-**Refined theory.** On macOS, SPTM runs this resume path on each secondary
-and sets up CTXR before the core executes OS code. A raw m1n1 boot has no
-SPTM, so a released secondary's execute-region controls are never set for
-m1n1's vector page, and its first fetch faults silently - matching "no
-watchdog write, no crumb at RVBAR or in the sled." Next: find where control
-actually lands on a secondary (the reset entry iBoot installs vs. SPTM's
-`sptm_cpu_init`), and whether m1n1 can set CTXR from the boot core or must
-emulate the SPTM entry.
+**Correction (CTXR is not the gate).** The t0 probe already read the *boot*
+core's CTXR and CTRR_C, and they point at the **same sled** a secondary has:
+`CTXR_A = [0x…5fb0000, …5fb3000)`, `CTXR_B = […5fb4000, …5fb7000)`,
+`CTRR_C = […5fb0000, …5fbb000)`. The boot core runs m1n1 regardless, so
+"CTXR/CTRR_C set to the sled" is the *normal* running state and does not stop
+a core executing m1n1. Scratch the "execute-region never set" theory.
+
+**What the reset entry actually is.**
+
+- iBoot loads SPTM only on the **kernelcache** path (`lay_out_sptm_objects`,
+  `sptm-path`, tied to `load_kernelcache`). m1n1 is installed `--raw`
+  (`kmutil … --raw --entry-point 2048`), so it takes iBoot's raw-image path
+  and **no SPTM is loaded at all** — there is no SPTM resume path on our boot.
+- iBoot's raw path builds the 48 KiB WFI sled in DRAM and locks a set of
+  CTRR/CTXR regions through one generic routine
+  `FUN(index, lower, upper, pagecount≤256, …)` (`0x100c1c9e41c`), which
+  writes `CTRR_{A..D}` / `CTXR_{A..D}` per index. This is what sets CTRR_C to
+  the sled.
+- The MMIO "RVBAR" at `cpu-impl-reg+0` reads m1n1-base on **every** core
+  including the boot core, yet a crumb planted at that target never runs on a
+  secondary. So the secondary does **not** fetch from the MMIO-RVBAR vector.
+- The architectural `RVBAR_EL2` is `0x1fc08c000` — LLB's SRAM link base. That
+  SRAM hangs the proxy bus on read (it is firmware-protected). LLB's reset
+  vector there is the standard relocation stub; its secondary path runs from
+  that protected SRAM.
+
+**Conclusion.** A released T6050 secondary resets into a **protected SRAM
+reset handler** (LLB/ROM), not into m1n1. That handler reads a per-core
+handoff/mailbox to decide where to go next; on macOS this is wired to
+SPTM/XNU, on the raw boot path it is never wired to m1n1, so control never
+reaches us. The handler is not in the iBoot image and the SRAM is unreadable
+from the proxy, so static iBoot RE cannot crack it from here.
+
+**Next (needs hardware/hypervisor, not more statics).** Trace macOS's own
+secondary start under the m1n1 hypervisor and watch what the reset handler
+reads (the per-core mailbox), which is the only route that does not require
+reading protected SRAM. That needs the hypervisor + SPTM emulation working on
+T6050 first. Smaller on-hardware checks worth doing in one m1n1 session:
+read each secondary's architectural `RVBAR_EL2` is impossible from the boot
+core (EL2, per-core), but we can dump the full CTRR/CTXR/ACC_CTRR CTL+lock
+set on the boot core and re-confirm the sled bounds track `top_of_kernel_data`
+across boots.
 
 Toolchain: `rea-agents` (rea.tools) driving Ghidra 12.1.4 headless; the
 `.snap` caches make follow-up queries fast. Firmware came from the J714s 26.5
