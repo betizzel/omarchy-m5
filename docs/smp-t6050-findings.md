@@ -59,6 +59,41 @@ USB fix for T6050 (`patches/m1n1/0005`). The measurements below remain valid and
 useful **as the hardware-side ground truth** the shim work will need to validate
 against — they are just no longer a route to a *hypervisor* trace.
 
+### What SPTM does with a secondary CPU (RE'd from the T6050 SPTM binary, 2026-10-10)
+
+This is the one piece the m5-linux static RE does **not** cover — it focused on
+the primary boot handoff and peripherals, not secondary-CPU bring-up — so it is
+net-new and directly on our SMP question. Reversed from the panic/assert strings
+in the real `sptm.t6050.release` Mach-O (the same callee-side method m5-linux
+used; `~/guest/sptm.macho`), cross-referenced with their `(subsys, idx)` map:
+
+- **SPTM registers and validates every CPU.** Subsystem-0 calls on the boot
+  path: `0x0e` = CPU-topology query (`_ml_get_topology_info`), `0x12` =
+  `sptm_register_cpu` / `cpu_init`, `0x13` = `sptm_n_cpus`. The binary carries
+  `sptm_cpu_init`, `sptm_parse_cpu_ranges`, `sptm_cpu_id`, and per-CPU state via
+  `cpu_data->logical_id` / `calling_domain(sptm_cpu_data_ptr_fast())`.
+- **An unregistered / wrong-ID core is a hard SPTM violation**, not a no-op:
+  `VIOLATION_ILLEGAL_CPU_REGISTRATION`, `VIOLATION_INVALID_CPU_PHYSICAL_ID`,
+  `VIOLATION_SART_CPU_RACE`, and `assert 'cluster_id <= MAX_CPU_CLUSTER_PHY_ID'`.
+  There is also an `ignore-secondary` concept (an ADT/boot property SPTM reads,
+  not present in our Linux DT).
+- **Why this matches our hardware symptom exactly.** When we release a secondary
+  the old (pre-SPTM) way — PMGR `CPU_START` write, secondary resets toward
+  m1n1's locked RVBAR — on T6050 the core instead enters **SPTM's** reset path
+  in its guarded domain. With no prior `sptm_register_cpu` for it and no XNU
+  dispatch domain registered, SPTM has nowhere valid to send it, so it never
+  runs anything m1n1 can observe. That is the concrete form of "powers up,
+  executes nothing" documented below.
+- **Consequence for any fix.** Bringing up SMP on T6050 is not a reset-vector
+  tweak; the boot object must be SPTM-aware — register as the XNU domain, then
+  drive `sptm_register_cpu` (idx `0x12`) per core with a valid physical/cluster
+  ID before (or as part of) releasing it. This is the SMP-specific slice of the
+  XNU-shim and the natural thing to split with the m5-linux / Aurora track.
+
+(String-level evidence; a full disassembly of the `sptm_cpu_init` handler is the
+next RE step, best anchored against live `mrs midr_el1` / cluster IDs from this
+machine — which we have and the static-only track does not.)
+
 Everything from here down is the original hardware investigation, preserved.
 
 ## Setup that makes this repeatable
