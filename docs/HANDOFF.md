@@ -280,6 +280,19 @@ neither its locked RVBAR nor the sled - most likely iBoot's secure reset
 path (`RVBAR_EL2`). Next: reverse iBoot/mBoot's reset handler for
 secondaries (J714s 26.5 IPSW), and the SPTM-era handoff it expects.
 
+**SMP (2026-10-10): the dynamic trace is unblocked but hits a T6050
+nested-virt wall.** Static RE of the reset path is exhausted (it is ROM/SPTM
+protected). Switched to the live approach — boot macOS as a guest under m1n1's
+SPTM hypervisor and watch it start a secondary. Built + verified an
+SPTM-capable m1n1 on T6050 (`/tmp/m1n1-sptm.bin`), extracted the macOS guest
+objects from the 26.5 IPSW, and ran `run_guest.py`: the guest loads, SPRR/GXF
+emulation activates, but `hv_init` UNDEFs writing the Apple `AVNCR_EL2`
+(`s3_4_c15_c10_7`) once nested virt is enabled — a real M5-vs-M2 difference
+(AVNCR reads fine bare; only the NV2-context write faults). Also confirmed the
+hv's own `smp_start_secondaries()` fails here too. **Full live state, resume
+recipe, and next steps: `docs/HANDOFF-smp-trace.md`** (details in
+`docs/smp-t6050-findings.md` §"Guest-boot attempt via option (b)").
+
 **KEYBOARD (2026-10-01): works.** MTP + DockChannel ring transport
 (`patches/linux/0005`, from GravityLinux PR #1 plus review fixes). The
 trackpad needs `apple/tpmtfw-j714s.bin`: `scripts/extract-tpmtfw.py --ipsw

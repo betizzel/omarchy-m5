@@ -274,3 +274,29 @@ Remaining, to actually trace (multi-session, T6050-SPTM is the risk):
 3. Hook the PMGR CPU_START block (`pmgr reg0 + 0x88000`) and each
    `cpu-impl-reg+0x100` while macOS brings a secondary up; capture the step
    between the `+0x88004/+0x88008` writes and the core checking in.
+
+## Guest-boot attempt via option (b): blocked on `AVNCR_EL2` (2026-10-10)
+
+Built the SPTM m1n1 (`main @ PR#698 a8b1ae46` = incl. PR#695, + patches
+0003/0004/0005; 0.0 `make CHAINLOADING=1` → `/tmp/m1n1-sptm.bin`), chainloaded
+it on T6050 ("Running proxy", USB up), extracted + LZFSE-unwrapped the macOS
+objects from the 26.5 IPSW (`xnu.macho` 115 MB, `sptm.macho`, `txm.macho`,
+restore trust cache), and ran `run_guest.py -P --sptm --txm xnu`. Result:
+
+- `SPRR/GXF: emulating in EL2` activates — the SPTM path is live on T6050.
+- m1n1's own `smp_start_secondaries()` **fails for all 14** (the very bug we
+  are chasing): the hv cannot host the guest on real secondaries, only emulate
+  guest starts by trapping PMGR on the boot core.
+- `hv_init` then **UNDEFs at `hv_init+0x58`** (`ESR 0x2000000`, EC=0, `FAR 0`).
+  The faulting word `0xd51cfae0` decodes to `msr s3_4_c15_c10_7, x0` =
+  **`msr SYS_IMP_APL_AVNCR_EL2, x0`** (the Apple nested-virt register, new #698
+  code). The architectural `VNCR_EL2` write immediately before it succeeds.
+- Probe on bare stage-1: `AVNCR_EL2` **reads `0x0`** fine (not absent/locked);
+  it only UNDEFs on **write**, after the hv sets `HCR_EL2.{NV2,NV,E2H}`. So
+  T6050 gates Apple AVNCR writes on a condition M2 (where #698 was tested)
+  does not. This is the first concrete M5-vs-M2 nested-virt divergence.
+
+**Next:** isolate the AVNCR UNDEF (bisect which HCR/enable bit arms it; or skip
+NV2/AVNCR on T6050 for a single-core guest trace), then handle the TrustCache
+mismatch (`load_macos_sptm` copies the *stub's* trust cache, which won't
+authorize the macOS kernelcache). Full live state: `docs/HANDOFF-smp-trace.md`.
