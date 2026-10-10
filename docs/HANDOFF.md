@@ -51,9 +51,13 @@ Stub facts: container `disk0s3` → `disk3` (Data `disk3s1`, System
 `B931CA67-AA4F-465B-B80D-B24814488E27`, EFI `disk0s4`, Linux rootfs
 partition `disk0s5` (256 GB, unformatted). `nvram boot-volume` points at
 the stub, so an unattended boot goes to m1n1; macOS is power-hold →
-picker → Macintosh HD, still Full Security. These sizes, LBAs and the VGID
-change on a resize/re-install (`docs/bringup.md`, "Resizing or
-re-installing").
+picker → Macintosh HD, still Full Security.
+
+**2026-10-09: these three partitions are deleted** (macOS needed the space
+for local AI models), and with them the Arch root and this VGID's boot
+policy. A re-install with a 20 GB root is in progress:
+`docs/HANDOFF-mac.md` covers the macOS half, then `docs/bringup.md`
+("Resizing or re-installing") covers provisioning from the ThinkPad.
 
 Why the first ceremony attempt failed, for the record: the stub had no
 `.IAPhysicalMedia`, so iBoot booted it as a plain OS, found no

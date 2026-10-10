@@ -364,18 +364,11 @@ cat <<EOF
 Stub created. VGID: $VGID
 
 Next steps (docs/bringup.md):
-  1. Build m1n1:  scripts/build-m1n1.sh  ->  vendor/m1n1/build/m1n1.bin
-  2. Copy m1n1.bin to the EFI partition:
-       diskutil mount $EFI_PART
-       cp vendor/m1n1/build/m1n1.bin /Volumes/OMARCHY/
-  3. Set default boot to the stub:
-       bless --setBoot --device /dev/$SYS_VOL
-  4. Shut down. Power on HOLDING the power button until
-     "Loading startup options" (1TR). Pick '$STUB_NAME'.
-  5. In the stub's recoveryOS Terminal:
-       bputil -d -v $VGID        # verify ': Paired' + 'one true recoveryOS'
-       bputil -nc -v $VGID       # Permissive Security + custom kernel
-       kmutil configure-boot -c /Volumes/OMARCHY/m1n1.bin \\
-           --raw --entry-point 2048 --lowest-virtual-address 0 \\
-           -v $SYS_MNT
+  1. Stage-1 m1n1, CHAINLOADING=0:  CHAINLOADING=0 scripts/build-m1n1.sh
+  2. Arm the stub (writes Finish Installation.app with m1n1 as boot.bin,
+     blesses the stub, drops .IAPhysicalMedia):
+       sudo scripts/finish-install.sh [--m1n1 PATH]
+  3. Shut down. Power on HOLDING the power button until
+     "Loading startup options" (1TR). Pick '$STUB_NAME'; its recoveryOS
+     runs step2.sh (bputil -nc + kmutil configure-boot for VGID $VGID).
 EOF
