@@ -78,3 +78,33 @@ Because iBoot points CTXR (execute regions) at the WFI sled on the raw-image
 path, the leading idea is an execute restriction on secondaries that m1n1's
 RVBAR target cannot satisfy. Next we reverse iBoot (and SPTM, for the macOS
 path) to see how a raw-image boot is meant to hand secondaries over.
+
+## Firmware RE: the SPTM CPU handoff (in progress)
+
+Disassembling `sptm.t6050.release` (the SPTM blob iBoot loads for macOS on
+this chip; symbols survive in log strings) with Ghidra:
+
+- `sptm_resume_cpu` (`0xfffffff0270c042c`) is on the per-CPU resume path. It
+  reprograms the **execute-transition** control registers
+  `CTXR_{A,B,C,D}_CTL_EL1` (`s3_0_c11_c5_{2,3,4,5}`): first disabled
+  (`0x4000...000`), then with packed region descriptors, then enabled
+  (bits 63:62). It also writes per-CPU TPIDR-indexed state at `+0xa30`,
+  `+0xa60`, `+0xa68` and sets up handoff pages.
+- `sptm_register_cpu` (`0xfffffff0270bc6bc`) walks `/cpus`, matches a node by
+  its `reg` (ADT cpu-id) and records `cpu-impl-reg` into a per-CPU table.
+- iBoot locks these CTXR/CTRR registers (its own
+  `%s: CTRR-A/B per-core register not locked by iBoot` checks confirm it);
+  they are the family m1n1 PR #688 named for exactly this SoC.
+
+**Refined theory.** On macOS, SPTM runs this resume path on each secondary
+and sets up CTXR before the core executes OS code. A raw m1n1 boot has no
+SPTM, so a released secondary's execute-region controls are never set for
+m1n1's vector page, and its first fetch faults silently - matching "no
+watchdog write, no crumb at RVBAR or in the sled." Next: find where control
+actually lands on a secondary (the reset entry iBoot installs vs. SPTM's
+`sptm_cpu_init`), and whether m1n1 can set CTXR from the boot core or must
+emulate the SPTM entry.
+
+Toolchain: `rea-agents` (rea.tools) driving Ghidra 12.1.4 headless; the
+`.snap` caches make follow-up queries fast. Firmware came from the J714s 26.5
+IPSW via `scripts/extract-tpmtfw.py`'s range reader.
