@@ -25,9 +25,10 @@ from m1n1.setup import *
 from m1n1.asm import ARMAsm
 
 VARIANTS = ("plain", "stop-w1c", "stop-zero", "start-only", "acc")
-if len(sys.argv) != 3 or sys.argv[1] not in VARIANTS:
-    sys.exit(f"usage: {sys.argv[0]} {{{','.join(VARIANTS)}}} cpuN")
-variant, name = sys.argv[1], sys.argv[2]
+pos = [a for a in sys.argv[1:] if not a.startswith("--")]
+if len(pos) != 2 or pos[0] not in VARIANTS:
+    sys.exit(f"usage: {sys.argv[0]} {{{','.join(VARIANTS)}}} cpuN [--wdt]")
+variant, name = pos
 
 adt = u.adt
 cpus = {c.name: c for c in adt["/cpus"] if c.name.startswith("cpu") and c.name != "cpus"}
@@ -51,8 +52,25 @@ p.memset32(buf, 0, 0x4000)
 p.dc_civac(buf, 0x4000)
 
 
-def crumb_stub(addr, tag):
+WDT = "--wdt" in sys.argv
+wdt_base = adt["/arm-io/wdt"].get_reg(0)[0]
+
+
+def crumb_stub(addr, tag, wdt_secs):
+    # With --wdt the very first thing the stub does is arm the watchdog for a
+    # reset WDT_SECS later: proof of execution that needs no DRAM coherency.
+    # Different delays for the two traps tell them apart.
+    pre = f"""
+    ldr  x0, wdt
+    ldr  w1, alarm
+    str  w1, [x0, #0x14]
+    str  wzr, [x0, #0x10]
+    mov  w1, #4
+    str  w1, [x0, #0x1c]
+    dsb  sy
+""" if WDT else ""
     return ARMAsm(f"""
+{pre}
     mov  x9, x30
     ldr  x0, crumbs
     mrs  x1, mpidr_el1
@@ -72,6 +90,8 @@ def crumb_stub(addr, tag):
     b    1b
     .align 3
 crumbs: .quad {buf:#x}
+wdt:    .quad {wdt_base:#x}
+alarm:  .word {wdt_secs * 24_000_000}
 """, addr).data
 
 
@@ -87,7 +107,7 @@ def mmu_off_write(addr, data):
 
 # trap 1: RVBAR (vector slot 0); tag 0x100 in the CurrentEL word
 slot0 = iface.readmem(base, 0x80)
-s = crumb_stub(base, 0x100)
+s = crumb_stub(base, 0x100, 3)
 assert len(s) <= 0x80
 mmu_off_write(base, s)
 # trap 2: the sled, as a bl-sled into a stub at its end; tag 0x200
@@ -96,7 +116,7 @@ stub_addr = lwr + size - 0x100
 sled = bytearray()
 for a in range(lwr, stub_addr, 4):
     sled += (0x94000000 | (((stub_addr - a) >> 2) & 0x3ffffff)).to_bytes(4, "little")
-s = crumb_stub(stub_addr, 0x200)
+s = crumb_stub(stub_addr, 0x200, 8)
 sled += s + b"\0" * (0x100 - len(s))
 iface.writemem(lwr, bytes(sled))
 p.dc_civac(lwr, size)

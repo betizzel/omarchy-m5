@@ -265,6 +265,16 @@ installed stage-1 (no chainload), with `hv/wdt-arm.py` as the safety net:
   `0xe440f8`, m1n1 cpufreq's `+0x440f8` on M1-M3). `EDPCSRlo` and the
   `cpu-uttdbg-reg+0x90` PC sample read 0: no external debug on this part.
 
+- `hv/smp-release-try.py plain cpuN --wdt`: both traps start by arming the
+  watchdog for a reset 3 s (RVBAR) or 8 s (sled) later, an MMIO side
+  effect that needs no DRAM coherency. No reset followed: the cores do not
+  execute even those first instructions.
+- iBoot (mBoot-18000.120.36, `iBoot.j714s.RELEASE`, link base
+  `0x100c1aa4000`) builds the sled itself: it allocates 0xc000 (raw-image
+  path) or 0x4000 bytes from kernel data, fills them with `0xd503207f` and
+  keeps the address in a global (`+0x45e080`). The boot core's
+  `RVBAR_EL2` `0x1fc08c000` is LLB's link base (SRAM).
+
 So the release powers the core up, and it then runs somewhere that is
 neither its locked RVBAR nor the sled - most likely iBoot's secure reset
 path (`RVBAR_EL2`). Next: reverse iBoot/mBoot's reset handler for
