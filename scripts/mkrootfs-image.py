@@ -19,22 +19,22 @@ import argparse, glob, gzip, io, os, pathlib, shutil, subprocess, sys, tarfile, 
 ALARM_URL = "http://os.archlinuxarm.org/os/ArchLinuxARM-aarch64-latest.tar.gz"
 DROP_PKGS = ("linux-aarch64-", "linux-firmware")   # pacman local db dir prefixes
 DROP_TREES = ("boot/", "usr/lib/firmware/", "usr/lib/modules/")
-NET = 0                                            # usb-gadget-net subnet 10.55.<NET>.0/24
 
 FILES = {
     "etc/hostname": "m5pro\n",
     # growfs: the image is 2 GiB; the first boot grows it to the partition.
     "etc/fstab": "LABEL=m5root / ext4 noatime,x-systemd.growfs 0 1\n",
-    # usb-gadget-net.sh (initramfs) creates the EEM function as usb0; the
-    # ThinkPad side is scripts/host-usbnet.sh (10.55.<n>.1, NAT).
-    "etc/systemd/network/10-usb-gadget.network": f"""[Match]
-Name=usb0
+    # usb-gadget-net.sh (initramfs) gives the gadget on UDC n (M5 port) the
+    # EEM netdev usb<n>; the ThinkPad side is scripts/host-usbnet.sh
+    # (10.55.<n>.1, NAT). One file per port, so any port gets a route.
+    **{f"etc/systemd/network/10-usb-gadget-{n}.network": f"""[Match]
+Name=usb{n}
 
 [Network]
-Address=10.55.{NET}.2/24
-Gateway=10.55.{NET}.1
+Address=10.55.{n}.2/24
+Gateway=10.55.{n}.1
 DNS=1.1.1.1
-""",
+""" for n in range(3)},
 }
 SYMLINKS = {}
 

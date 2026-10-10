@@ -9,6 +9,9 @@
 #     fails after 45 s and strips every address, link-local included.
 #   - udev: give each M5 gadget netdev 10.55.<n>.1/24 whenever it appears,
 #     so an M5 reboot needs no re-run.
+#   - ufw (Omarchy enables it): route-allow 10.55.0.0/16. Its routed policy
+#     is deny but ICMP is let through, so ping works while TCP/UDP (DNS,
+#     pacman) silently do not - unless docker's FORWARD jump got there first.
 # Per ThinkPad boot (not persistent): forwarding, NAT on whatever interface
 # the traffic leaves by (Wi-Fi, Ethernet, or a VPN such as proton0, whose
 # policy routing applies to forwarded packets too), and docker's FORWARD.
@@ -59,4 +62,7 @@ if iptables -nL DOCKER-USER >/dev/null 2>&1; then
     iptables -C DOCKER-USER -d 10.55.0.0/16 -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT 2>/dev/null ||
         iptables -I DOCKER-USER -d 10.55.0.0/16 -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT
 fi
-echo "done. ssh bay@10.55.<n>.2 (n=0 for the left-back port)"
+if command -v ufw >/dev/null && ufw status | grep -q '^Status: active'; then
+    ufw route allow from 10.55.0.0/16 >/dev/null
+fi
+echo "done. ssh bay@10.55.<n>.2 (n = the M5 port: 0 left-back, 1 left-front, 2 right)"

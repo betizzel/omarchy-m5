@@ -252,13 +252,19 @@ done
 ./chainload.sh
 python3 hv/nvme-proxy-probe.py
 ./boot-linux.sh "$@" || true    # pyserial raises when the proxy vanishes at handoff
-echo "waiting for ssh bay@10.55.0.2 ..."
+# The M5 answers on 10.55.<n>.2, n = the M5 port the cable is in (UDC 0
+# left-back, 1 left-front, 2 right); subnets without a link fail at once.
+echo "waiting for ssh bay@10.55.<port>.2 ..."
 i=0
-until ssh -o ConnectTimeout=5 -o BatchMode=yes bay@10.55.0.2 true 2>/dev/null; do
+while :; do
+    for n in 0 1 2; do
+        if ssh -o ConnectTimeout=3 -o BatchMode=yes bay@10.55.$n.2 true 2>/dev/null; then
+            echo "M5 is up: ssh bay@10.55.$n.2"; exit 0
+        fi
+    done
     i=$((i + 1)); [ $i -gt 40 ] && { echo "no SSH after ~3 min; check the panel" >&2; exit 1; }
     sleep 3
 done
-echo "M5 is up: ssh bay@10.55.0.2"
 EOF
 
 chmod +x "$STAGE/boot-linux.sh" "$STAGE/chainload.sh" "$STAGE/boot-hv.sh" "$STAGE/boot-m5.sh"
