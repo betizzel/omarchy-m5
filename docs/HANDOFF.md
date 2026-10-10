@@ -8,8 +8,9 @@
 - MacBook Pro 14" M5 Pro — **Mac17,9 / J714sAP**, SoC **T6050 "Sotra_S"**
 - macOS Tahoe 26.5, 48 GB RAM, 1 TB SSD
 - Binned SKU: **15 cores (5+5+5)** — cpu5/cpu11/cpu17 fused off
-- Disk: `disk0s1` iSC, `disk0s2` macOS APFS container (994.6 GB, ~615 GB
-  free), `disk0s3` Apple_APFS_Recovery. macOS VGID:
+- Disk, by GPT entry (since 2026-10-09): 1 iSC, 2 macOS APFS container
+  (968.0 GB), 3 Omarchy stub (6 GB), 4 EFI (500 MB), 5 Linux root (20 GB,
+  `nvme0n1p5`), 6 Apple_APFS_Recovery. macOS VGID:
   `863345B8-7FEC-4FD2-996D-187D72EC9A66`
 
 ## What's done
@@ -46,18 +47,19 @@
 iBoot → m1n1 stage1 → framebuffer console (3024x1964, DARTs up) from a
 signed custom boot object. Everything below is memory-only or repeatable.
 
-Stub facts: container `disk0s3` → `disk3` (Data `disk3s1`, System
-`disk3s2`, Preboot `disk3s3`, Recovery `disk3s4`), VGID
-`B931CA67-AA4F-465B-B80D-B24814488E27`, EFI `disk0s4`, Linux rootfs
-partition `disk0s5` (256 GB, unformatted). `nvram boot-volume` points at
-the stub, so an unattended boot goes to m1n1; macOS is power-hold →
-picker → Macintosh HD, still Full Security.
+Stub facts (re-installed 2026-10-09): VGID
+`83F76F48-1DE4-4C8B-99C0-E9D48E59AF0D`, GPT entry 3; EFI is entry 4; the
+Linux root is entry 5 = `nvme0n1p5` (20 GB, LBA 238066151 + 4882812).
+macOS's `disk0sN` names do not track GPT entries (right after the install
+the root was `disk0s7`). `nvram boot-volume` points at the stub, so an
+unattended boot goes to m1n1; macOS is power-hold → picker → Macintosh HD,
+still Full Security.
 
-**2026-10-09: these three partitions are deleted** (macOS needed the space
-for local AI models), and with them the Arch root and this VGID's boot
-policy. A re-install with a 20 GB root is in progress:
-`docs/HANDOFF-mac.md` covers the macOS half, then `docs/bringup.md`
-("Resizing or re-installing") covers provisioning from the ThinkPad.
+The first install (VGID `B931CA67-AA4F-465B-B80D-B24814488E27`, 256 GB
+root) was deleted on 2026-10-09 to give macOS room for local AI models,
+with the Arch root and its boot policy. The macOS half of the re-install
+is done (`docs/HANDOFF-mac.md`); the ceremony check and provisioning of
+the empty root are in `docs/HANDOFF-thinkpad.md`.
 
 Why the first ceremony attempt failed, for the record: the stub had no
 `.IAPhysicalMedia`, so iBoot booted it as a plain OS, found no
