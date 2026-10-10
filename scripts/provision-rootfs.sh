@@ -6,9 +6,10 @@
 #   provision-rootfs START4K COUNT4K [IMAGE]
 #
 # START4K/COUNT4K: the partition's first LBA and LBA count (4096-byte LBAs),
-#   from hv/nvme-proxy-probe.py (m1n1's view of the GPT) or macOS
+#   from hv/nvme-proxy-probe.py, which prints this exact command line for
+#   the Linux partition (m1n1's view of the GPT), or macOS
 #   `sudo gpt -r show /dev/disk0`. Both must match Linux's view of
-#   nvme0n1p5 or nothing is written. J714s here: 163592953 62500000.
+#   nvme0n1p5 or nothing is written.
 # IMAGE: gzip'd ext4 image. Default /m5root.img.gz, shipped by a provisioning
 #   initramfs (mkinitramfs.py --rootfs-image); or an http:// URL once the USB
 #   link is up (ThinkPad: python3 -m http.server -d build/rootfs 8000).

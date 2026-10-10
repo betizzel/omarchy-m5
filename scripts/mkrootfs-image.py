@@ -23,7 +23,7 @@ NET = 0                                            # usb-gadget-net subnet 10.55
 
 FILES = {
     "etc/hostname": "m5pro\n",
-    # growfs: the image is 2 GiB, the partition 256 GB.
+    # growfs: the image is 2 GiB; the first boot grows it to the partition.
     "etc/fstab": "LABEL=m5root / ext4 noatime,x-systemd.growfs 0 1\n",
     # usb-gadget-net.sh (initramfs) creates the EEM function as usb0; the
     # ThinkPad side is scripts/host-usbnet.sh (10.55.<n>.1, NAT).

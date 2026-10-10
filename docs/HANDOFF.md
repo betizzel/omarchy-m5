@@ -33,7 +33,7 @@
     disables the 3 absent cores.
   - Both DTBs compile clean via `make dtbs` (86K each).
 - **`scripts/prep-stub.sh`** — one-shot stub container creation, fully
-  on-disk (no IPSW). Shrinks macOS container, makes the 2.5 GB Omarchy
+  on-disk (no IPSW). Shrinks macOS container, makes the 6 GB Omarchy
   volume group, clones restore bundle + `arm64eBaseSystem.dmg` +
   `AdminUserRecoveryInfo.plist`, adds a 500 MB EFI partition, prints the
   VGID + exact bless/bputil/kmutil commands. **Untested end-to-end** —
@@ -51,7 +51,9 @@ Stub facts: container `disk0s3` → `disk3` (Data `disk3s1`, System
 `B931CA67-AA4F-465B-B80D-B24814488E27`, EFI `disk0s4`, Linux rootfs
 partition `disk0s5` (256 GB, unformatted). `nvram boot-volume` points at
 the stub, so an unattended boot goes to m1n1; macOS is power-hold →
-picker → Macintosh HD, still Full Security.
+picker → Macintosh HD, still Full Security. These sizes, LBAs and the VGID
+change on a resize/re-install (`docs/bringup.md`, "Resizing or
+re-installing").
 
 Why the first ceremony attempt failed, for the record: the stub had no
 `.IAPhysicalMedia`, so iBoot booted it as a plain OS, found no

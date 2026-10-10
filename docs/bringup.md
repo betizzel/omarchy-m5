@@ -24,14 +24,15 @@ vendored musl copy — `byteswap.h`, `copy_file_range`, `O_LARGEFILE`).
 
 ```sh
 sudo scripts/prep-stub.sh                  # stub + EFI only
-sudo scripts/prep-stub.sh --linux-size 200G   # also carve the rootfs
+sudo scripts/prep-stub.sh --linux-size 20G    # also carve the rootfs
 ```
 
-It shrinks the macOS container, creates the 2.5 GB "Omarchy" stub
+It shrinks the macOS container, creates the 6 GB "Omarchy" stub
 (Data+System+Preboot+Recovery volume group), clones this install's
 restore bundle / `arm64eBaseSystem.dmg` / `AdminUserRecoveryInfo.plist`
 into it (no IPSW download — everything is on-disk), and makes a 500 MB
-EFI partition for m1n1. It prints the stub's VGID at the end.
+EFI partition for m1n1. It prints the stub's VGID at the end. All in,
+`--linux-size N` takes N + 6.5 GB away from macOS.
 
 Then arm the stub so the picker hands control to *its* paired recoveryOS:
 
@@ -67,6 +68,85 @@ Then, in one continuous motion:
    `"/Volumes/Omarchy/Finish Installation.app/Contents/Resources/step2.sh"`.
 
 Back out with `sudo scripts/finish-install.sh --undo`.
+
+## Resizing or re-installing
+
+The stub, the EFI partition and the Linux root sit together right behind
+macOS (`disk0s2`), and an APFS container only grows into free space
+directly after it. None of them can be resized in place: to give macOS
+space back (or take more), delete all three, grow macOS, and install
+again. That wipes the Arch root and the stub's boot policy, so the
+ceremony above runs again.
+
+1. Save what you want from the M5 (it is wiped), from the ThinkPad:
+
+   ```sh
+   ssh bay@10.55.0.2 'pacman -Qqen' > m5-pkglist.txt
+   ssh bay@10.55.0.2 'sudo tar -C / -czpf - home/bay' > m5-home.tgz
+   ```
+
+2. In macOS, make it the default boot volume again **first**: System
+   Settings → General → Startup Disk → Macintosh HD.
+3. `diskutil list disk0`, and find the three by type and size, never by
+   number (macOS renumbers `disk0sN` by disk position): the 6 GB
+   `Apple_APFS` container with the `Omarchy` volumes, the `EFI` partition,
+   and the `Linux Filesystem` partition. **Never** touch the first
+   (`Apple_APFS_ISC`) or the last (`Apple_APFS_Recovery`) partition.
+4. Delete them, re-running `diskutil list disk0` between commands, then
+   give macOS all of the free space:
+
+   ```sh
+   sudo diskutil eraseVolume free free disk0sX     # Linux Filesystem
+   sudo diskutil eraseVolume free free disk0sY     # EFI
+   sudo diskutil apfs deleteContainer disk0sZ      # the 6 GB Omarchy stub
+   sudo diskutil apfs resizeContainer disk0s2 0    # macOS takes the free space
+   ```
+
+   Grow macOS before re-installing: `prep-stub.sh` then shrinks it by
+   exactly what it needs instead of leaving the old space unallocated. If
+   the resize says `Storage system verify or repair failed`, run
+   `diskutil repairVolume disk0s2` from recoveryOS and retry (Asahi's
+   [partitioning cheatsheet](https://asahilinux.org/docs/sw/partitioning-cheatsheet/)
+   covers this and the delete commands).
+5. Build the stage-1 m1n1 (`CHAINLOADING=0 scripts/build-m1n1.sh`, on the
+   ThinkPad or the Mac) and copy `vendor/m1n1/build/m1n1.bin` to the Mac as
+   `~/m1n1-stage1.bin`.
+6. On the Mac, in an up-to-date checkout:
+
+   ```sh
+   sudo scripts/prep-stub.sh --linux-size 20G
+   sudo scripts/finish-install.sh --m1n1 ~/m1n1-stage1.bin
+   ```
+
+   then the power-hold → "Omarchy" → `step2.sh` ceremony above. Afterwards
+   an unattended power-on lands in m1n1 again.
+7. Provision the root, from the ThinkPad's tether directory with the M5
+   in m1n1:
+
+   ```sh
+   ./chainload.sh
+   python3 hv/nvme-proxy-probe.py      # prints the provision-rootfs line
+   INITRAMFS=boot/initramfs-provision.cpio ./boot-linux.sh
+   ```
+
+   The new partition has no filesystem, so `/init` stays in its shell. On
+   the M5's keyboard, type the `provision-rootfs START COUNT` line the probe
+   printed, then `reboot -f` (the watchdog resets the M5 into m1n1; or
+   power-cycle).
+8. First boot from the SSD. The image only knows root (with the ThinkPad's
+   `~/.ssh/*.pub` from when it was built) and `boot-m5.sh` waits for `bay`,
+   so boot by hand once, then recreate `bay` and restore:
+
+   ```sh
+   ssh-keygen -R 10.55.0.2                    # the new root has a new host key
+   ./chainload.sh && ./boot-linux.sh          # first boot grows / to the partition
+   ssh -t root@10.55.0.2 'useradd -m -G wheel bay && passwd bay &&
+       echo "%wheel ALL=(ALL:ALL) NOPASSWD: ALL" > /etc/sudoers.d/10-wheel-bringup'
+   ssh root@10.55.0.2 'pacman -Syu --needed --noconfirm -' < m5-pkglist.txt
+   ssh root@10.55.0.2 'tar -C / -xzpf -' < m5-home.tgz
+   ```
+
+   From then on `./boot-m5.sh` does the whole cycle again.
 
 ## Status: boot policy is DONE (2026-09-21)
 

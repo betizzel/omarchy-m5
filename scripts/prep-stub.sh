@@ -7,7 +7,7 @@
 #
 # What it does:
 #   1. Shrinks the macOS APFS container (disk0s2) to make room.
-#   2. Creates a 2.5 GB APFS container "Omarchy" with the volume group
+#   2. Creates a 6 GB APFS container "Omarchy" with the volume group
 #      shape iBoot expects: Data + System (grouped) + Preboot + Recovery.
 #   3. Populates it by cloning this macOS install's restore bundle,
 #      recoveryOS image (arm64eBaseSystem.dmg), and admin credentials
@@ -24,9 +24,11 @@
 #                    rootfs (default: skip; add later with addPartition)
 #   --yes            skip the confirmation prompt
 #
-# Safety: never touches disk0s1 (iSC) or disk0s3 (Apple_APFS_Recovery).
-# Rollback: delete the Omarchy container + EFI partition, then
-# `diskutil apfs resizeContainer disk0s2 0` to grow macOS back.
+# Safety: never touches the iSC or the Apple_APFS_Recovery container. They
+# are told apart by partition type, not by disk0sN: macOS renumbers
+# partitions by disk position, so once the stub exists it can be disk0s3
+# and the Recovery container disk0s6.
+# Rollback / resize: docs/bringup.md "Resizing or re-installing".
 
 set -euo pipefail
 
@@ -167,19 +169,28 @@ fi
 
 # --- partition -----------------------------------------------------------
 
-# find the stub container: an APFS container whose physical store is a
-# disk0 partition that isn't one of the three sacred ones. Re-runnable:
-# if a previous run already created it, we pick it up and continue.
+# find the stub container: an Apple_APFS partition on disk0 (so never the
+# iSC or Apple_APFS_Recovery) other than macOS, holding a "$STUB_NAME*"
+# volume. Re-runnable: if a previous run already created it, we pick it up
+# and continue.
 find_stub() {
     diskutil apfs list -plist | python3 -c "
-import plistlib,sys
-d=plistlib.loads(sys.stdin.buffer.read())
+import plistlib, subprocess, sys
+name, macos = sys.argv[1], sys.argv[2]
+disk0 = plistlib.loads(subprocess.run(['diskutil', 'list', '-plist', 'disk0'],
+                                      capture_output=True).stdout)
+ptype = {p['DeviceIdentifier']: p.get('Content', '')
+         for d in disk0.get('AllDisksAndPartitions', [])
+         for p in d.get('Partitions', [])}
+d = plistlib.loads(sys.stdin.buffer.read())
 for c in d['Containers']:
-    for ps in c.get('PhysicalStores',[]):
+    for ps in c.get('PhysicalStores', []):
         dev = ps['DeviceIdentifier']
-        if dev.startswith('disk0s') and dev not in ('disk0s1','disk0s2','disk0s3'):
+        if dev == macos or ptype.get(dev) != 'Apple_APFS':
+            continue
+        if any(v.get('Name', '').startswith(name) for v in c.get('Volumes', [])):
             print(c['ContainerReference']); sys.exit(0)
-"
+" "$STUB_NAME" "$MACOS_PART"
 }
 
 STUB_CT=$(find_stub || true)

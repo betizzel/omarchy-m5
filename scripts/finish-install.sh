@@ -30,12 +30,14 @@ set -euo pipefail
 
 STUB_NAME="Omarchy"
 DISTRO="Omarchy"
-M1N1="vendor/m1n1/build/m1n1.bin"
+VENDOR_M1N1="vendor/m1n1/build/m1n1.bin"
+M1N1="$VENDOR_M1N1"
 UNDO=0
 
 while [ $# -gt 0 ]; do
     case "$1" in
-        --m1n1) M1N1="$2"; shift 2 ;;
+        # absolute: the script cds to the repo root below
+        --m1n1) M1N1="$(cd "$(dirname "$2")" && pwd)/$(basename "$2")"; shift 2 ;;
         --stub) STUB_NAME="$2"; shift 2 ;;
         --undo) UNDO=1; shift ;;
         *) echo "unknown argument: $1" >&2; exit 2 ;;
@@ -125,7 +127,9 @@ fi
 # --- preflight -----------------------------------------------------------
 
 [ -f "$M1N1" ] || die "m1n1 image not found at $M1N1 (run: make m1n1 CHAINLOADING=0)"
-if [ -s vendor/m1n1/build/build_cfg.h ] && grep -q CHAINLOADING vendor/m1n1/build/build_cfg.h; then
+# only the vendor build's config is known here; a --m1n1 image is trusted
+if [ "$M1N1" = "$VENDOR_M1N1" ] && [ -s vendor/m1n1/build/build_cfg.h ] \
+    && grep -q CHAINLOADING vendor/m1n1/build/build_cfg.h; then
     die "$M1N1 was built with CHAINLOADING=1; the installed stage-1 needs CHAINLOADING=0
      rebuild: CHAINLOADING=0 make m1n1"
 fi

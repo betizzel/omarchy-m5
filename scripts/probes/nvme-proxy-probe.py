@@ -14,6 +14,8 @@ finds ANS cold (the M1-style reset path in apple_nvme_reset_work), not warm.
 Skip this script when you want to test the warm-adoption path.
 """
 import sys, struct, uuid, pathlib
+
+LINUX_FS = uuid.UUID("0fc63daf-8483-4772-8e79-3d69d8477de4")   # GPT "Linux filesystem"
 sys.path.append(str(pathlib.Path(__file__).resolve().parents[1] / "proxyclient"))
 from m1n1.setup import *
 
@@ -38,6 +40,7 @@ try:
     print(f"disk guid {guid} usable LBA {first}..{last} ({(last-first+1)*4096/1e9:.1f} GB)")
     per = 4096 // ent_sz
     idx = 0
+    linux = []
     for blk in range((n_ent + per - 1) // per):
         data = rd(ent_lba + blk)
         for k in range(per):
@@ -49,7 +52,16 @@ try:
             s, l = struct.unpack_from("<QQ", e, 32)
             name = e[56:128].decode("utf-16le").rstrip("\0")
             print(f"  p{idx}: {t}  uuid={g}  LBA {s}..{l}  ({(l-s+1)*4096/1e9:.1f} GB) '{name}'")
-    print("expect: p5 = the empty 256 GB Linux partition (disk0s5); note its LBAs/PARTUUID"
-          " for provision-rootfs.sh")
+            if t == LINUX_FS:
+                linux.append((idx, s, l - s + 1))
+    # Linux numbers nvme0n1pN by GPT entry, like the pN above. The tether's
+    # m5.root= and provision-rootfs both default to p5.
+    for n, start, count in linux:
+        part = "" if n == 5 else f"PART=/dev/nvme0n1p{n} "
+        print(f"rootfs p{n}: on the M5 run  {part}provision-rootfs {start} {count}")
+        if n != 5:
+            print(f"  NB: boot with m5.root=/dev/nvme0n1p{n} (BOOTARGS), not p5")
+    if not linux:
+        print("no Linux filesystem partition (prep-stub.sh --linux-size N makes one)")
 finally:
     p.nvme_shutdown()
