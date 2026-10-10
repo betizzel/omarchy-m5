@@ -1,0 +1,42 @@
+From: Yureka Lilian <yureka@cyberchaos.dev>
+Subject: [PATCH] arm64: Add override for WFxT
+
+Backport of mainline baaa9b126b87 (2026-09-18): arm64.nowfxt disables
+WFIT/WFET, which lose state on M4+/M5 like WFI does (with idle=nop).
+m1n1 >= 3a69c73f appends both to the bootargs on these SoCs.
+
+---
+diff --git a/Documentation/admin-guide/kernel-parameters.txt b/Documentation/admin-guide/kernel-parameters.txt
+index ef8929b49..b2ed2125a 100644
+--- a/Documentation/admin-guide/kernel-parameters.txt
++++ b/Documentation/admin-guide/kernel-parameters.txt
+@@ -583,6 +583,9 @@ Kernel parameters
+ 	arm64.nosve	[ARM64] Unconditionally disable Scalable Vector
+ 			Extension support
+ 
++	arm64.nowfxt    [ARM64] Unconditionally disable Wait For Event with
++			Timeout and Wait For Interrupt with Timeout support
++
+ 	ataflop=	[HW,M68k]
+ 
+ 	atarimouse=	[HW,MOUSE] Atari Mouse
+diff --git a/arch/arm64/kernel/pi/idreg-override.c b/arch/arm64/kernel/pi/idreg-override.c
+index bc57b290e..d4e0b2c6f 100644
+--- a/arch/arm64/kernel/pi/idreg-override.c
++++ b/arch/arm64/kernel/pi/idreg-override.c
+@@ -176,6 +176,7 @@ static const struct ftr_set_desc isar2 __prel64_initconst = {
+ 	.name		= "id_aa64isar2",
+ 	.override	= &id_aa64isar2_override,
+ 	.fields		= {
++		FIELD("wfxt", ID_AA64ISAR2_EL1_WFxT_SHIFT, NULL),
+ 		FIELD("gpa3", ID_AA64ISAR2_EL1_GPA3_SHIFT, NULL),
+ 		FIELD("apa3", ID_AA64ISAR2_EL1_APA3_SHIFT, NULL),
+ 		FIELD("mops", ID_AA64ISAR2_EL1_MOPS_SHIFT, NULL),
+@@ -243,6 +244,7 @@ static const struct {
+ 	  "id_aa64isar1.api=0 id_aa64isar1.apa=0 "
+ 	  "id_aa64isar2.gpa3=0 id_aa64isar2.apa3=0"	   },
+ 	{ "arm64.nomops",		"id_aa64isar2.mops=0" },
++	{ "arm64.nowfxt",		"id_aa64isar2.wfxt=0" },
+ 	{ "arm64.nomte",		"id_aa64pfr1.mte=0" },
+ 	{ "nokaslr",			"arm64_sw.nokaslr=1" },
+ 	{ "rodata=off",			"arm64_sw.rodataoff=1" },
