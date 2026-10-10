@@ -241,6 +241,29 @@ secondary under the m1n1 hypervisor. Progress:
   TrustCache + ADT + bootargs as a guest via `run_guest`, `xnu_mode`).
   Tested on M2 only; T6050 is unproven.
 
+Progress (2026-10-10): **the SPTM-capable m1n1 builds and runs on T6050.**
+`pr698` (= main + PR#695 + PR#698) + patches 0003/0004/0005 (0001/0002 not
+needed for a bare proxy boot; main already upstreamed the T6050 DAPF skip)
+builds, and `v2.0.0-4-ga8b1a` chainloads to `Running proxy` with `/dev/m1n1`
+re-enumerating — the hypervisor base with SPTM/GXF emulation, verified on hw.
+
+J714s guest objects (26.5 BuildManifest): kernelcache `kernelcache.release.mac17j`,
+`sptm.t6050.release` (have it), `txm.macosx.release`, TrustCache
+`Firmware/094-56195-095.dmg.trustcache` — all in the IPSW.
+
+**Decision point — how to stage the macOS guest.** `run_guest.py`'s
+`load_raw`/`load_macho` pulls SEPFW, **TrustCache, the ADT and bootargs from the
+*running* m1n1's boot** (`self.u.adt["chosen"]["memory-map"]`). On our boot
+those belong to the **Omarchy stub + m1n1**, not macOS, so a guest XNU gets the
+wrong trust/ADT/bootargs. Two ways:
+- **(a) Install the SPTM m1n1 on the macOS volume** (`kmutil configure-boot` in
+  1TR, like the stub ceremony) so iBoot stages macOS's *real* boot objects and
+  the hv runs the real XNU as a guest. Clean, but touches the user's macOS boot
+  policy (reversible, needs consent + a 1TR ceremony).
+- **(b) Assemble a guest from the IPSW objects** and override ADT/TrustCache/
+  bootargs ourselves under the stub's Permissive security. Less invasive, but
+  SPTM/XNU auth and the hand-built ADT are unproven and may not boot.
+
 Remaining, to actually trace (multi-session, T6050-SPTM is the risk):
 1. Build `main + PR#695 + PR#698 + our patches` (0002 hv-timer, 0003 wcslen,
    0004 chainload/wdt, 0005 usb; 0001 kboot not needed to host macOS). The
