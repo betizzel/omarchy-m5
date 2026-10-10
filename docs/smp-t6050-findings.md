@@ -143,6 +143,38 @@ core (EL2, per-core), but we can dump the full CTRR/CTXR/ACC_CTRR CTL+lock
 set on the boot core and re-confirm the sled bounds track `top_of_kernel_data`
 across boots.
 
+## What the firmware reset entry does (SPTM, readable even though unused here)
+
+SPTM is the one piece of the macOS reset path that *is* in a readable blob
+(`sptm.t6050.release`), so it shows what a secondary is meant to do on reset.
+
+- **One reset vector for all cores.** SPTM's Mach-O `LC_UNIXTHREAD` entry is
+  `0xfffffff0270ac388` (`__TEXT_EXEC`). It gates first-core vs. later-core on
+  a global flag (`DAT_…0ae008`), so every core — boot and secondary — resets
+  to the *same* SPTM entry.
+- **It is heavyweight EL2 bring-up.** At `currentel == EL2` it sets
+  `vbar_el1 = 0xfffffff0270ad000`, ORs host/VHE bits into `HCR_EL2`
+  (`|0x408000000`), zeroes `cntvoff_el2`, then **builds its own page tables**
+  (the `__LATE_CONST`/`__BOOTDATA` loops) before dispatching. A core cannot
+  reach XNU without this running first.
+- **`sptm_cpu_init` (`0xfffffff0270e0e30`)** is per-CPU bookkeeping: it indexes
+  a `cpu_data` table by cpu-id (stride `0x1640`), refuses to re-init a started
+  CPU, records the per-CPU stack/handoff, and sets the cluster-present bit from
+  `MPIDR` Aff1 (`1 << ((mpidr>>8)&0x1f)`), flagging the first core in each
+  cluster. `sptm_resume_cpu` (seen earlier) is the part that programs
+  `CTXR_{A..D}_CTL_EL1`.
+
+**Why this matters for m1n1.** On macOS the secondary reset vector points at
+this SPTM entry, which does the EL2/MMU/vbar setup and only then hands to the
+OS. m1n1's own `_vectors_start` does equivalent setup and the **boot** core
+reaches it fine from iBoot's cold hand-off — so m1n1 can bootstrap a core from
+reset. The unresolved gap is purely that a *released secondary* never executes
+its reset vector at all (proven: no crumb, no watchdog write), while on macOS
+the identical PMGR release lands the core in SPTM. That difference is a live,
+per-core property (what state the core resets into, whether the PMGR release
+fully deasserts reset on an M-core), which only a hypervisor trace of macOS's
+own start can show — not more static disassembly.
+
 Toolchain: `rea-agents` (rea.tools) driving Ghidra 12.1.4 headless; the
 `.snap` caches make follow-up queries fast. Firmware came from the J714s 26.5
 IPSW via `scripts/extract-tpmtfw.py`'s range reader.
