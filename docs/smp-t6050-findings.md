@@ -121,6 +121,10 @@ a core executing m1n1. Scratch the "execute-region never set" theory.
   SRAM hangs the proxy bus on read (it is firmware-protected). LLB's reset
   vector there is the standard relocation stub; its secondary path runs from
   that protected SRAM.
+- LLB's own early MPIDR-dependent code (`llb+0x2dc18`) is **cluster-enable**
+  (`S3_3_C15_C7_0`, a core/cluster-enable sysreg), not a per-core reset
+  handler, so the handler is not sitting in the LLB payload either. It is
+  ROM/firmware-resident.
 
 **Conclusion.** A released T6050 secondary resets into a **protected SRAM
 reset handler** (LLB/ROM), not into m1n1. That handler reads a per-core
