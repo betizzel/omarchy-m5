@@ -31,26 +31,34 @@ the current floor because of the SMP blocker — which is the main open problem.
 
 ## The SMP / iBoot‑reset investigation — start here
 
-This is the deepest open problem and where recent effort has gone. On T6050 the
-secondary cores **power on** (PMGR `0x100 → 0x1f0`) but never run a single
-instruction we can observe — the same symptom m1n1 upstream reports on M5
-(PR #610). The static reset path turned out to be ROM/SPTM‑protected, so the
-current lead is a **dynamic** one: trace macOS starting a secondary under m1n1's
-hypervisor. Read, in order:
+This is the deepest open problem. On T6050 the secondary cores **power on**
+(PMGR `0x100 → 0x1f0`) but never run a single instruction we can observe — same
+symptom m1n1 upstream reports on M5 (PR #610).
 
-1. **[`docs/smp-t6050-findings.md`](docs/smp-t6050-findings.md)** — the shareable
-   write‑up: every measurement, and the theories **disproven on hardware**
-   (locked RVBAR, iBoot's WFI sled, the CTRR/CTXR execute‑regions).
-2. **[`docs/HANDOFF-smp-trace.md`](docs/HANDOFF-smp-trace.md)** — live state of
-   the dynamic approach: the fully root‑caused T6050 **GXF / `AVNCR_EL2`** wall
-   (why the macOS‑guest‑under‑hv trace crashes), and the exact next step.
+**The 2026‑10‑10 conclusion: the blocker is SPTM.** On current macOS, Apple's
+Secure Page Table Monitor runs at GL2 (above EL2) and is boot‑active on T6050.
+It owns the page tables and mediates secondary‑CPU bring‑up, so (a) the reset
+entry is SPTM's, not m1n1's — which is why released secondaries execute nothing
+m1n1 can see — and (b) the classic "boot macOS under m1n1 and trace it" method
+is **architecturally dead** here. The real path is the **XNU‑shim** (Sven Peter,
+CCC 2025). Read, in order:
+
+1. **[`docs/smp-t6050-findings.md`](docs/smp-t6050-findings.md)** — start with
+   §"Strategic reframe" (the SPTM conclusion + prior art), then the hardware
+   measurements and the theories **disproven on hardware** (locked RVBAR, iBoot
+   WFI sled, CTRR/CTXR execute‑regions).
+2. **[`docs/HANDOFF-smp-trace.md`](docs/HANDOFF-smp-trace.md)** — the record of
+   the hv‑trace dead end and the fully root‑caused **GXF / `AVNCR_EL2`** wall
+   (still relevant to any EL2/GL2 work).
 3. **[`scripts/probes/`](scripts/probes/)** — the probe scripts behind every
    claim (`smp-*.py`, `wdt-arm.py`), and **[`patches/m1n1/`](patches/m1n1/)** —
    the bootloader changes (USB on T6050, `AVNCR_EL2`→GL2, watchdog, chainload).
 
 If you're from **[Aurora Silicon](https://github.com/aurora-silicon)** / omarchy‑mac
-checking what's already been done: those three are the whole SMP story, with the
-negative results spelled out so they don't need re‑running.
+or **[antiapplefox/m5-linux](https://github.com/antiapplefox/m5-linux)** (the SPTM
+static‑RE track): our contribution is the **live‑hardware** side — real T6050
+MIDR/PMGR, ADT‑derived DTs, and on‑metal m1n1 fixes — complementary to the
+static SPTM shim work, not a duplicate of it.
 
 ## Repo map
 

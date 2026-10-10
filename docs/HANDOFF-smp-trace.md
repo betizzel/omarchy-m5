@@ -1,5 +1,15 @@
 # Pickup: trace T6050 secondary-CPU reset entry via macOS-under-m1n1-hv (2026-10-10)
 
+> 🛑 **SUPERSEDED (2026-10-10).** The approach this file documents — boot macOS
+> as a guest under m1n1's hypervisor and trace it — **cannot work on T6050**:
+> SPTM is boot-active and owns the page tables, so a hypervisor can no longer
+> observe macOS. The `AVNCR_EL2`/GXF wall below was a symptom of that. See
+> [`smp-t6050-findings.md`](smp-t6050-findings.md) §"Strategic reframe" for the
+> real blocker (SPTM-mediated secondary bring-up) and the actual path (the
+> XNU-shim). **This file is kept as the record of the hv-trace dead end and the
+> GXF/AVNCR RE** (which is still accurate and may matter for the shim's EL2/GL2
+> setup), not as a live plan.
+
 > For the next agent continuing the goal **"keep digging into the iBoot reset
 > entry"** — i.e. *why do T6050 (M5 Pro) secondary CPUs power up but never
 > execute our code?* Read `docs/smp-t6050-findings.md` first (the proven

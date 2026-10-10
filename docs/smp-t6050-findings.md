@@ -12,6 +12,55 @@ A released secondary powers up but executes **nothing** we can observe. That
 covers its locked RVBAR and iBoot's WFI sled. The test does not depend on
 cache coherency.
 
+## ⚠️ Strategic reframe (2026-10-10): the blocker is SPTM, and the hv-trace is a dead end
+
+New information changes the conclusion of everything below. On macOS 26.5 the
+**Secure Page Table Monitor (SPTM) is a boot-active, signed component on T6050**
+(and on M2/M3/M4/A18 Pro/M5 — every current Apple-Silicon Mac chip *except* the
+original M1 t8103). SPTM runs at **GL2, above EL2**, and owns the page tables.
+
+Consequences, from independent static RE of the SPTM/iBoot blobs (see Prior art):
+
+- **The "boot macOS as a guest under m1n1 and trace its MMIO" method cannot work
+  on T6050.** SPTM intercepts the guest's page-table operations; a hypervisor can
+  no longer transparently observe macOS. Our own attempt died at the Apple
+  `AVNCR_EL2`/GXF wall (`HANDOFF-smp-trace.md`) — that was a *symptom* of this
+  deeper architectural block, not a mere porting gap. **This leg is abandoned.**
+- **The secondary-CPU reset entry is SPTM-mediated.** On SPTM silicon the reset
+  vector lands in SPTM's bootstrap (e.g. `0xfffffff0270af000` on T8132), which
+  runs *under iBoot, before m1n1*; SPTM then installs guarded (GL2) vectors and a
+  runtime dispatcher. **Multi-die (Pro/Max) per-die secondary-CPU GL2 bring-up is
+  explicitly SPTM's job.** This is the most likely reason a released T6050
+  secondary **powers up but executes nothing we can observe** (everything below):
+  the core comes up in SPTM's guarded domain, and m1n1 — which is not registered
+  with SPTM as a dispatch domain — cannot direct it.
+- **The path forward is the XNU-shim, not the hypervisor.** Proposed by Sven
+  Peter (CCC Dec 2025): a minimal m1n1 stub that satisfies SPTM's boot protocol
+  (register a valid dispatch table, masquerade as the XNU domain, drive SPTM's
+  state machine from bootstrap into running), then hands off to Linux. Secondary
+  bring-up would then go through SPTM's per-die protocol, not the raw
+  PMGR+RVBAR dance that worked pre-SPTM on M1–M3.
+
+**Prior art (do not re-derive): [`antiapplefox/m5-linux`](https://github.com/antiapplefox/m5-linux)**
+has closed much of the SPTM static RE end-to-end from the 25F71 IPSW — the
+`genter` dispatch internals, `dispatch_state_machine`, the
+`sptm_register_dispatch_table` contract, a 148-entry `(subsys, idx)` call map,
+and m1n1 scaffolding patches (chip IDs / MIDR / `features_m4` stubs / an
+xnu-shim boot-handoff stub). It is static-only and aligns with Aurora Silicon's
+M5 track. Credit also to **Sven Peter / Asahi Linux** for the method and the
+shim framing.
+
+**What this repo uniquely adds (complementary, not duplicate):** live T6050
+hardware. m5-linux explicitly *lacks* hardware (it lists M5 MIDR part IDs as
+"unknown — need `mrs midr_el1` on real metal"). We have the running machine: the
+real MIDR/MPIDR, the PMGR `CPU_START` layout and the `configMiscCores` release
+sequence (below), the ADT-derived device trees (`dt/`), and the on-hardware m1n1
+USB fix for T6050 (`patches/m1n1/0005`). The measurements below remain valid and
+useful **as the hardware-side ground truth** the shim work will need to validate
+against — they are just no longer a route to a *hypervisor* trace.
+
+Everything from here down is the original hardware investigation, preserved.
+
 ## Setup that makes this repeatable
 
 - Everything ran on the *installed* stage-1 m1n1 with no chainload. The
