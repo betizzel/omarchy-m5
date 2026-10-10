@@ -1,0 +1,35 @@
+From: omarchy-m5
+Subject: [PATCH] usb: skip the gen-4 SPMI USB-PD init on T6050
+
+On T6050 (M5 Pro) the USB-PD controllers are usbc,sn201202x,spmi on
+nub-spmi-a0/a1 (compat aapl,spmi), i.e. gen-4 SPMI, which m1n1's SPMI
+driver does not speak (gen1/gen3 only). Since upstream moved usb_init to
+tps6598x_foreach_hpm (a8780959), it now probes those controllers and hangs
+before the proxy comes up, so /dev/m1n1 never enumerates. The tethered
+proxy gadget does not need the PD manager - the dwc3 phys are brought up
+separately - so skip it on T6050 and rely on the phys, as the pre-refactor
+'just bring up the phys' path effectively did. Unblocks main m1n1 (and its
+GXF/SPRR + SPTM work) on T6050.
+
+---
+diff --git a/src/usb.c b/src/usb.c
+index 1606f275..03c47acf 100644
+--- a/src/usb.c
++++ b/src/usb.c
+@@ -313,7 +313,15 @@ void usb_init(void)
+         return;
+     }
+ 
+-    tps6598x_foreach_hpm(usb_init_match, usb_init_one, NULL);
++    /*
++     * T6050 (M5 Pro): the USB-PD controllers are sn201202x on gen-4 SPMI,
++     * which m1n1's SPMI driver does not speak (gen1/gen3 only); probing them
++     * hangs usb_init. The tethered proxy gadget does not need the PD manager
++     * (the dwc3 phys are brought up below), so skip it on T6050 and rely on
++     * the phys, as the pre-refactor code's "just bring up the phys" path did.
++     */
++    if (chip_id != T6050)
++        tps6598x_foreach_hpm(usb_init_match, usb_init_one, NULL);
+ 
+     for (int idx = 0; idx < USB_IODEV_COUNT; ++idx)
+         usb_phy_bringup(idx); /* Fails on missing devices, just continue */
