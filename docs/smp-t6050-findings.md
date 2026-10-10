@@ -221,3 +221,33 @@ boot-core-register means.
 Toolchain: `rea-agents` (rea.tools) driving Ghidra 12.1.4 headless; the
 `.snap` caches make follow-up queries fast. Firmware came from the J714s 26.5
 IPSW via `scripts/extract-tpmtfw.py`'s range reader.
+
+## Toward the macOS hypervisor trace (foundation unblocked, 2026-10-10)
+
+The only way left to see the reset-deassert is to watch macOS start a
+secondary under the m1n1 hypervisor. Progress:
+
+- **Upstream main m1n1 now runs on T6050 with a working USB proxy.** The
+  blocker was `usb_init` probing the `usbc,sn201202x,spmi` PD controllers
+  (`hpm0/1/2/5` on `nub-spmi-a0/a1`, gen-4 SPMI m1n1 can't drive); it hung
+  before the proxy. `patches/m1n1/0005` skips the PD manager on T6050.
+  Verified: `v2.0.0-2-g2460b` + our patches chainloads, reaches
+  `Running proxy`, and re-enumerates `/dev/m1n1`.
+- **The SPTM hosting path exists upstream**, not yet merged: PR #695
+  (`hv_sptm`: emulate the IMPDEF sysregs SPTM uses on M4+; virtualise SPRR/GXF
+  exception regs; **copy CTRR/CTXR to secondary cores** — Sven: "SPTM expects
+  the secondary cores to come up with correct CTRR values") and PR #698
+  (basic nested virt + a loader that stages XNU macho + SPTM + TXM +
+  TrustCache + ADT + bootargs as a guest via `run_guest`, `xnu_mode`).
+  Tested on M2 only; T6050 is unproven.
+
+Remaining, to actually trace (multi-session, T6050-SPTM is the risk):
+1. Build `main + PR#695 + PR#698 + our patches` (0002 hv-timer, 0003 wcslen,
+   0004 chainload/wdt, 0005 usb; 0001 kboot not needed to host macOS). The
+   patches need path fixups — main moved `src/hv.c` → `src/hv/`.
+2. Assemble the macOS guest from this install's boot objects (SPTM
+   `sptm.t6050.release`, the XNU kernelcache, TXM, TrustCache, the runtime
+   ADT, bootargs) and boot it under the hv.
+3. Hook the PMGR CPU_START block (`pmgr reg0 + 0x88000`) and each
+   `cpu-impl-reg+0x100` while macOS brings a secondary up; capture the step
+   between the `+0x88004/+0x88008` writes and the core checking in.
