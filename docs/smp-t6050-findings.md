@@ -24,7 +24,7 @@ Consequences, from independent static RE of the SPTM/iBoot blobs (see Prior art)
 - **The "boot macOS as a guest under m1n1 and trace its MMIO" method cannot work
   on T6050.** SPTM intercepts the guest's page-table operations; a hypervisor can
   no longer transparently observe macOS. Our own attempt died at the Apple
-  `AVNCR_EL2`/GXF wall (`HANDOFF-smp-trace.md`) — that was a *symptom* of this
+  `AVNCR_EL2`/GXF wall (autopsied in the lower half of this doc) — that was a *symptom* of this
   deeper architectural block, not a mere porting gap. **This leg is abandoned.**
 - **The secondary-CPU reset entry is SPTM-mediated.** On SPTM silicon the reset
   vector lands in SPTM's bootstrap (e.g. `0xfffffff0270af000` on T8132), which
@@ -407,4 +407,4 @@ restore trust cache), and ran `run_guest.py -P --sptm --txm xnu`. Result:
 **Next:** port SPRR/GXF init to T6050 (M5 `init_cpu` + SPRR config, modelled on
 M3), then AVNCR writes via GL2 work (patch 0006); then handle the TrustCache
 mismatch (`load_macos_sptm` copies the *stub's* trust cache, which won't
-authorize the macOS kernelcache). Full live state: `docs/HANDOFF-smp-trace.md`.
+authorize the macOS kernelcache).

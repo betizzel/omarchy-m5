@@ -11,6 +11,9 @@ device tree existed for any M5** before this repo. Everything here builds on
 loop**: a Linux ThinkPad drives m1n1 on the Mac over USB‑C, so kernel/DT/RE
 iterations never touch the Mac's boot policy.
 
+> **Reviewing this?** Start with **[`FOR-AURORA.md`](FOR-AURORA.md)** — the three
+> things worth your time, and what to skip.
+
 ## Status — verified on hardware
 
 | Area | State |
@@ -47,10 +50,7 @@ CCC 2025). Read, in order:
    §"Strategic reframe" (the SPTM conclusion + prior art), then the hardware
    measurements and the theories **disproven on hardware** (locked RVBAR, iBoot
    WFI sled, CTRR/CTXR execute‑regions).
-2. **[`docs/HANDOFF-smp-trace.md`](docs/HANDOFF-smp-trace.md)** — the record of
-   the hv‑trace dead end and the fully root‑caused **GXF / `AVNCR_EL2`** wall
-   (still relevant to any EL2/GL2 work).
-3. **[`scripts/probes/`](scripts/probes/)** — the probe scripts behind every
+2. **[`scripts/probes/`](scripts/probes/)** — the probe scripts behind every
    claim (`smp-*.py`, `wdt-arm.py`), and **[`patches/m1n1/`](patches/m1n1/)** —
    the bootloader changes (USB on T6050, `AVNCR_EL2`→GL2, watchdog, chainload).
 

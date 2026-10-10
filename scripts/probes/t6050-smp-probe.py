@@ -10,7 +10,7 @@ Every MMIO read goes through u.exec() behind m1n1's exception guard with a
 dsb/isb, exactly like probe-pmgr.py, so an SError is reported, not fatal.
 (A *store* to an auto-gated block hangs the machine; this script never stores.)
 
-What it answers (findings: docs/HANDOFF.md "SMP"; raw output in docs/research/probe-logs/):
+What it answers (findings: docs/smp-t6050-findings.md; raw output in docs/research/probe-logs/):
   1. is RVBAR identical, locked and == m1n1's _vectors_start page for all 15 cores?
   2. what does impl+0x100 (per-core status) look like for every core at rest?
   3. what do the PMGR CPU_START words (+0x88000) and MCPU/PCPU/MCPM power states say?

@@ -1,34 +1,21 @@
 # Docs index
 
-Where everything is, and the order to read it in. Dates are the last substantive
-update.
+Where everything is. **New here? Read [`../FOR-AURORA.md`](../FOR-AURORA.md)
+first** — the curated front door (the three things worth your time, and what to
+skip). This index is the fuller map.
 
-## If you're reviewing the SMP / iBoot‑reset RE
+## SMP / iBoot‑reset RE (the headline)
 
-Read these in order — they are the whole story and spell out the negative
-results so nobody re‑runs them:
-
-1. **[`smp-t6050-findings.md`](smp-t6050-findings.md)** (2026‑10‑10) — the
-   shareable write‑up. **Start with §"Strategic reframe"**: the blocker is SPTM
-   (the hypervisor‑trace method is a dead end on T6050), with the prior‑art
-   credit. Then the hardware measurements and the theories disproven on hardware
-   (locked RVBAR, iBoot WFI sled, CTRR/CTXR execute‑regions), plus the
-   disassembly of SPTM's CPU‑registration path.
-2. **[`HANDOFF-smp-trace.md`](HANDOFF-smp-trace.md)** (2026‑10‑10, **superseded**)
-   — the record of the abandoned hv‑trace approach and the fully root‑caused
-   T6050 GXF / `AVNCR_EL2` wall. Kept because that EL2/GL2 RE is still accurate
-   and may matter for the SPTM‑aware boot object; it is no longer a live plan.
-
-Supporting evidence: [`../scripts/probes/`](../scripts/probes/) (the probe
-scripts), [`../patches/m1n1/`](../patches/m1n1/) (bootloader changes), and
-[`research/probe-logs/`](research/probe-logs/) (raw captures).
-
-## Current machine state
-
-- **[`HANDOFF.md`](HANDOFF.md)** (running log, latest 2026‑10‑10) — the detailed
-  state of the bring‑up: what boots, the device‑tree work, NVMe / keyboard /
-  trackpad / USB‑net, disk layout, and dated SMP progress notes. The canonical
-  "where are we" document.
+- **[`smp-t6050-findings.md`](smp-t6050-findings.md)** — the one doc to read.
+  Start with §"Strategic reframe" (on current macOS the blocker is **SPTM**, and
+  the hypervisor‑trace method is a dead end on T6050) and §"What SPTM does with a
+  secondary CPU" (the disassembly‑confirmed `sptm_register_cpu` mechanism). Then
+  the hardware measurements and the theories disproven on hardware (locked RVBAR,
+  iBoot WFI sled, CTRR/CTXR execute‑regions). The lower half is the hv‑trace
+  autopsy — optional.
+- Supporting evidence: [`../scripts/probes/`](../scripts/probes/) (probe
+  scripts), [`../patches/m1n1/`](../patches/m1n1/) (bootloader changes), and
+  [`research/probe-logs/`](research/probe-logs/) (raw captures).
 
 ## Build & install
 
@@ -36,22 +23,12 @@ scripts), [`../patches/m1n1/`](../patches/m1n1/) (bootloader changes), and
   quirks) and the **one‑time on‑device install** (partitioning + `kmutil`),
   including resize / re‑install.
 
-## Completed task‑handoffs (historical)
-
-These drove the 2026‑10‑09 partition re‑install and are **done** — kept for the
-record, not pending work:
-
-- **[`HANDOFF-mac.md`](HANDOFF-mac.md)** — the macOS‑side half (stub container,
-  `prep-stub.sh`, `finish-install.sh`). ✅ completed 2026‑10‑09.
-- **[`HANDOFF-thinkpad.md`](HANDOFF-thinkpad.md)** — the ThinkPad‑side half
-  (ceremony check, writing the Linux root over USB). ✅ completed 2026‑10‑09.
-
 ## Background / planning
 
 - **[`PLAN.md`](PLAN.md)** (2026‑09‑21) — the original phased plan and Phase‑0
-  findings. Historical framing; current status lives in `HANDOFF.md` and the
-  root `README.md`.
-- **[`research/`](research/)** — four Phase‑0 deep‑dives:
-  `kernel-boot-m5.md`, `m5-pro-hardware-matrix.md`, `omarchy-arm-ecosystem.md`,
-  `dualboot-partitioning.md`, plus `research/probe-logs/` and
-  `research/smc-keys-j714s.json`.
+  findings. Historical framing; current status lives in the root
+  [`README.md`](../README.md).
+- **[`research/`](research/)** — four Phase‑0 deep‑dives (`kernel-boot-m5.md`,
+  `m5-pro-hardware-matrix.md`, `omarchy-arm-ecosystem.md`,
+  `dualboot-partitioning.md`), plus `research/probe-logs/` and
+  `research/smc-keys-j714s.json`. Broad context; skim as needed.

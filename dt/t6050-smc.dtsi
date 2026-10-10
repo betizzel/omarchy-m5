@@ -4,7 +4,7 @@
  * reboot and RTC children need. From a research pass (ADT + Asahi drivers);
  * the stage-0 proxy probe (scripts/probes/smc-proxy-probe.py) confirmed the
  * mailbox, the shmem window and the driver keys (docs/research/
- * smc-keys-j714s.json). Brought up in stages; see docs/HANDOFF.md.
+ * smc-keys-j714s.json). Brought up in stages.
  *
  * Source of every value: runtime ADT build/adt-runtime-j714s.bin
  * (see PLAN.md for the property each number comes from).  Structure copied

@@ -14,7 +14,7 @@ NOTE: necessary but not sufficient on T6050 by itself. GXF must also be
 enabled (supports_gxf()), which is gated off today because T6050 maps to
 the features_m4 stub (no .mmu_sprr, NULL init). Setting .mmu_sprr alone
 breaks m1n1's own MMU bring-up on T6050, so a proper T6050 SPRR/GXF port
-is still required before this path activates. See docs/HANDOFF-smp-trace.md.
+is still required before this path activates. See docs/smp-t6050-findings.md.
 diff --git a/src/hv/hv.c b/src/hv/hv.c
 index e479475f..43bd40e4 100644
 --- a/src/hv/hv.c
