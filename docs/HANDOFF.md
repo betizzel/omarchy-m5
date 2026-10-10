@@ -234,10 +234,41 @@ raw output in `docs/research/probe-logs/t6050-smp-*`):
 - AIC3 `SW_SET` does not read back, so it is no breadcrumb channel.
 
 The DT now carries the P-cluster MPIDRs `0x10200+` (Aff2 = core type: P 1,
-M 4). Next steps if resumed: cold boot with the diagnostic m1n1 as the
-installed stage 1, a readable MMIO breadcrumb, or tracing macOS's own core
-start under upstream m1n1's SPTM-emulating hypervisor. Linux stays at
-`maxcpus=1`; m1n1 prunes non-alive cores from the FDT anyway.
+M 4). Linux stays at `maxcpus=1`; m1n1 prunes non-alive cores from the FDT
+anyway.
+
+**SMP (2026-10-09): released cores execute nothing we can see.** All on the
+installed stage-1 (no chainload), with `hv/wdt-arm.py` as the safety net:
+
+- `hv/smp-start.py`: m1n1's own `smp_start_secondaries()` fails for all 14
+  even though its heap (and the pre-#682 secondary stacks) starts above the
+  CTRR_C window. Chainload/heap overlap is real (fixed: m1n1 patch 0004) but
+  not the cause.
+- `hv/smp-reset-crumb.py`: vector slot 0 at the locked RVBAR (written with
+  m1n1's MMU off) replaced by a stack-free stub storing MPIDR to DRAM.
+  Released M (cl 0, cl 1) and P (cl 2) cores leave no crumb.
+- `hv/smp-sled-crumb.py`: the CTRR_C window is exactly
+  `[top_of_kernel_data - 48K, top_of_kernel_data)` and holds 12288 `wfi`
+  (the whole window). Turned into a `bl` sled into a crumb stub: no crumb
+  either, with or without a fast IPI (`IPI_RR_LOCAL/GLOBAL`) to wake WFI.
+- `hv/smp-release-try.py`: CPU_START `+0x0` mirrors `+0x4` (both `0x3fffe`
+  at rest; release clears the core's bit in both); the PMGR device goes
+  `0x100 -> 0x1f0`; status low byte `0x02` like the boot core, but bits
+  15:14 and 39:38 set (cluster 0) or 14 and 38 (clusters 1/2) where the boot
+  core has bit 37.
+- The boot core's architectural `RVBAR_EL2` reads `0x1fc08c000` (iBoot's
+  relocation target, as Sowyu/m5-azahi noted), not m1n1's base; that memory
+  hangs the bus even with the MMU off.
+- Bus hangs (no SError, watchdog reset needed): the ARM debug block's
+  `EDPCSRhi` (`coresight+0x20000+0xac`), `cpu-impl-reg+0..0x200` scans,
+  and read *or* write of `cpm-impl-reg+0x40f8` (macOS restoreACC's
+  `0xe440f8`, m1n1 cpufreq's `+0x440f8` on M1-M3). `EDPCSRlo` and the
+  `cpu-uttdbg-reg+0x90` PC sample read 0: no external debug on this part.
+
+So the release powers the core up, and it then runs somewhere that is
+neither its locked RVBAR nor the sled - most likely iBoot's secure reset
+path (`RVBAR_EL2`). Next: reverse iBoot/mBoot's reset handler for
+secondaries (J714s 26.5 IPSW), and the SPTM-era handoff it expects.
 
 **KEYBOARD (2026-10-01): works.** MTP + DockChannel ring transport
 (`patches/linux/0005`, from GravityLinux PR #1 plus review fixes). The
