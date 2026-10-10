@@ -5,16 +5,19 @@ update.
 
 ## If you're reviewing the SMP / iBoot‑reset RE
 
-Read these two, in order — they are the whole story and spell out the negative
+Read these in order — they are the whole story and spell out the negative
 results so nobody re‑runs them:
 
 1. **[`smp-t6050-findings.md`](smp-t6050-findings.md)** (2026‑10‑10) — the
-   shareable write‑up. What was measured on T6050, and the theories disproven on
-   hardware (locked RVBAR, iBoot WFI sled, CTRR/CTXR execute‑regions).
-2. **[`HANDOFF-smp-trace.md`](HANDOFF-smp-trace.md)** (2026‑10‑10) — live state of
-   the dynamic approach (trace macOS under m1n1's hypervisor): the fully
-   root‑caused T6050 GXF / `AVNCR_EL2` wall and the exact next step, with a
-   copy‑paste resume recipe.
+   shareable write‑up. **Start with §"Strategic reframe"**: the blocker is SPTM
+   (the hypervisor‑trace method is a dead end on T6050), with the prior‑art
+   credit. Then the hardware measurements and the theories disproven on hardware
+   (locked RVBAR, iBoot WFI sled, CTRR/CTXR execute‑regions), plus the
+   disassembly of SPTM's CPU‑registration path.
+2. **[`HANDOFF-smp-trace.md`](HANDOFF-smp-trace.md)** (2026‑10‑10, **superseded**)
+   — the record of the abandoned hv‑trace approach and the fully root‑caused
+   T6050 GXF / `AVNCR_EL2` wall. Kept because that EL2/GL2 RE is still accurate
+   and may matter for the SPTM‑aware boot object; it is no longer a live plan.
 
 Supporting evidence: [`../scripts/probes/`](../scripts/probes/) (the probe
 scripts), [`../patches/m1n1/`](../patches/m1n1/) (bootloader changes), and
