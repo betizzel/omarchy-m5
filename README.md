@@ -97,11 +97,3 @@ own Mac.
   [Aurora Silicon](https://github.com/aurora-silicon)
 - [antiapplefox/m5-linux](https://github.com/antiapplefox/m5-linux) — the SPTM
   static‑RE / XNU‑shim track this builds on for the SMP work.
-
-## License
-
-[MIT](LICENSE) for this repo's original scripts, docs, and device trees. The
-vendored patches under `patches/` keep their upstream SPDX identifiers (m1n1 is
-MIT; the Linux patches are GPL‑2.0) and are governed by those. No Apple firmware
-is redistributed here — the extraction scripts re‑derive everything from a
-locally‑downloaded IPSW.
