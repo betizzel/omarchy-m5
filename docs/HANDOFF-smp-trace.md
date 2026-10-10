@@ -166,6 +166,29 @@ Traced end to end with the SPTM/XNU machos + m1n1 source + live probes:
    bit layouts (read how iBoot/SPTM program them — SPTM enables GXF itself).
    Use `wdt-arm.py` as the net (a bad MMU hangs before "proxy"; the installed
    stage-1 m1n1 is untouched, so a power-cycle always recovers).
+
+   **Static narrowing (2026‑10‑10, no hardware) — where the hang is _not_:**
+   RE'd how SPTM programs SPRR/GXF on T6050 (`~/guest/sptm.macho`) and compared
+   to m1n1's hardcoded path (`src/gxf_asm.S` `_gxf_init`, `src/memory.c`
+   `mmu_init_sprr`):
+   - SPTM writes `SPRR_CONFIG_EL1 = 1` and `GXF_CONFIG_EL1 = 1` — **identical**
+     to m1n1's `_gxf_init`. So the enable values are not the T6050 difference.
+   - SPTM's permission tables (`SPRR_PERM_EL0 = 0x2010002030100000`,
+     `SPRR_PERM_EL1 = 0x2020a52a302abae6`) differ from m1n1's defaults
+     (`0xa005a500f005f00f` / `0xf005a500f00ff00f`), but that is expected
+     (different perm *policy*), the 64‑bit / 4‑bit‑index **structure is
+     identical**, and m1n1 only applies its table transiently (`mmu_init_sprr`
+     sets `SPRR_CONFIG` back to 0 before `SCTLR_M`), so m1n1's EL2 never runs
+     under SPRR. ⇒ the perm values are almost certainly **not** the hang.
+   - Boot order (`src/main.c`): `gxf_init()` (which executes a `genter`) runs
+     **before** `mmu_init()`. So when GXF is enabled on T6050 the `genter` in
+     `_gxf_init` is the *first* new instruction path — the **prime suspect**.
+   - ⇒ Next hardware step is a `genter` bisection, not perm‑table tweaking: put
+     fb/UART markers around the `genter` in `src/gxf_asm.S`, and/or enable
+     `gxf_init()` **without** flipping `memory.c`'s `mmu_sprr` MMU path, to
+     isolate GL entry from the MMU. Also check whether T6050 needs an
+     `init_cpu`/ACC prerequisite that M3's `init_t6030_*` sets and the T6050
+     `NULL` init (`chickens.c:164`) skips.
    - Cheaper interim experiment: find out whether a **single-core** guest trace
      even needs AVNCR/NV2. Try guarding the `HCR_NV2|HCR_NV` bits + the
      `VNCR/AVNCR` writes behind `if (chip_id != T6050)` and boot the guest with
