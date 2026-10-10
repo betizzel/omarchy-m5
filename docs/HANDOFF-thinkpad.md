@@ -1,5 +1,8 @@
 # ThinkPad handoff: provision the 20 GB root (2026-10-09)
 
+> ✅ **Completed 2026‑10‑09 — historical task‑handoff, kept for the record.**
+> Current project state is in [`HANDOFF.md`](HANDOFF.md).
+
 > For an agent on the Arch ThinkPad (T14) that drives the M5 over USB-C.
 > The macOS half of the re-install is done (`docs/HANDOFF-mac.md`); this
 > file carries everything the ThinkPad needs from it. You run the tether;

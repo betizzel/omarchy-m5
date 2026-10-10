@@ -1,5 +1,8 @@
 # Mac handoff: re-install the Omarchy boot partitions (2026-10-09)
 
+> ✅ **Completed 2026‑10‑09 — historical task‑handoff, kept for the record.**
+> Current project state is in [`HANDOFF.md`](HANDOFF.md).
+
 > For an agent running in macOS on the M5 Pro itself. You do the macOS
 > half: disk survey, stage-1 m1n1, `prep-stub.sh`, `finish-install.sh`.
 > The human does the 1TR ceremony at the keyboard. The ThinkPad then

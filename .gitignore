@@ -4,3 +4,5 @@ build/
 *.im4p
 *.img
 .DS_Store
+__pycache__/
+*.pyc

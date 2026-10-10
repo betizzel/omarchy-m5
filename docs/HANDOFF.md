@@ -1,7 +1,8 @@
-# Handoff — omarchy-m5 state as of 2026-10-01
+# Handoff — omarchy-m5 running state (through 2026-10-10)
 
-> For picking this up in a fresh session (Devin cloud or otherwise).
-> Read `docs/PLAN.md` first; this file is the delta + current state.
+> For picking this up in a fresh session. New here? Read the root
+> [`README.md`](../README.md) and [`docs/README.md`](README.md) first; this file
+> is the detailed running log of current state (newest notes are dated inline).
 
 ## Target machine (verified on-device)
 

@@ -1,6 +1,12 @@
 # Omarchy on M5 Pro — Project Plan
 
 > Last updated: 2026-09-21, after Phase 0 research. Sources: `docs/research/`.
+>
+> **Status (2026‑10‑10):** this is the *original* plan, kept for framing. Phase 1
+> (single‑core TTY) and Phase 2 (dual‑boot install) are done; live state is in
+> [`HANDOFF.md`](HANDOFF.md) and the root [`README.md`](../README.md). SMP
+> (Phase 4) is the open blocker — see
+> [`smp-t6050-findings.md`](smp-t6050-findings.md).
 
 ## Objective
 
