@@ -72,7 +72,7 @@ MACOS_VGID=$(diskutil info "$MACOS_SYS" 2>/dev/null | awk -F': *' '/APFS Volume 
 PB=/System/Volumes/Preboot/$MACOS_VGID
 [ -d "$PB/restore" ] || die "macOS restore bundle not found at $PB/restore"
 
-REC_MNT=$(mktemp -d /tmp/recovery-mnt.XXXXXX)
+REC_TMP=$(mktemp -d /tmp/recovery-mnt.XXXXXX)
 # find the Recovery-role volume inside the macOS container (disk3),
 # NOT the iSC (disk1) or Apple_APFS_Recovery (disk2) containers
 REC_DEV=$(diskutil apfs list -plist 2>/dev/null | python3 -c "
@@ -86,39 +86,54 @@ for c in d['Containers']:
             print(v['DeviceIdentifier']); sys.exit(0)
 " 2>/dev/null || true)
 [ -n "$REC_DEV" ] || die "could not find macOS Recovery volume"
-# mount it; if it's already mounted somewhere, use that mount point
-if ! diskutil mount -mountPoint "$REC_MNT" "$REC_DEV" >/dev/null 2>&1; then
-    EXISTING=$(diskutil info "$REC_DEV" | awk -F': *' '/Mount Point/{print $2}')
-    [ -n "$EXISTING" ] && [ "$EXISTING" != "Not mounted" ] \
-        && REC_MNT="$EXISTING" \
+# Mount it and point REC_MNT at wherever it actually is: diskutil mount
+# exits 0 for a volume that is already mounted and leaves it there, and the
+# resize below has storagekitd unmount it and remount it under /Volumes.
+mount_recovery() {
+    diskutil mount -mountPoint "$REC_TMP" "$REC_DEV" >/dev/null 2>&1 || true
+    REC_MNT=$(diskutil info "$REC_DEV" | awk -F': *' '/Mount Point/{print $2}' || true)
+    [ -n "$REC_MNT" ] && [ "$REC_MNT" != "Not mounted" ] \
         || die "could not mount $REC_DEV"
-fi
+}
+mount_recovery
 trap 'diskutil unmount "$REC_DEV" >/dev/null 2>&1 || true' EXIT
 [ -f "$REC_MNT/$MACOS_VGID/usr/standalone/firmware/arm64eBaseSystem.dmg" ] \
     || die "arm64eBaseSystem.dmg not found in Recovery volume ($REC_MNT)"
 
-FREE_GB=$(diskutil info "$MACOS_PART" | awk '/Container Free Space/{print $(NF-1)}')
+FREE_GB=$(diskutil apfs list -plist | python3 -c "
+import plistlib,sys
+d=plistlib.loads(sys.stdin.buffer.read())
+for c in d['Containers']:
+    if any(p['DeviceIdentifier'] == 'disk0s2' for p in c.get('PhysicalStores',[])):
+        print(f\"{c['CapacityFree'] / 1e9:.1f}\")
+")
 echo "macOS container free space: ${FREE_GB} GB"
 
 # --- plan ----------------------------------------------------------------
 
 # How much do we still need to shrink macOS by? Only the shortfall —
 # free GPT space already sitting after disk0s2 counts toward the goal.
-read -r NEW_SIZE NEED_GB <<<"$(python3 - "$LINUX_SIZE" "$STUB_SIZE" <<'EOF'
+read -r NEW_SIZE RESIZE_DESC <<<"$(python3 - "$STUB_SIZE" "$EFI_SIZE" "$LINUX_SIZE" <<'EOF'
 import sys, subprocess, re, plistlib
 
-def gib(s):
-    m = re.match(r'(\d+(?:\.\d+)?)([GgMm])', s)
-    mult = 1024**3 if m.group(2).lower() == 'g' else 1024**2
-    return int(float(m.group(1)) * mult)
+# diskutil reads K/M/G/T as powers of ten and Ki/Mi/Gi/Ti as powers of two
+# (man diskutil), so do all the math in bytes and hand diskutil bytes.
+def size_bytes(s):
+    m = re.fullmatch(r'(\d+(?:\.\d+)?)([KMGT])(i?)B?', s, re.I)
+    if not m:
+        sys.exit(f"cannot parse size {s!r} (expected e.g. 20G, 500M, 1.5T)")
+    base = 1024 if m.group(3) else 1000
+    return int(float(m.group(1)) * base ** ("KMGT".index(m.group(2).upper()) + 1))
+
+def gb(b):
+    return f"{b / 1e9:.1f} GB"
 
 info = subprocess.run(["diskutil","info","-plist","disk0s2"],
                       capture_output=True).stdout
-d = plistlib.loads(info)
-total = d["TotalSize"]
+total = plistlib.loads(info)["TotalSize"]
 
 # free GPT space on disk0 (bytes) — space already reclaimed outside
-# any partition
+# any partition, including the "(free space)" pseudo-entry format
 listing = subprocess.run(["diskutil","list","-plist","disk0"],
                          capture_output=True).stdout
 dl = plistlib.loads(listing)
@@ -126,48 +141,23 @@ free_gpt = 0
 for p in dl.get("AllDisksAndPartitions",[]):
     if p.get("DeviceIdentifier") != "disk0": continue
     for part in p.get("Partitions",[]):
-        if part.get("Content") == "Free Space" or part.get("Type") == "Free Space":
-            free_gpt += part.get("Size",0)
-# also catch the "(free space)" pseudo-entry format
-for p in dl.get("AllDisksAndPartitions",[]):
-    if p.get("DeviceIdentifier") != "disk0": continue
-    for part in p.get("Partitions",[]):
         if "free" in str(part.get("Content","")).lower() or \
            "free" in str(part.get("Type","")).lower():
             free_gpt += part.get("Size",0)
 
-need = gib(sys.argv[2]) + int(0.5*1024**3)   # stub + EFI
-if sys.argv[1]:
-    need += gib(sys.argv[1])
+# stub + EFI + Linux, plus room for addPartition to align each of them
+need = sum(size_bytes(s) for s in sys.argv[1:] if s) + 64 * 1024**2
 
 shortfall = need - free_gpt
 if shortfall <= 0:
-    print("0", need // 1024**3)   # no resize needed
+    print("0", f"{gb(need)} needed, {gb(free_gpt)} already free after disk0s2")
 else:
-    newsize = total - shortfall
-    print(f"{newsize // 1024**3}G", need // 1024**3)
+    # round down to 1 MiB: a little more room, never less
+    newsize = (total - shortfall) // 1024**2 * 1024**2
+    print(newsize, f"{gb(total)} -> {gb(newsize)}, macOS shrinks by {gb(total - newsize)}")
 EOF
 )"
-
-echo
-echo "Plan:"
-if [ "$NEW_SIZE" = "0" ]; then
-    echo "  - no resize needed ($NEED_GB GB already free after $MACOS_PART)"
-else
-    echo "  - resize $MACOS_PART (macOS container) -> $NEW_SIZE"
-fi
-echo "  - addPartition $MACOS_PART apfs '$STUB_NAME' $STUB_SIZE"
-echo "    + volumes: Data, System (grouped), Preboot, Recovery"
-echo "  - addPartition <stub> %EFI% %noformat% $EFI_SIZE + newfs_msdos"
-[ -n "$LINUX_SIZE" ] && echo "  - addPartition <efi> %Linux% %noformat% $LINUX_SIZE"
-echo "  - clone restore bundle + recoveryOS + admin creds into stub"
-echo
-if [ "$ASSUME_YES" != 1 ]; then
-    read -r -p "Proceed? [y/N] " ans
-    [ "$ans" = y ] || [ "$ans" = Y ] || { echo "aborted"; exit 1; }
-fi
-
-# --- partition -----------------------------------------------------------
+[ -n "$NEW_SIZE" ] || die "could not compute the partition plan"
 
 # find the stub container: an Apple_APFS partition on disk0 (so never the
 # iSC or Apple_APFS_Recovery) other than macOS, holding a "$STUB_NAME*"
@@ -194,10 +184,34 @@ for c in d['Containers']:
 }
 
 STUB_CT=$(find_stub || true)
+
+echo
+echo "Plan:"
+if [ -n "$STUB_CT" ]; then
+    echo "  - resume: stub container $STUB_CT exists from a previous run, so no"
+    echo "    resize; partitions and volumes that already exist are kept"
+elif [ "$NEW_SIZE" = "0" ]; then
+    echo "  - no resize needed ($RESIZE_DESC)"
+else
+    echo "  - resize $MACOS_PART (macOS container): $RESIZE_DESC"
+fi
+echo "  - addPartition $MACOS_PART apfs '$STUB_NAME' $STUB_SIZE"
+echo "    + volumes: Data, System (grouped), Preboot, Recovery"
+echo "  - addPartition <stub> %EFI% %noformat% $EFI_SIZE + newfs_msdos"
+[ -n "$LINUX_SIZE" ] && echo "  - addPartition <efi> %Linux% %noformat% $LINUX_SIZE"
+echo "  - clone restore bundle + recoveryOS + admin creds into stub"
+echo
+if [ "$ASSUME_YES" != 1 ]; then
+    read -r -p "Proceed? [y/N] " ans
+    [ "$ans" = y ] || [ "$ans" = Y ] || { echo "aborted"; exit 1; }
+fi
+
+# --- partition -----------------------------------------------------------
+
 if [ -z "$STUB_CT" ]; then
     if [ "$NEW_SIZE" != "0" ]; then
-        step "Resizing macOS container to $NEW_SIZE"
-        diskutil apfs resizeContainer "$MACOS_PART" "$NEW_SIZE"
+        step "Resizing macOS container to $NEW_SIZE bytes"
+        diskutil apfs resizeContainer "$MACOS_PART" "${NEW_SIZE}B"
     else
         echo "no resize needed — using existing free space"
     fi
@@ -316,7 +330,9 @@ for c in d['Containers']:
         if 'Preboot' in v.get('Roles',[]): print(v['DeviceIdentifier'])
 ")" | awk -F': *' '/Mount Point/{print $2}')
 mkdir -p "$PB_MNT/$VGID"
-cp -R "$PB/restore" "$PB_MNT/$VGID/restore"
+# ditto merges into an existing copy; cp -R would nest restore/restore
+# when resuming
+ditto "$PB/restore" "$PB_MNT/$VGID/restore"
 mkdir -p "$PB_MNT/$VGID/var/db"
 # may already exist + schg-locked from a previous run
 chflags noschg "$PB_MNT/$VGID/var/db/AdminUserRecoveryInfo.plist" 2>/dev/null || true
@@ -324,14 +340,8 @@ cp "$PB/var/db/AdminUserRecoveryInfo.plist" "$PB_MNT/$VGID/var/db/"
 chflags schg "$PB_MNT/$VGID/var/db/AdminUserRecoveryInfo.plist"
 
 step "Populating stub Recovery"
-# the macOS Recovery volume may have been unmounted by the partition
-# operations above — (re)mount it now, right before we need it
-if [ ! -f "$REC_MNT/$MACOS_VGID/usr/standalone/firmware/arm64eBaseSystem.dmg" ]; then
-    diskutil mount -mountPoint "$REC_MNT" "$REC_DEV" >/dev/null 2>&1 || {
-        EXISTING=$(diskutil info "$REC_DEV" | awk -F': *' '/Mount Point/{print $2}')
-        [ -n "$EXISTING" ] && [ "$EXISTING" != "Not mounted" ] && REC_MNT="$EXISTING"
-    }
-fi
+# the partition operations above unmount it and may remount it elsewhere
+mount_recovery
 [ -f "$REC_MNT/$MACOS_VGID/usr/standalone/firmware/arm64eBaseSystem.dmg" ] \
     || die "arm64eBaseSystem.dmg not found in Recovery volume ($REC_MNT)"
 REC2_MNT=$(diskutil info "$(diskutil apfs list "$STUB_CT" -plist | python3 -c "

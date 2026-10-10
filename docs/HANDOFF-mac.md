@@ -7,6 +7,9 @@
 > state) and `docs/bringup.md` ("One-time on-device step", "Resizing or
 > re-installing").
 
+**Done 2026-10-09.** Stub VGID `83F76F48-1DE4-4C8B-99C0-E9D48E59AF0D`,
+root = GPT entry 5 (20 GB). Next: `docs/HANDOFF-thinkpad.md`.
+
 ## Situation
 
 - The user **already deleted** the old Omarchy stub, EFI and Linux root
@@ -55,7 +58,7 @@
 sw_vers
 diskutil list disk0
 diskutil apfs list
-diskutil info disk0s2 | grep -E 'Container (Total|Free) Space'
+diskutil apfs list | grep -E 'Capacity (Ceiling|Not Allocated)'
 bless --getBoot
 fdesetup status
 ```
@@ -125,9 +128,10 @@ and the sources match the tree the prebuilt came from.
 sudo scripts/prep-stub.sh --linux-size 20G
 ```
 
-Before answering `Proceed?`, check the printed plan. It should shrink
-`disk0s2` by about 26–27 GB, then add the 6 GB `Omarchy` container, the
-500 MB EFI and the 20 GB Linux partition. Stop if it plans anything else.
+Before answering `Proceed?`, check the printed plan. Its first line should
+read `994.6 GB -> 968.0 GB, macOS shrinks by 26.6 GB` (give or take, if
+macOS was not fully grown back), followed by the 6 GB `Omarchy` container,
+the 500 MB EFI and the 20 GB Linux partition. Stop if it plans anything else.
 The script is resumable: a re-run picks up a half-made stub.
 
 Verify afterwards:
