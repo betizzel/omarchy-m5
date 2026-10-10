@@ -90,9 +90,25 @@ used; `~/guest/sptm.macho`), cross-referenced with their `(subsys, idx)` map:
   ID before (or as part of) releasing it. This is the SMP-specific slice of the
   XNU-shim and the natural thing to split with the m5-linux / Aurora track.
 
-(String-level evidence; a full disassembly of the `sptm_cpu_init` handler is the
-next RE step, best anchored against live `mrs midr_el1` / cluster IDs from this
-machine — which we have and the static-only track does not.)
+**Disassembly-confirmed (not just strings).** The `sptm_register_cpu` handler in
+`sptm.t6050.release` is at vaddr `0xfffffff0270bc8a0` (found via xrefs to its
+assert string `__TEXT.__cstring:0xfffffff0270062f5`; disassembled with
+`aarch64-linux-gnu-objdump`). Its body:
+1. converts each of the CPU's register ranges to 16 KB page frames
+   (`(addr + 0x3fff) >> 14`);
+2. **retypes those MMIO frames into SPTM ownership** — three `bl 0xfffffff0270ddb00`
+   (the retype/claim helper), one per range;
+3. records the frames into a per-CPU structure (`str x,[x24,#0x1440/#0x1448/…]`);
+4. marks the CPU registered with a release-store flag (`mov w8,#1; stlrb w8,[x24]`),
+5. all behind a cluster of assert/panic sites (`bl 0xfffffff0270fc830`,
+   `0xfffffff0270fc870` with code `0x16`) — the `VIOLATION_*CPU*` failures.
+
+So registration is not a formality: SPTM *takes ownership of the core's register
+pages*. A bare PMGR release does none of this, which is the mechanism behind the
+hardware symptom below. Next RE step: the `sptm_cpu_init` handler
+(`xref @ 0xfffffff0270e0f78`) and the secondary **entry** vector, best anchored
+against live `mrs midr_el1` / cluster IDs from this machine — which we have and
+the static-only track does not.
 
 Everything from here down is the original hardware investigation, preserved.
 
