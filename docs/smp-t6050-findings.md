@@ -291,12 +291,20 @@ restore trust cache), and ran `run_guest.py -P --sptm --txm xnu`. Result:
   The faulting word `0xd51cfae0` decodes to `msr s3_4_c15_c10_7, x0` =
   **`msr SYS_IMP_APL_AVNCR_EL2, x0`** (the Apple nested-virt register, new #698
   code). The architectural `VNCR_EL2` write immediately before it succeeds.
-- Probe on bare stage-1: `AVNCR_EL2` **reads `0x0`** fine (not absent/locked);
-  it only UNDEFs on **write**, after the hv sets `HCR_EL2.{NV2,NV,E2H}`. So
-  T6050 gates Apple AVNCR writes on a condition M2 (where #698 was tested)
-  does not. This is the first concrete M5-vs-M2 nested-virt divergence.
+- **Root cause (confirmed):** `AVNCR_EL2` is **GL2-only on T6050** (EL2-writable
+  on M1/M2). The write must go through `gl2_call` like m1n1 already does for
+  `HCR_EL2`/`HACR_EL2`; patch `0006` adds `hv_write_avncr()` to do that. But the
+  deeper block is that **GXF is disabled in m1n1's hv on T6050**: `gxf_enabled()`
+  needs `AIDR_EL1.GXF && cpu_features->mmu_sprr`. The hardware has GXF
+  (`AIDR_EL1 = 0x12bd170699696`, bit 16 set; `SPRR/GXF_CONFIG = 0`), but T6050
+  maps to the **`features_m4` stub** (`chickens.c:164`, `NULL` init, no
+  `.mmu_sprr`), so `supports_gxf()` is false and `gxf_init()` never runs. With
+  patch 0006 the crash just moves into `hv_write_avncr` (the `else` path).
+  Naively setting `.mmu_sprr=true` to enable GXF **hangs m1n1's own MMU on
+  T6050** (chainload never reaches "proxy"), so a proper T6050 SPRR/GXF port is
+  required.
 
-**Next:** isolate the AVNCR UNDEF (bisect which HCR/enable bit arms it; or skip
-NV2/AVNCR on T6050 for a single-core guest trace), then handle the TrustCache
+**Next:** port SPRR/GXF init to T6050 (M5 `init_cpu` + SPRR config, modelled on
+M3), then AVNCR writes via GL2 work (patch 0006); then handle the TrustCache
 mismatch (`load_macos_sptm` copies the *stub's* trust cache, which won't
 authorize the macOS kernelcache). Full live state: `docs/HANDOFF-smp-trace.md`.

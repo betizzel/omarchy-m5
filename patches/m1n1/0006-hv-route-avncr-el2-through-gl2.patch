@@ -1,0 +1,70 @@
+From: omarchy-m5
+Subject: [PATCH] hv: route AVNCR_EL2 writes through GL2 (needed on T6050/M5)
+
+The nested-virt setup in hv_init()/hv_init_secondary() writes the Apple
+IMPDEF AVNCR_EL2 with a direct EL2 `msr`. On M1/M2 that register is
+EL2-writable, but on T6050 (M5 Pro) AVNCR_EL2 is only writable from the
+guarded level (GL2); a direct EL2 write raises an "unknown reason"
+synchronous exception (ESR EC=0, FAR=0) and m1n1 reboots.
+
+Mirror hv_write_hcr()/hv_write_hacr(): wrap the AVNCR write in a
+gl2_call() when GXF is enabled and we are not already in GL1/2.
+
+NOTE: necessary but not sufficient on T6050 by itself. GXF must also be
+enabled (supports_gxf()), which is gated off today because T6050 maps to
+the features_m4 stub (no .mmu_sprr, NULL init). Setting .mmu_sprr alone
+breaks m1n1's own MMU bring-up on T6050, so a proper T6050 SPRR/GXF port
+is still required before this path activates. See docs/HANDOFF-smp-trace.md.
+diff --git a/src/hv/hv.c b/src/hv/hv.c
+index e479475f..43bd40e4 100644
+--- a/src/hv/hv.c
++++ b/src/hv/hv.c
+@@ -154,7 +154,7 @@ void hv_init(void)
+     // Set nvMem address
+     // TODO: Only do this if SPTM support is needed AND M2 or higher (M1 does not have NV)
+     msr(VNCR_EL2, &nvMem[0]);
+-    msr(SYS_IMP_APL_AVNCR_EL2, &anvMem[0]);
++    hv_write_avncr((u64)&anvMem[0]);
+ 
+     // No guest vectors initially
+     msr(VBAR_EL12, 0);
+@@ -318,7 +318,7 @@ static void hv_init_secondary(int cpu, struct hv_secondary_info_t *info)
+ 
+     // TODO: Only do this if SPTM support is needed AND M2 or higher (M1 does not have NV)
+     msr(VNCR_EL2, &nvMem[cpu]);
+-    msr(SYS_IMP_APL_AVNCR_EL2, &anvMem[cpu]);
++    hv_write_avncr((u64)&anvMem[cpu]);
+ 
+     if (cpu_features->apple_sysregs_unlocked)
+         reg_mask(SYS_IMP_APL_CYC_OVRD, CYC_OVRD_WFI_MODE_MASK, CYC_OVRD_WFI_MODE(0));
+@@ -433,6 +433,18 @@ void hv_write_hacr(u64 val)
+         msr(HACR_EL2, val);
+ }
+ 
++void hv_write_avncr(u64 val)
++{
++    // On T6050 (M5) the Apple AVNCR_EL2 is only writable from the guarded
++    // level (GL2); a direct EL2 write UNDEFs. Route it through GL2 like
++    // hv_write_hcr/hv_write_hacr. On M1/M2 AVNCR is EL2-writable, so the
++    // else path keeps working there.
++    if (gxf_enabled() && !in_gl12())
++        gl2_call(hv_write_avncr, val, 0, 0, 0);
++    else
++        msr(SYS_IMP_APL_AVNCR_EL2, val);
++}
++
+ u64 hv_get_spsr(void)
+ {
+     if (in_gl12())
+diff --git a/src/hv/hv.h b/src/hv/hv.h
+index 6c1aad47..2b26b3f5 100644
+--- a/src/hv/hv.h
++++ b/src/hv/hv.h
+@@ -104,6 +104,7 @@ void hv_do_panic(void);
+ /* Utilities */
+ void hv_write_hcr(u64 val);
+ void hv_write_hacr(u64 val);
++void hv_write_avncr(u64 val);
+ u64 hv_get_spsr(void);
+ void hv_set_spsr(u64 val);
+ u64 hv_get_esr(void);

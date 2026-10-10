@@ -17,10 +17,16 @@
   the PMGR `CPU_START` block + per-core impl status while XNU brings a
   secondary up. m1n1 upstream grew this capability (PRs #643/#695/#698); it was
   only ever tested on M1/M2.
-- **This session got the guest to *load* under the hv on T6050**, SPRR/GXF
-  emulation activates — then `hv_init` hits a **hard wall unique to T6050**:
-  the write to the Apple IMPDEF register **`AVNCR_EL2` UNDEFs**. That is the
-  single blocker to clear next. Details below.
+- **This session got the guest to *load* under the hv on T6050** (SPRR/GXF
+  emulation activates), then fully root-caused the `hv_init` crash and found
+  the *real* blocker. The chain: `hv_init` UNDEFs writing Apple `AVNCR_EL2`
+  because that register is **GL2-only on T6050**, and **GXF is disabled** in
+  m1n1's hv on T6050 — because T6050 maps to the `features_m4` stub (no
+  `.mmu_sprr`), so `supports_gxf()` is false and `gxf_init()` never runs.
+  Patch `0006` routes AVNCR through GL2 (correct, but inert until GXF is on).
+  Naively setting `.mmu_sprr=true` to enable GXF **breaks m1n1's own MMU
+  bring-up on T6050** (chainload never reaches "proxy"). So the blocker is now
+  **"port SPRR/GXF init to T6050"**, which is real m1n1 work. Details below.
 
 ## Hardware / repo state (verified this session)
 
@@ -47,9 +53,14 @@
   - `patches/m1n1/0005-usb-skip-gen4-spmi-pd-on-t6050.patch` — the USB fix that
     unblocked upstream main on T6050 (gen-4 SPMI PD probe via
     `tps6598x_foreach_hpm` hangs; skip it: `if (chip_id != T6050)`).
+  - `patches/m1n1/0006-hv-route-avncr-el2-through-gl2.patch` — routes the Apple
+    `AVNCR_EL2` write through `gl2_call` (see Root cause). Correct but inert
+    until GXF is enabled on T6050; the currently-staged `/tmp/m1n1-sptm.bin`
+    includes it. **Do NOT re-add `.mmu_sprr=true` to `features_m4`** to force
+    GXF — it hangs m1n1's MMU on T6050 (tried; needs a proper SPRR/GXF port).
   - (Patches 0001/0002 target the **old** `src/hv.c` layout; main moved it to
-    `src/hv/`. 0005 is the only one strictly needed to reach "Running proxy";
-    **0002 is about to become relevant — see "Next" below.**)
+    `src/hv/`. For a bare proxy boot only 0005 is strictly needed; 0003/0004
+    are the watchdog/chainload conveniences, 0006 is the AVNCR groundwork.)
 - Build: `cd /tmp/m1n1-up && export PATH="$(dirname "$(~/.cargo/bin/rustup which cargo)"):$PATH" && make -j$(nproc) CHAINLOADING=1`
 - Output already built: **`/tmp/m1n1-sptm.bin`** (4.9 MB). 3.8–4.9 MB images
   need `--no-sepfw` to fit below the CTRR window on chainload.
@@ -115,36 +126,57 @@ msr(SYS_IMP_APL_AVNCR_EL2, &anvMem[0]);// <-- UNDEF on T6050  (hv_init+0x58)
 - `ID_AA64MMFR2_EL1 = 0x1201011102001011`, `HCR_EL2 = 0x32488000038` (no
   NV2/NV bits on stage-1).
 
-**Hypothesis:** the AVNCR *write* only UNDEFs once `HCR_EL2.{NV2,NV}` are set
-(the SPTM hv enables them a few instructions earlier). I.e. T6050 gates AVNCR
-writes on some condition M2 doesn't, or expects a different enable/sequence, or
-AVNCR is read-only / differently-encoded under NV2 on M5. This is the first
-genuine M5-vs-M2 nested-virt divergence and the thing to crack next.
+### Root cause (CONFIRMED this session, not a hypothesis)
+
+Traced end to end with the SPTM/XNU machos + m1n1 source + live probes:
+
+1. `hv_init` writes `msr SYS_IMP_APL_AVNCR_EL2, x0` directly from EL2
+   (`src/hv/hv.c:157`, and `:321` for secondaries). On **M1/M2** AVNCR is
+   EL2-writable; on **T6050 it is GL2-only**, so the direct write UNDEFs.
+2. m1n1 already knows Apple EL2 regs can be GL2-only: `hv_write_hcr`/
+   `hv_write_hacr` route through `gl2_call()` when `gxf_enabled() && !in_gl12()`.
+   The #698 nested-virt code just forgot to do the same for AVNCR. **Patch
+   `patches/m1n1/0006-*` adds `hv_write_avncr()` that does exactly this** and
+   repoints both call sites. Correct, but see step 4.
+3. SPTM confirms the idiom: it writes AVNCR from **GL2** at 3 sites
+   (`sptm.macho` file offs `0xe7958/0xf6840/0xf7c60`), each next to GL2
+   registers (`TPIDR_GL2`, `GXF_STATUS/ENTER_EL1`, `APVMKEYLO/HI_EL2`).
+4. **The real blocker: GXF is disabled in m1n1's hv on T6050.** With patch
+   0006 applied, the crash *moves into* `hv_write_avncr` because
+   `gxf_enabled()` returns **false** → it falls to the direct `msr` anyway.
+   `gxf_enabled()` needs `(AIDR_EL1.GXF) && cpu_features->mmu_sprr`.
+   Live probe: `AIDR_EL1 = 0x12bd170699696` → **GXF bit 16 SET** (hardware has
+   GXF), but `SPRR_CONFIG_EL1 = GXF_CONFIG_EL1 = GXF_STATUS_EL1 = 0` (disabled).
+   The reason: **T6050 maps to the `features_m4` stub** in
+   `src/chickens.c:164-165` (`"M5 Pro Sotra"`, `NULL` init, `&features_m4`),
+   and `features_m4` does **not** set `.mmu_sprr` → `supports_gxf()` is false →
+   `main.c:156` never calls `gxf_init()` → SPRR/GXF stay off.
+5. **Naively setting `.mmu_sprr = true` is not enough and is harmful:** it was
+   tried this session — m1n1's own MMU bring-up (`src/memory.c` SPRR path) then
+   **hangs on T6050** and the chainload never reaches "proxy". So T6050 needs a
+   *real* SPRR/GXF port, not just the feature flag.
 
 ## Next steps (in priority order)
 
-1. **Clear the `AVNCR_EL2` UNDEF** so `hv_init` completes on T6050. Ideas,
-   cheapest first (all testable with `wdt-arm.py` as the net):
-   - Write a tiny probe that reproduces the exact hv sequence in isolation via
-     the proxy: set `HCR_EL2 |= NV2|NV|E2H`, write `VNCR_EL2`, then try
-     `msr AVNCR_EL2` guarded — confirm the UNDEF is conditional on NV2, and
-     bisect *which* HCR bit arms it.
-   - Check whether T6050 needs an Apple enable first (candidate IMPDEF bits in
-     `SYS_IMP_APL_HACR_EL2` / `ACTLR_EL2` / an `APL_*` nested-virt enable).
-     Grep `src/cpu_regs.h` for `NV`, `AVNCR`, `VNCR`, `HACR`.
-   - If AVNCR is simply not needed for a *single-core* guest trace, try
-     **skipping** it on T6050 (guard the two `msr VNCR/AVNCR` + the HCR_NV2/NV
-     bits behind `if (chip_id != T6050)`), boot the guest single-core, and see
-     how far XNU gets. We only need the guest to reach the point where it
-     starts a *secondary*; full nested-virt fidelity may be unnecessary.
-   - Only if needed: RE how macOS/SPTM programs AVNCR on T6050 — search
-     `xnu.macho` / `sptm.macho` for `msr s3_4_c15_c10_7` and read the setup.
+1. **Port SPRR/GXF init to T6050** (the actual blocker). Needs an M5
+   `init_cpu` path (the `midr_parts` entry is `NULL`) + whatever SPRR config /
+   chicken bits T6050 wants, so that `gxf_init()` + the `memory.c` SPRR MMU
+   setup work. Start by diffing the M3 (`features_m3`, `init_t6030_*`) SPRR/GXF
+   setup against what T6050 needs; compare `SPRR_CONFIG_EL1`/`GXF_CONFIG_EL1`
+   bit layouts (read how iBoot/SPTM program them — SPTM enables GXF itself).
+   Use `wdt-arm.py` as the net (a bad MMU hangs before "proxy"; the installed
+   stage-1 m1n1 is untouched, so a power-cycle always recovers).
+   - Cheaper interim experiment: find out whether a **single-core** guest trace
+     even needs AVNCR/NV2. Try guarding the `HCR_NV2|HCR_NV` bits + the
+     `VNCR/AVNCR` writes behind `if (chip_id != T6050)` and boot the guest with
+     nested virt off — but note XNU-on-SPTM likely *requires* NV2, so this may
+     just move the failure into SPTM/XNU. Still informative.
 2. **Mind the TrustCache caveat.** `load_macos_sptm`
    (`proxyclient/m1n1/hv/__init__.py:1925`) sources `TrustCache`, `SEPFW`,
    `RTBuddySeg`, `preoslog`, and the `DeviceTree` from the **running m1n1's**
    `adt["chosen"]["memory-map"]` — i.e. **our Omarchy stub's** boot, *not*
    macOS. The stub's trust cache will not authorize the macOS kernelcache, so
-   even after AVNCR is fixed, TXM/SPTM may reject XNU. Plan to inject
+   even past GXF/AVNCR, TXM/SPTM may reject XNU. Plan to inject
    `~/guest/094-56195-095.dmg.trustcache` (or the kernelcache's loadable trust
    cache from the BuildManifest) into the guest's `TrustCache` slot — patch the
    loader to take a `--trustcache` file instead of copying the stub's.
@@ -153,8 +185,7 @@ genuine M5-vs-M2 nested-virt divergence and the thing to crack next.
    release = `+0x88004 = BIT(cpu-id)` then `+0x88008 + 4*cluster = BIT(core)`)
    and each core's `cpu-impl-reg+0x100` status, and record the exact
    reset-deassert step macOS performs between the `+0x88004/+0x88008` writes
-   and the core checking in. Write it up in `docs/smp-t6050-findings.md`
-   §"What to try next" (steps already sketched there).
+   and the core checking in. Write it up in `docs/smp-t6050-findings.md`.
 
 ## Resume recipe (copy/paste)
 

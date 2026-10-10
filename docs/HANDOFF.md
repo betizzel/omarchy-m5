@@ -287,11 +287,15 @@ SPTM hypervisor and watch it start a secondary. Built + verified an
 SPTM-capable m1n1 on T6050 (`/tmp/m1n1-sptm.bin`), extracted the macOS guest
 objects from the 26.5 IPSW, and ran `run_guest.py`: the guest loads, SPRR/GXF
 emulation activates, but `hv_init` UNDEFs writing the Apple `AVNCR_EL2`
-(`s3_4_c15_c10_7`) once nested virt is enabled — a real M5-vs-M2 difference
-(AVNCR reads fine bare; only the NV2-context write faults). Also confirmed the
-hv's own `smp_start_secondaries()` fails here too. **Full live state, resume
-recipe, and next steps: `docs/HANDOFF-smp-trace.md`** (details in
-`docs/smp-t6050-findings.md` §"Guest-boot attempt via option (b)").
+(`s3_4_c15_c10_7`). Root-caused fully: AVNCR is **GL2-only on T6050** (needs a
+`gl2_call` like `HCR`/`HACR` — patch `0006`), but **GXF is off** in the hv
+because T6050 maps to the `features_m4` stub (no `.mmu_sprr`), so
+`supports_gxf()` is false and `gxf_init()` never runs. The HW has GXF
+(`AIDR_EL1.GXF` set); naively forcing `.mmu_sprr=true` **hangs m1n1's MMU** on
+T6050. So the dynamic trace is now blocked behind a real **T6050 SPRR/GXF
+port**. Also confirmed the hv's own `smp_start_secondaries()` fails here too.
+**Full live state, resume recipe, next steps: `docs/HANDOFF-smp-trace.md`**
+(details in `docs/smp-t6050-findings.md` §"Guest-boot attempt via option (b)").
 
 **KEYBOARD (2026-10-01): works.** MTP + DockChannel ring transport
 (`patches/linux/0005`, from GravityLinux PR #1 plus review fixes). The
