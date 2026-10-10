@@ -175,6 +175,49 @@ per-core property (what state the core resets into, whether the PMGR release
 fully deasserts reset on an M-core), which only a hypervisor trace of macOS's
 own start can show — not more static disassembly.
 
+## Hardware register dump (2026-10-09, `scripts/probes/smp-ctrr-dump.py`)
+
+Read-only, boot core, under m1n1 (`m1n1 base 0x10004574000`,
+`top_of_kernel_data 0x10004d84000`):
+
+| register | value | region |
+|---|---|---|
+| `CTRR_A_CTL_EL1` | `0x8000000000000001` | **locked+enabled** (kernel-text RO) |
+| `CTRR_B_CTL_EL1` | `0x8000000000000001` | **locked+enabled** |
+| `ACC_CTRR_C_CTL_EL2` | `0x8000000000000001` | **locked+enabled** |
+| `ACC_CTXR_{A,B,C}_CTL_EL2` | `0xc000000000aa02aa` | **locked+enabled** |
+| `ACC_CTXR_D_CTL_EL2` | `0xc000000000aa0199` | **locked+enabled** |
+| `CTXR_{A,B,C,D}_CTL_EL1` | `0x0` | per-core: unset |
+| `CTRR_C` (EL1 and EL2) | `[base+0x804000, base+0x80f000)` | the sled, ends at `top_of_kernel_data` |
+| `CTXR_A/B/C` | three 0x3000 slices of the sled | — |
+| `CTXR_D` | `[base-0x114000, base-0x1000)` | iBoot runtime just below m1n1 |
+| `RVBAR_EL2` | `0x1fc08c000` | LLB SRAM |
+| every core `cpu-impl-reg+0` | `…04574001` | m1n1 base, locked |
+
+Two things settle the question:
+
+- **The ACC (cluster) CTXR control values are exactly what SPTM's
+  `sptm_resume_cpu` writes** (`0xc0000000…aa…`). So iBoot already left the
+  cluster-level execute-transition regions locked and *enabled* — the CTXR
+  state a running core needs is already in place, not missing.
+- **m1n1's base is OUTSIDE every one of these locked regions** (CTRR_C ends at
+  `top`, CTXR_D ends at `base-0x1000`), yet the **boot core executes m1n1 from
+  there without trouble.** Identical register state on a secondary therefore
+  cannot be why it fails.
+
+**This kills the execute-region theory for good.** Every CTRR/CTXR/ACC region
+is locked identically for all cores, m1n1 lives outside all of them, and the
+boot core runs anyway. The per-core `CTXR_*_CTL_EL1 = 0` (the thing
+`sptm_resume_cpu` would set on a secondary) is also 0 on the running boot core,
+so that is not the gate either.
+
+**What's left is below any register we can read:** the M-core is released
+(PMGR `0x100 → 0x1f0`, status changes) but never begins fetching its reset
+vector. The reset-deassert / fetch-start step that macOS+SPTM perform after the
+same PMGR writes is the only remaining difference, and it is observable only by
+tracing macOS's own secondary start under the hypervisor — not by any static or
+boot-core-register means.
+
 Toolchain: `rea-agents` (rea.tools) driving Ghidra 12.1.4 headless; the
 `.snap` caches make follow-up queries fast. Firmware came from the J714s 26.5
 IPSW via `scripts/extract-tpmtfw.py`'s range reader.
