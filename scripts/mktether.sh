@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # SPDX-License-Identifier: MIT
 #
-# mktether.sh — pack everything the Linux dev host needs to drive the M5
+# mktether.sh - pack everything the Linux dev host needs to drive the M5
 # over USB-C into one tarball.
 #
 # The M5 is the target: while m1n1 owns it, macOS (and this repo) are not
@@ -27,11 +27,11 @@ die() { echo "ERROR: $*" >&2; exit 1; }
 DTB="vendor/linux/arch/arm64/boot/dts/apple/t6050-$BOARD.dtb"
 KERNEL="vendor/linux/arch/arm64/boot/Image.gz"
 
-[ -d vendor/m1n1/proxyclient ] || die "vendor/m1n1 missing — run: make fetch"
-[ -f "$KERNEL" ]               || die "$KERNEL missing — run: make kernel"
-[ -f "$DTB" ]                  || die "$DTB missing — run: make dtbs"
-[ -f build/initramfs.cpio.gz ] || die "initramfs missing — run: make initramfs"
-[ -f build/m1n1-chain.bin ]    || die "build/m1n1-chain.bin missing — run: CHAINLOADING=1 scripts/build-m1n1.sh && cp vendor/m1n1/build/m1n1.bin build/m1n1-chain.bin"
+[ -d vendor/m1n1/proxyclient ] || die "vendor/m1n1 missing - run: make fetch"
+[ -f "$KERNEL" ]               || die "$KERNEL missing - run: make kernel"
+[ -f "$DTB" ]                  || die "$DTB missing - run: make dtbs"
+[ -f build/initramfs.cpio.gz ] || die "initramfs missing - run: make initramfs"
+[ -f build/m1n1-chain.bin ]    || die "build/m1n1-chain.bin missing - run: CHAINLOADING=1 scripts/build-m1n1.sh && cp vendor/m1n1/build/m1n1.bin build/m1n1-chain.bin"
 
 echo "==> Staging $STAGE"
 rm -rf "$STAGE"
@@ -283,8 +283,8 @@ from this Linux host over USB-C.
 
 The rule matches m1n1's USB gadget (1209:316d) and creates:
 
-  * \`/dev/m1n1\`     — proxy channel (what the tools talk to)
-  * \`/dev/m1n1-sec\` — m1n1's own console output
+  * \`/dev/m1n1\`     - proxy channel (what the tools talk to)
+  * \`/dev/m1n1-sec\` - m1n1's own console output
 
 Your user needs read/write on those: \`sudo usermod -aG uucp \$USER\`,
 then re-login. Without the udev rule, pass \`M1N1DEVICE=/dev/ttyACM0\`.
@@ -327,7 +327,7 @@ back into proxy mode, so run \`./boot-linux.sh\` again afterwards.
 
 The previous build answered the big question: **red, green, blue and white
 all appeared.** Linux entered, enabled the MMU, parsed our devicetree,
-finished \`paging_init()\` and reached \`console_init()\` — so AIC, the
+finished \`paging_init()\` and reached \`console_init()\` - so AIC, the
 timers, memblock and the DT are all working. This is not a boot failure
 any more; it is purely a console problem.
 
@@ -336,10 +336,10 @@ is 16 rows of 256 px down the left edge:
 
 | rows | colour | meaning |
 |------|--------|---------|
-| 0-15    | RED     | kernel entry (\`head.S\`, MMU **off**) — *confirmed* |
-| 16-31   | GREEN   | C running, MMU on, before the DT is parsed — *confirmed* |
-| 32-47   | BLUE    | \`paging_init()\` returned — *confirmed* |
-| 48-63   | WHITE   | reached \`console_init()\` — *confirmed* |
+| 0-15    | RED     | kernel entry (\`head.S\`, MMU **off**) - *confirmed* |
+| 16-31   | GREEN   | C running, MMU on, before the DT is parsed - *confirmed* |
+| 32-47   | BLUE    | \`paging_init()\` returned - *confirmed* |
+| 48-63   | WHITE   | reached \`console_init()\` - *confirmed* |
 | 64-79   | CYAN    | **simpledrm probed the framebuffer successfully** |
 | 80-95   | MAGENTA | **fbcon took over the console** |
 | 96-111  | ORANGE  | \`kernel_init\` is about to exec \`/init\` |
@@ -361,10 +361,10 @@ Reading the new bands:
 - blue(112) + white(128) -> even the device nodes are present
 
 If userspace comes up, \`/init\` also prints \`dmesg | grep drm\` and the
-contents of /dev/dri — worth photographing if any text ever appears.
+contents of /dev/dri - worth photographing if any text ever appears.
 
 One caveat, stated up front so it is not mistaken for evidence: the red
-band is written with the MMU off, which is uncached — *unless* m1n1 enters
+band is written with the MMU off, which is uncached - *unless* m1n1 enters
 the kernel with the MMU and caches still on, in which case that store can
 sit in a dirty cache line and never reach the panel. So "green but no red"
 means the entry store was absorbed, **not** that entry was skipped. Every
@@ -379,7 +379,7 @@ Then photograph the left edge of the panel and report which bands appear.
     ./dump-fdt.sh          # -> fdt-final.dtb, send it to the build host
 
 This is the tree **after** every m1n1 fixup (CPU pruning, framebuffer node,
-initrd, bootargs, memory map) — not the input DTB and not the ADT. It does
+initrd, bootargs, memory map) - not the input DTB and not the ADT. It does
 everything \`boot-linux.sh\` does except the jump, so the machine stays in
 the proxy and you can run it back to back with a boot attempt.
 
@@ -394,7 +394,7 @@ about this very DART. Analyze only the runtime dump.
 ## Expected noise on first boot
 
 m1n1 prints \`Starting CPU n …  Failed!\` for every secondary. SMP is known
-broken on T6050 — secondaries never execute the reset vector. It is
+broken on T6050 - secondaries never execute the reset vector. It is
 bounded (100 ms per core, ~1.4 s total) and not fatal; that is why the
 kernel cmdline pins \`maxcpus=1\`.
 

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# omarchy-m5 dev harness — host dependency setup (macOS + Homebrew).
+# omarchy-m5 dev harness - host dependency setup (macOS + Homebrew).
 # Idempotent; safe to re-run.
 set -euo pipefail
 

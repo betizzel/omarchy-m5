@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# omarchy-m5 dev harness — build linux-asahi with the t6050 DTs overlaid.
+# omarchy-m5 dev harness - build linux-asahi with the t6050 DTs overlaid.
 #
 # Copies dt/*.dts{i,} into vendor/linux/arch/arm64/boot/dts/apple/ and
 # registers the board DTBs in that directory's Makefile (idempotent,

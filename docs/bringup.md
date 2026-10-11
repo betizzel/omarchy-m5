@@ -1,4 +1,4 @@
-# Phase 1 bring-up guide — m1n1 → kernel → TTY on M5 Pro
+# Phase 1 bring-up guide - m1n1 → kernel → TTY on M5 Pro
 
 The dev loop is tethered: an installed stage-1 m1n1 chainloads test builds
 over USB, so kernel/DT iterations never touch boot policy. Partitioning and
@@ -15,12 +15,12 @@ make kernel   # full kernel (defconfig; KCONFIG=asahi_defconfig to override)
 
 macOS quirks handled by the scripts: GNU Make/sed over the BSD versions
 (kernel scripts use GNU sed syntax BSD sed silently passes through), and
-`scripts/host-shim/` supplies the glibc headers macOS lacks (`elf.h` —
-vendored musl copy — `byteswap.h`, `copy_file_range`, `O_LARGEFILE`).
+`scripts/host-shim/` supplies the glibc headers macOS lacks (`elf.h` -
+vendored musl copy - `byteswap.h`, `copy_file_range`, `O_LARGEFILE`).
 
-## One-time on-device step (the risky part — do it once, carefully)
+## One-time on-device step (the risky part - do it once, carefully)
 
-`scripts/prep-stub.sh` automates the mechanical half — run it with sudo:
+`scripts/prep-stub.sh` automates the mechanical half - run it with sudo:
 
 ```sh
 sudo scripts/prep-stub.sh                  # stub + EFI only
@@ -30,7 +30,7 @@ sudo scripts/prep-stub.sh --linux-size 20G    # also carve the rootfs
 It shrinks the macOS container, creates the 6 GB "Omarchy" stub
 (Data+System+Preboot+Recovery volume group), clones this install's
 restore bundle / `arm64eBaseSystem.dmg` / `AdminUserRecoveryInfo.plist`
-into it (no IPSW download — everything is on-disk), and makes a 500 MB
+into it (no IPSW download - everything is on-disk), and makes a 500 MB
 EFI partition for m1n1. It prints the stub's VGID at the end. All in,
 `--linux-size N` takes N + 6.5 GB away from macOS.
 
@@ -57,7 +57,7 @@ Then, in one continuous motion:
 
 1. Shut down fully, wait ~15 s.
 2. Press and **hold** power until "Loading startup options..." (tapping
-   twice reaches the picker but *not* 1TR — `step2.sh` will refuse).
+   twice reaches the picker but *not* 1TR - `step2.sh` will refuse).
 3. Pick "Omarchy". Its recoveryOS opens a Terminal running `step2.sh`,
    which checks `bputil -d` for `: Paired` + `one true recoveryOS`, runs
    `bputil -nc` (credentials twice), then `kmutil configure-boot -c
@@ -164,10 +164,10 @@ Two loops. The tethered one is the real one; the standalone one exists
 because the target and the build host are the same laptop when no second
 machine is around.
 
-### Tethered — the normal loop (Arch ThinkPad over USB-C)
+### Tethered - the normal loop (Arch ThinkPad over USB-C)
 
 The M5 is the target, so the proxyclient has to live on the other
-machine. `scripts/mktether.sh` packs everything it needs — proxyclient,
+machine. `scripts/mktether.sh` packs everything it needs - proxyclient,
 kernel, DT, initramfs, a chainloadable m1n1, the udev rule and runners:
 
 ```sh
@@ -192,17 +192,17 @@ BOOTARGS="maxcpus=1 initcall_debug" ./boot-linux.sh
 
 Note the upstream tools take **positional** arguments
 (`linux.py <Image.gz> <dtb> [initramfs] -b "<cmdline>"`); the runners in
-the bundle wrap that. Iterations are memory-only — the installed boot
+the bundle wrap that. Iterations are memory-only - the installed boot
 object is never rewritten, and a bad boot just needs a power-cycle.
 
 Expect `Starting CPU n … Failed!` for every secondary: SMP is broken on
 T6050 and m1n1 gives each core 100 ms before moving on (~1.4 s total,
 not fatal). That is why the cmdline pins `maxcpus=1`.
 
-If proxyclient doesn't enumerate, try the other USB-C ports — the gadget
+If proxyclient doesn't enumerate, try the other USB-C ports - the gadget
 binds to one specific dwc3 port.
 
-### Standalone (no second machine — one 1TR ceremony per image)
+### Standalone (no second machine - one 1TR ceremony per image)
 
 m1n1 parses everything appended after its own image as a payload chain
 (`src/payload.c`), so the kernel, DT, initramfs and cmdline ship inside
@@ -220,7 +220,7 @@ and fails if the chain doesn't parse, so a bad `cat` never reaches the
 ceremony. Use this for milestone boots; it costs a ceremony per kernel, so
 it is not an iteration loop.
 
-Kernel cmdline for first boots: `maxcpus=1` (SMP is broken — secondaries
+Kernel cmdline for first boots: `maxcpus=1` (SMP is broken - secondaries
 never execute the reset vector), plus the M4+ WFI workaround (`idle=` param
 from linux-next, or m1n1 PR #672's auto-disable).
 
@@ -235,13 +235,13 @@ channel) and serial0 (0x505200000, Samsung UART) both need the debug cable.
 1. Extract the ADT: `devicetree.img4` lives in the booted OS's Preboot at
    `usr/standalone/firmware/devicetree.img4`. Strip the IM4P header and
    LZFSE-decompress the `bvx2` payload (macOS `libcompression` handles it).
-2. `scripts/adt2pmgr.py adt.bin > dt/t6050-pmgr.dtsi` — a fixed fork of
+2. `scripts/adt2pmgr.py adt.bin > dt/t6050-pmgr.dtsi` - a fixed fork of
    m1n1's `pmgr_adt2dt.py` (upstream crashes on T6050's die-level parent
    IDs 219/325/609, which have no device entry).
 
 Verified on J714s (macOS 26.5): 405 power domains across 6 PMGR blocks;
 real IRQs/npins for uart/i2c/spi/gpio/wdt/dockchannel; CPU topology
-15 cores (5+5+5, binned — cpu5/cpu11/cpu17 disabled in the board DTS).
+15 cores (5+5+5, binned - cpu5/cpu11/cpu17 disabled in the board DTS).
 Remaining TODO(adt) markers: AIC event region, PMU FIQ affinities,
 pinmux tables, which SPI bus carries keyboard/trackpad.
 
@@ -256,10 +256,10 @@ dockchannel console, NVMe rootfs optional for the first milestone.
 
 ## References
 
-- `docs/PLAN.md` — phase plan
-- `docs/research/kernel-boot-m5.md` — blockers (SMP, WFI, NVMe fwabi)
-- `docs/research/dualboot-partitioning.md` — stub/1TR/kmutil mechanics
-- qspqww/m1n1 `t6050-j716c-bringup` — real-hardware M5 Pro/Max notes
+- `docs/PLAN.md` - phase plan
+- `docs/research/kernel-boot-m5.md` - blockers (SMP, WFI, NVMe fwabi)
+- `docs/research/dualboot-partitioning.md` - stub/1TR/kmutil mechanics
+- qspqww/m1n1 `t6050-j716c-bringup` - real-hardware M5 Pro/Max notes
   (findings.md, bringup/t6050-j716c/LINUX_PC_BRINGUP_GUIDE.md)
-- ImAtomiskk/asahim5 — t8142 (base M5) DT + ADT dump, closest public
+- ImAtomiskk/asahim5 - t8142 (base M5) DT + ADT dump, closest public
   reference for what a hand-authored M5-gen DT looks like

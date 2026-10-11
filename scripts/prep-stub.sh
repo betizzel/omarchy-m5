@@ -1,7 +1,7 @@
 #!/bin/bash
 # SPDX-License-Identifier: MIT
 #
-# prep-stub.sh — create the "stub macOS" APFS container that carries the
+# prep-stub.sh - create the "stub macOS" APFS container that carries the
 # Omarchy boot policy on this M5 Pro (J714s), populated entirely from
 # on-disk assets (no IPSW download).
 #
@@ -11,7 +11,7 @@
 #      shape iBoot expects: Data + System (grouped) + Preboot + Recovery.
 #   3. Populates it by cloning this macOS install's restore bundle,
 #      recoveryOS image (arm64eBaseSystem.dmg), and admin credentials
-#      (AdminUserRecoveryInfo.plist) — the same files asahi-installer's
+#      (AdminUserRecoveryInfo.plist) - the same files asahi-installer's
 #      stub.py extracts from an IPSW.
 #   4. Optionally creates the EFI system partition for m1n1/U-Boot.
 #
@@ -111,7 +111,7 @@ echo "macOS container free space: ${FREE_GB} GB"
 
 # --- plan ----------------------------------------------------------------
 
-# How much do we still need to shrink macOS by? Only the shortfall —
+# How much do we still need to shrink macOS by? Only the shortfall -
 # free GPT space already sitting after disk0s2 counts toward the goal.
 read -r NEW_SIZE RESIZE_DESC <<<"$(python3 - "$STUB_SIZE" "$EFI_SIZE" "$LINUX_SIZE" <<'EOF'
 import sys, subprocess, re, plistlib
@@ -132,7 +132,7 @@ info = subprocess.run(["diskutil","info","-plist","disk0s2"],
                       capture_output=True).stdout
 total = plistlib.loads(info)["TotalSize"]
 
-# free GPT space on disk0 (bytes) — space already reclaimed outside
+# free GPT space on disk0 (bytes) - space already reclaimed outside
 # any partition, including the "(free space)" pseudo-entry format
 listing = subprocess.run(["diskutil","list","-plist","disk0"],
                          capture_output=True).stdout
@@ -213,7 +213,7 @@ if [ -z "$STUB_CT" ]; then
         step "Resizing macOS container to $NEW_SIZE bytes"
         diskutil apfs resizeContainer "$MACOS_PART" "${NEW_SIZE}B"
     else
-        echo "no resize needed — using existing free space"
+        echo "no resize needed - using existing free space"
     fi
 
     step "Creating stub APFS container ($STUB_SIZE)"

@@ -1,13 +1,13 @@
 #!/bin/bash
 # SPDX-License-Identifier: MIT
 #
-# finish-install.sh — arm the stub created by prep-stub.sh so that picking
+# finish-install.sh - arm the stub created by prep-stub.sh so that picking
 # "Omarchy" in the boot picker lands in *its* paired recoveryOS, running a
 # "Finish Installation.app" that performs the 1TR ceremony for us.
 #
 # Why this is needed: a stub System volume that only carries
 # SystemVersion.plist + bootcaches.plist looks like a normal (broken) OS to
-# iBoot — the picker boots it as an OS, finds no LocalPolicy, and offers
+# iBoot - the picker boots it as an OS, finds no LocalPolicy, and offers
 # "reinstall". Apple's install-media marker `.IAPhysicalMedia` flips that:
 # the picker boots the volume group's paired recoveryOS instead and
 # auto-launches the app named in the plist. That is exactly how
@@ -134,11 +134,11 @@ if [ "$M1N1" = "$VENDOR_M1N1" ] && [ -s vendor/m1n1/build/build_cfg.h ] \
      rebuild: CHAINLOADING=0 make m1n1"
 fi
 [ -d "$PB_MNT/$VGID/restore" ] \
-    || die "restore bundle missing at $PB_MNT/$VGID/restore — re-run prep-stub.sh"
+    || die "restore bundle missing at $PB_MNT/$VGID/restore - re-run prep-stub.sh"
 [ -f "$PB_MNT/$VGID/var/db/AdminUserRecoveryInfo.plist" ] \
-    || die "AdminUserRecoveryInfo.plist missing in the stub Preboot — re-run prep-stub.sh"
+    || die "AdminUserRecoveryInfo.plist missing in the stub Preboot - re-run prep-stub.sh"
 [ -f "$REC_MNT/$VGID/usr/standalone/firmware/arm64eBaseSystem.dmg" ] \
-    || die "arm64eBaseSystem.dmg missing in the stub Recovery — re-run prep-stub.sh"
+    || die "arm64eBaseSystem.dmg missing in the stub Recovery - re-run prep-stub.sh"
 
 # the recoveryOS authenticates against these users; bless wants one of them
 ADMIN_USERS=$(python3 -c '
@@ -247,7 +247,7 @@ fi
 
 if ! grep -q 'one true recoveryOS' /tmp/bp.txt; then
     echo
-    echo "Not in One True RecoveryOS (1TR) mode — you must press and HOLD"
+    echo "Not in One True RecoveryOS (1TR) mode - you must press and HOLD"
     echo "the power button in one continuous motion from a full power-off."
     echo "Tapping power twice reaches the picker but NOT 1TR."
     echo
@@ -283,7 +283,7 @@ echo "Wrapping up..."
 mount -u -w "$system_dir" || fail_shell "could not remount $system_dir read-write"
 
 # switch future boots off the install-media path and back to a real OS
-# entry — from here iBoot loads the m1n1 we just installed.
+# entry - from here iBoot loads the m1n1 we just installed.
 cs="$system_dir/System/Library/CoreServices"
 if [ -e "$system_dir/.IAPhysicalMedia" ]; then
     mv "$system_dir/.IAPhysicalMedia" "$system_dir/IAPhysicalMedia-disabled.plist"
@@ -334,12 +334,12 @@ step "Blessing the stub as the default boot volume"
 # bless inspects a *normal* OS volume: SystemVersion.plist visible, no
 # install-media marker. We flip both back on after it succeeds.
 if [ ! -e "$SV" ]; then
-    [ -e "$SV_DIS" ] || die "SystemVersion.plist missing from the stub — re-run prep-stub.sh"
+    [ -e "$SV_DIS" ] || die "SystemVersion.plist missing from the stub - re-run prep-stub.sh"
     mv -f "$SV_DIS" "$SV"
 fi
 if [ -e "$IAPM" ]; then mv -f "$IAPM" "$IAPM_DIS"; fi
 bless --setBoot --device "/dev/$SYS_VOL" --user "$ADMIN_USER" \
-    || die "bless failed — the ceremony cannot proceed"
+    || die "bless failed - the ceremony cannot proceed"
 
 # --- arm the install-media path -----------------------------------------
 
@@ -372,7 +372,7 @@ cat <<EOF
 Next (on-device, one continuous motion):
   1. sudo shutdown -h now      # full power off, wait ~15 s
   2. Press and HOLD the power button until "Loading startup options..."
-     (tapping twice gets you the picker but NOT 1TR — it will refuse)
+     (tapping twice gets you the picker but NOT 1TR - it will refuse)
   3. Pick "$STUB_NAME"
   4. It boots the stub's paired recoveryOS and opens a Terminal running
      Finish Installation.app -> step2.sh, which verifies Paired + 1TR,

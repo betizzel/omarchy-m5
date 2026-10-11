@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # SPDX-License-Identifier: MIT
 #
-# apply-patches.sh — apply our local m1n1/linux patches to the vendored trees.
+# apply-patches.sh - apply our local m1n1/linux patches to the vendored trees.
 #
 # vendor/ is gitignored, so anything we change upstream has to live here as a
 # patch or it is lost on the next `make fetch`.

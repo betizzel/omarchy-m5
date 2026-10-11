@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# omarchy-m5 dev harness — clone/update upstream sources into vendor/.
+# omarchy-m5 dev harness - clone/update upstream sources into vendor/.
 set -euo pipefail
 
 cd "$(dirname "$0")/.."

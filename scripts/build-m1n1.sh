@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
-# omarchy-m5 dev harness — build m1n1 for T6050.
+# omarchy-m5 dev harness - build m1n1 for T6050.
 #
 # Produces:
-#   vendor/m1n1/build/m1n1.bin   — raw stage-1 image for kmutil configure-boot
-#   vendor/m1n1/build/m1n1.macho — Mach-O variant
+#   vendor/m1n1/build/m1n1.bin   - raw stage-1 image for kmutil configure-boot
+#   vendor/m1n1/build/m1n1.macho - Mach-O variant
 #
 # CHAINLOADING=1 (default) builds a chainloadable image: the installed
 # stage-1 m1n1 loads this build over USB via proxyclient, giving a ~7s

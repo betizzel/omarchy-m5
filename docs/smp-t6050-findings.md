@@ -16,7 +16,7 @@ cache coherency.
 
 New information changes the conclusion of everything below. On macOS 26.5 the
 **Secure Page Table Monitor (SPTM) is a boot-active, signed component on T6050**
-(and on M2/M3/M4/A18 Pro/M5 — every current Apple-Silicon Mac chip *except* the
+(and on M2/M3/M4/A18 Pro/M5 - every current Apple-Silicon Mac chip *except* the
 original M1 t8103). SPTM runs at **GL2, above EL2**, and owns the page tables.
 
 Consequences, from independent static RE of the SPTM/iBoot blobs (see Prior art):
@@ -24,7 +24,7 @@ Consequences, from independent static RE of the SPTM/iBoot blobs (see Prior art)
 - **The "boot macOS as a guest under m1n1 and trace its MMIO" method cannot work
   on T6050.** SPTM intercepts the guest's page-table operations; a hypervisor can
   no longer transparently observe macOS. Our own attempt died at the Apple
-  `AVNCR_EL2`/GXF wall (autopsied in the lower half of this doc) — that was a *symptom* of this
+  `AVNCR_EL2`/GXF wall (autopsied in the lower half of this doc) - that was a *symptom* of this
   deeper architectural block, not a mere porting gap. **This leg is abandoned.**
 - **The secondary-CPU reset entry is SPTM-mediated.** On SPTM silicon the reset
   vector lands in SPTM's bootstrap (e.g. `0xfffffff0270af000` on T8132), which
@@ -32,17 +32,17 @@ Consequences, from independent static RE of the SPTM/iBoot blobs (see Prior art)
   runtime dispatcher. **Multi-die (Pro/Max) per-die secondary-CPU GL2 bring-up is
   explicitly SPTM's job.** This is the most likely reason a released T6050
   secondary **powers up but executes nothing we can observe** (everything below):
-  the core comes up in SPTM's guarded domain, and m1n1 — which is not registered
-  with SPTM as a dispatch domain — cannot direct it.
+  the core comes up in SPTM's guarded domain, and m1n1 - which is not registered
+  with SPTM as a dispatch domain - cannot direct it.
 - **The path forward is the XNU-shim, not the hypervisor.** Proposed by Sven
   Peter (CCC Dec 2025): a minimal m1n1 stub that satisfies SPTM's boot protocol
   (register a valid dispatch table, masquerade as the XNU domain, drive SPTM's
   state machine from bootstrap into running), then hands off to Linux. Secondary
   bring-up would then go through SPTM's per-die protocol, not the raw
-  PMGR+RVBAR dance that worked pre-SPTM on M1–M3.
+  PMGR+RVBAR dance that worked pre-SPTM on M1-M3.
 
 **Prior art (do not re-derive): [`antiapplefox/m5-linux`](https://github.com/antiapplefox/m5-linux)**
-has closed much of the SPTM static RE end-to-end from the 25F71 IPSW — the
+has closed much of the SPTM static RE end-to-end from the 25F71 IPSW - the
 `genter` dispatch internals, `dispatch_state_machine`, the
 `sptm_register_dispatch_table` contract, a 148-entry `(subsys, idx)` call map,
 and m1n1 scaffolding patches (chip IDs / MIDR / `features_m4` stubs / an
@@ -52,17 +52,17 @@ shim framing.
 
 **What this repo uniquely adds (complementary, not duplicate):** live T6050
 hardware. m5-linux explicitly *lacks* hardware (it lists M5 MIDR part IDs as
-"unknown — need `mrs midr_el1` on real metal"). We have the running machine: the
+"unknown - need `mrs midr_el1` on real metal"). We have the running machine: the
 real MIDR/MPIDR, the PMGR `CPU_START` layout and the `configMiscCores` release
 sequence (below), the ADT-derived device trees (`dt/`), and the on-hardware m1n1
 USB fix for T6050 (`patches/m1n1/0005`). The measurements below remain valid and
 useful **as the hardware-side ground truth** the shim work will need to validate
-against — they are just no longer a route to a *hypervisor* trace.
+against - they are just no longer a route to a *hypervisor* trace.
 
 ### What SPTM does with a secondary CPU (RE'd from the T6050 SPTM binary, 2026-10-10)
 
-This is the one piece the m5-linux static RE does **not** cover — it focused on
-the primary boot handoff and peripherals, not secondary-CPU bring-up — so it is
+This is the one piece the m5-linux static RE does **not** cover - it focused on
+the primary boot handoff and peripherals, not secondary-CPU bring-up - so it is
 net-new and directly on our SMP question. Reversed from the panic/assert strings
 in the real `sptm.t6050.release` Mach-O (the same callee-side method m5-linux
 used; `~/guest/sptm.macho`), cross-referenced with their `(subsys, idx)` map:
@@ -78,14 +78,14 @@ used; `~/guest/sptm.macho`), cross-referenced with their `(subsys, idx)` map:
   There is also an `ignore-secondary` concept (an ADT/boot property SPTM reads,
   not present in our Linux DT).
 - **Why this matches our hardware symptom exactly.** When we release a secondary
-  the old (pre-SPTM) way — PMGR `CPU_START` write, secondary resets toward
-  m1n1's locked RVBAR — on T6050 the core instead enters **SPTM's** reset path
+  the old (pre-SPTM) way - PMGR `CPU_START` write, secondary resets toward
+  m1n1's locked RVBAR - on T6050 the core instead enters **SPTM's** reset path
   in its guarded domain. With no prior `sptm_register_cpu` for it and no XNU
   dispatch domain registered, SPTM has nowhere valid to send it, so it never
   runs anything m1n1 can observe. That is the concrete form of "powers up,
   executes nothing" documented below.
 - **Consequence for any fix.** Bringing up SMP on T6050 is not a reset-vector
-  tweak; the boot object must be SPTM-aware — register as the XNU domain, then
+  tweak; the boot object must be SPTM-aware - register as the XNU domain, then
   drive `sptm_register_cpu` (idx `0x12`) per core with a valid physical/cluster
   ID before (or as part of) releasing it. This is the SMP-specific slice of the
   XNU-shim and the natural thing to split with the m5-linux / Aurora track.
@@ -96,18 +96,18 @@ assert string `__TEXT.__cstring:0xfffffff0270062f5`; disassembled with
 `aarch64-linux-gnu-objdump`). Its body:
 1. converts each of the CPU's register ranges to 16 KB page frames
    (`(addr + 0x3fff) >> 14`);
-2. **retypes those MMIO frames into SPTM ownership** — three `bl 0xfffffff0270ddb00`
+2. **retypes those MMIO frames into SPTM ownership** - three `bl 0xfffffff0270ddb00`
    (the retype/claim helper), one per range;
 3. records the frames into a per-CPU structure (`str x,[x24,#0x1440/#0x1448/…]`);
 4. marks the CPU registered with a release-store flag (`mov w8,#1; stlrb w8,[x24]`),
 5. all behind a cluster of assert/panic sites (`bl 0xfffffff0270fc830`,
-   `0xfffffff0270fc870` with code `0x16`) — the `VIOLATION_*CPU*` failures.
+   `0xfffffff0270fc870` with code `0x16`) - the `VIOLATION_*CPU*` failures.
 
 So registration is not a formality: SPTM *takes ownership of the core's register
 pages*. A bare PMGR release does none of this, which is the mechanism behind the
 hardware symptom below. Next RE step: the `sptm_cpu_init` handler
 (`xref @ 0xfffffff0270e0f78`) and the secondary **entry** vector, best anchored
-against live `mrs midr_el1` / cluster IDs from this machine — which we have and
+against live `mrs midr_el1` / cluster IDs from this machine - which we have and
 the static-only track does not.
 
 Everything from here down is the original hardware investigation, preserved.
@@ -163,7 +163,7 @@ Everything from here down is the original hardware investigation, preserved.
      and `EDPCSRhi` hangs the bus.
    - These also hang the bus: `cpm-impl-reg+0x40f8` (read or write), which
      is macOS `restoreACC`'s `0xe440f8` and m1n1 cpufreq's `+0x440f8` on
-     M1–M3; and scans of `cpu-impl-reg+0..0x200`.
+     M1-M3; and scans of `cpu-impl-reg+0..0x200`.
 6. **Things that are not the cause:**
    - Chainload and heap placement. They are real issues (the heap must stay
      above the window, as in GravityLinux `e779ec7`), but SMP also fails on
@@ -208,7 +208,7 @@ a core executing m1n1. Scratch the "execute-region never set" theory.
 - iBoot loads SPTM only on the **kernelcache** path (`lay_out_sptm_objects`,
   `sptm-path`, tied to `load_kernelcache`). m1n1 is installed `--raw`
   (`kmutil … --raw --entry-point 2048`), so it takes iBoot's raw-image path
-  and **no SPTM is loaded at all** — there is no SPTM resume path on our boot.
+  and **no SPTM is loaded at all** - there is no SPTM resume path on our boot.
 - iBoot's raw path builds the 48 KiB WFI sled in DRAM and locks a set of
   CTRR/CTXR regions through one generic routine
   `FUN(index, lower, upper, pagecount≤256, …)` (`0x100c1c9e41c`), which
@@ -217,7 +217,7 @@ a core executing m1n1. Scratch the "execute-region never set" theory.
 - The MMIO "RVBAR" at `cpu-impl-reg+0` reads m1n1-base on **every** core
   including the boot core, yet a crumb planted at that target never runs on a
   secondary. So the secondary does **not** fetch from the MMIO-RVBAR vector.
-- The architectural `RVBAR_EL2` is `0x1fc08c000` — LLB's SRAM link base. That
+- The architectural `RVBAR_EL2` is `0x1fc08c000` - LLB's SRAM link base. That
   SRAM hangs the proxy bus on read (it is firmware-protected). LLB's reset
   vector there is the standard relocation stub; its secondary path runs from
   that protected SRAM.
@@ -250,7 +250,7 @@ SPTM is the one piece of the macOS reset path that *is* in a readable blob
 
 - **One reset vector for all cores.** SPTM's Mach-O `LC_UNIXTHREAD` entry is
   `0xfffffff0270ac388` (`__TEXT_EXEC`). It gates first-core vs. later-core on
-  a global flag (`DAT_…0ae008`), so every core — boot and secondary — resets
+  a global flag (`DAT_…0ae008`), so every core - boot and secondary - resets
   to the *same* SPTM entry.
 - **It is heavyweight EL2 bring-up.** At `currentel == EL2` it sets
   `vbar_el1 = 0xfffffff0270ad000`, ORs host/VHE bits into `HCR_EL2`
@@ -267,13 +267,13 @@ SPTM is the one piece of the macOS reset path that *is* in a readable blob
 **Why this matters for m1n1.** On macOS the secondary reset vector points at
 this SPTM entry, which does the EL2/MMU/vbar setup and only then hands to the
 OS. m1n1's own `_vectors_start` does equivalent setup and the **boot** core
-reaches it fine from iBoot's cold hand-off — so m1n1 can bootstrap a core from
+reaches it fine from iBoot's cold hand-off - so m1n1 can bootstrap a core from
 reset. The unresolved gap is purely that a *released secondary* never executes
 its reset vector at all (proven: no crumb, no watchdog write), while on macOS
 the identical PMGR release lands the core in SPTM. That difference is a live,
 per-core property (what state the core resets into, whether the PMGR release
 fully deasserts reset on an M-core), which only a hypervisor trace of macOS's
-own start can show — not more static disassembly.
+own start can show - not more static disassembly.
 
 ## Hardware register dump (2026-10-09, `scripts/probes/smp-ctrr-dump.py`)
 
@@ -289,7 +289,7 @@ Read-only, boot core, under m1n1 (`m1n1 base 0x10004574000`,
 | `ACC_CTXR_D_CTL_EL2` | `0xc000000000aa0199` | **locked+enabled** |
 | `CTXR_{A,B,C,D}_CTL_EL1` | `0x0` | per-core: unset |
 | `CTRR_C` (EL1 and EL2) | `[base+0x804000, base+0x80f000)` | the sled, ends at `top_of_kernel_data` |
-| `CTXR_A/B/C` | three 0x3000 slices of the sled | — |
+| `CTXR_A/B/C` | three 0x3000 slices of the sled | - |
 | `CTXR_D` | `[base-0x114000, base-0x1000)` | iBoot runtime just below m1n1 |
 | `RVBAR_EL2` | `0x1fc08c000` | LLB SRAM |
 | every core `cpu-impl-reg+0` | `…04574001` | m1n1 base, locked |
@@ -298,7 +298,7 @@ Two things settle the question:
 
 - **The ACC (cluster) CTXR control values are exactly what SPTM's
   `sptm_resume_cpu` writes** (`0xc0000000…aa…`). So iBoot already left the
-  cluster-level execute-transition regions locked and *enabled* — the CTXR
+  cluster-level execute-transition regions locked and *enabled* - the CTXR
   state a running core needs is already in place, not missing.
 - **m1n1's base is OUTSIDE every one of these locked regions** (CTRR_C ends at
   `top`, CTXR_D ends at `base-0x1000`), yet the **boot core executes m1n1 from
@@ -315,7 +315,7 @@ so that is not the gate either.
 (PMGR `0x100 → 0x1f0`, status changes) but never begins fetching its reset
 vector. The reset-deassert / fetch-start step that macOS+SPTM perform after the
 same PMGR writes is the only remaining difference, and it is observable only by
-tracing macOS's own secondary start under the hypervisor — not by any static or
+tracing macOS's own secondary start under the hypervisor - not by any static or
 boot-core-register means.
 
 Toolchain: `rea-agents` (rea.tools) driving Ghidra 12.1.4 headless; the
@@ -335,7 +335,7 @@ secondary under the m1n1 hypervisor. Progress:
   `Running proxy`, and re-enumerates `/dev/m1n1`.
 - **The SPTM hosting path exists upstream**, not yet merged: PR #695
   (`hv_sptm`: emulate the IMPDEF sysregs SPTM uses on M4+; virtualise SPRR/GXF
-  exception regs; **copy CTRR/CTXR to secondary cores** — Sven: "SPTM expects
+  exception regs; **copy CTRR/CTXR to secondary cores** - Sven: "SPTM expects
   the secondary cores to come up with correct CTRR values") and PR #698
   (basic nested virt + a loader that stages XNU macho + SPTM + TXM +
   TrustCache + ADT + bootargs as a guest via `run_guest`, `xnu_mode`).
@@ -345,13 +345,13 @@ Progress (2026-10-10): **the SPTM-capable m1n1 builds and runs on T6050.**
 `pr698` (= main + PR#695 + PR#698) + patches 0003/0004/0005 (0001/0002 not
 needed for a bare proxy boot; main already upstreamed the T6050 DAPF skip)
 builds, and `v2.0.0-4-ga8b1a` chainloads to `Running proxy` with `/dev/m1n1`
-re-enumerating — the hypervisor base with SPTM/GXF emulation, verified on hw.
+re-enumerating - the hypervisor base with SPTM/GXF emulation, verified on hw.
 
 J714s guest objects (26.5 BuildManifest): kernelcache `kernelcache.release.mac17j`,
 `sptm.t6050.release` (have it), `txm.macosx.release`, TrustCache
-`Firmware/094-56195-095.dmg.trustcache` — all in the IPSW.
+`Firmware/094-56195-095.dmg.trustcache` - all in the IPSW.
 
-**Decision point — how to stage the macOS guest.** `run_guest.py`'s
+**Decision point - how to stage the macOS guest.** `run_guest.py`'s
 `load_raw`/`load_macho` pulls SEPFW, **TrustCache, the ADT and bootargs from the
 *running* m1n1's boot** (`self.u.adt["chosen"]["memory-map"]`). On our boot
 those belong to the **Omarchy stub + m1n1**, not macOS, so a guest XNU gets the
@@ -367,7 +367,7 @@ wrong trust/ADT/bootargs. Two ways:
 Remaining, to actually trace (multi-session, T6050-SPTM is the risk):
 1. Build `main + PR#695 + PR#698 + our patches` (0002 hv-timer, 0003 wcslen,
    0004 chainload/wdt, 0005 usb; 0001 kboot not needed to host macOS). The
-   patches need path fixups — main moved `src/hv.c` → `src/hv/`.
+   patches need path fixups - main moved `src/hv.c` → `src/hv/`.
 2. Assemble the macOS guest from this install's boot objects (SPTM
    `sptm.t6050.release`, the XNU kernelcache, TXM, TrustCache, the runtime
    ADT, bootargs) and boot it under the hv.
@@ -383,7 +383,7 @@ it on T6050 ("Running proxy", USB up), extracted + LZFSE-unwrapped the macOS
 objects from the 26.5 IPSW (`xnu.macho` 115 MB, `sptm.macho`, `txm.macho`,
 restore trust cache), and ran `run_guest.py -P --sptm --txm xnu`. Result:
 
-- `SPRR/GXF: emulating in EL2` activates — the SPTM path is live on T6050.
+- `SPRR/GXF: emulating in EL2` activates - the SPTM path is live on T6050.
 - m1n1's own `smp_start_secondaries()` **fails for all 14** (the very bug we
   are chasing): the hv cannot host the guest on real secondaries, only emulate
   guest starts by trapping PMGR on the boot core.

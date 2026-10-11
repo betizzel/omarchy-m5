@@ -39,7 +39,7 @@ HEADER = """// SPDX-License-Identifier: GPL-2.0+ OR MIT
 /*
  * PMGR power domains for the Apple T6050 "M5 Pro" SoC
  *
- * GENERATED from the on-device ADT by scripts/adt2pmgr.py — do not edit
+ * GENERATED from the on-device ADT by scripts/adt2pmgr.py - do not edit
  * by hand; regenerate when the ADT changes (macOS updates can revise it).
  *
  * Copyright The Asahi Linux Contributors / omarchy-m5 contributors

@@ -7,5 +7,5 @@ build/
 __pycache__/
 *.pyc
 
-# Working handoff notes — kept locally, not part of the published repo
+# Working handoff notes - kept locally, not part of the published repo
 docs/HANDOFF*.md

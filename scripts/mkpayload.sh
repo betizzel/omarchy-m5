@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # SPDX-License-Identifier: MIT
 #
-# mkpayload.sh — assemble a self-contained m1n1 boot object:
+# mkpayload.sh - assemble a self-contained m1n1 boot object:
 #
 #   m1n1.bin | chosen.bootargs=… | Image.gz | t6050-j714s.dtb | initramfs.cpio.gz
 #
@@ -10,8 +10,8 @@
 # lines), so a plain `cat` in the right order is the whole format.
 #
 # Two ways to use the result:
-#   1. Tethered   — proxyclient chainload.py build/m1n1-payload.bin
-#   2. Standalone — sudo scripts/finish-install.sh --m1n1 build/m1n1-payload.bin
+#   1. Tethered   - proxyclient chainload.py build/m1n1-payload.bin
+#   2. Standalone - sudo scripts/finish-install.sh --m1n1 build/m1n1-payload.bin
 #                   then repeat the 1TR ceremony. No second machine needed,
 #                   but every kernel change costs a ceremony, so use this for
 #                   milestone boots, not for iteration.
@@ -61,11 +61,11 @@ DTB="vendor/linux/arch/arm64/boot/dts/apple/t6050-$BOARD.dtb"
 
 die() { echo "ERROR: $*" >&2; exit 1; }
 
-[ -f "$M1N1" ]   || die "$M1N1 missing — run: CHAINLOADING=0 make m1n1"
-[ -f "$KERNEL" ] || die "$KERNEL missing — run: make kernel"
-[ -f "$DTB" ]    || die "$DTB missing — run: make dtbs"
+[ -f "$M1N1" ]   || die "$M1N1 missing - run: CHAINLOADING=0 make m1n1"
+[ -f "$KERNEL" ] || die "$KERNEL missing - run: make kernel"
+[ -f "$DTB" ]    || die "$DTB missing - run: make dtbs"
 if [ "$USE_INITRAMFS" = 1 ]; then
-    [ -f "$INITRAMFS" ] || die "$INITRAMFS missing — run: make initramfs"
+    [ -f "$INITRAMFS" ] || die "$INITRAMFS missing - run: make initramfs"
 fi
 
 # build_cfg.h describes the vendor tree's last build, so it only tells us

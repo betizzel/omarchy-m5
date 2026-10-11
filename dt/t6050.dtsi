@@ -18,7 +18,7 @@
  *     (see t6050-pmgr.dtsi).
  *
  * Boot CPU is cpu0 (an M-core). Secondary cores currently do NOT start
- * (docs/research/kernel-boot-m5.md §6.1) — boot with maxcpus=1 until the
+ * (docs/research/kernel-boot-m5.md §6.1) - boot with maxcpus=1 until the
  * AppleT6050PMGR enableCPUCore sequence is reverse-engineered.
  *
  * Copyright The Asahi Linux Contributors / omarchy-m5 contributors
