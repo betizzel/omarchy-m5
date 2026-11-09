@@ -43,8 +43,17 @@ case "$KERNEL_FLAVOR" in
             DTB=apple/t6050-j714s-gpu-simpledrm.dtb
         fi
         ;;
+    aurora-installer)
+        # The exact kernel the omarchy-mac-installer J714s image ships (N1
+        # Wi-Fi/BT, T6050 PHYs, GPU). Its own DT layout: not stacked on
+        # patches/linux-aurora. See docs/installer-stones.md.
+        BASE_SHA=34f2f5bb4d03bbe3acce237cb67af8dc9972aa4a
+        PATCH_DIRS=(patches/linux-aurora-installer)
+        FRAGMENTS=(configs/aurora-j714s-installer.config)
+        DTB=apple/t6050-j714s.dtb
+        ;;
     *)
-        echo "ERROR: unknown KERNEL_FLAVOR=$KERNEL_FLAVOR (use aurora, aurora-gpu or aurora-gpu-simpledrm)" >&2
+        echo "ERROR: unknown KERNEL_FLAVOR=$KERNEL_FLAVOR (use aurora, aurora-gpu, aurora-gpu-simpledrm or aurora-installer)" >&2
         exit 1
         ;;
 esac
@@ -150,6 +159,17 @@ if [ "$SOURCE_FLAVOR" = aurora-gpu ]; then
                     CONFIG_DRM_ASAHI_G15 CONFIG_DRM_ASAHI_G16 CONFIG_DRM_ASAHI_G18
                     CONFIG_DRM_ASAHI_M5 CONFIG_DRM_APPLE_DCP_T8132
                     CONFIG_APPLE_T8132_PLATFORM_HANDOFF"
+fi
+if [ "$KERNEL_FLAVOR" = aurora-installer ]; then
+    # Mirrors the installer's kernel/j714s-required.config (modular root
+    # stack via initramfs; DCP and SMC power stay off in this freeze).
+    REQUIRED_Y="CONFIG_EFI CONFIG_EFI_STUB CONFIG_MODULES CONFIG_BLK_DEV_INITRD
+                CONFIG_DEVTMPFS CONFIG_DEVTMPFS_MOUNT CONFIG_NVME_APPLE
+                CONFIG_APPLE_SART CONFIG_APPLE_DART CONFIG_EXT4_FS
+                CONFIG_CRYPTO_AES CONFIG_VFAT_FS CONFIG_DRM_ASAHI
+                CONFIG_GPIO_MACSMC CONFIG_SENSORS_MACSMC_HWMON
+                CONFIG_ARM_APPLE_SOC_CPUFREQ"
+    REQUIRED_UNSET="CONFIG_POWER_RESET_MACSMC CONFIG_MACSMC_POWER"
 fi
 
 config_ok() {

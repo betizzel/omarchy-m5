@@ -17,6 +17,10 @@ kernel now drives the **internal display through DCP**, including a readable
 console, brightness control and display off/on. This is a kernel alternative,
 not the Aura bootloader trial; it uses the existing raw-m1n1 boot path.
 
+> **N1 Wi-Fi/Bluetooth, T6050 PHYs and the installer image's kernel/loader**
+> are an isolated extra flavor: [`docs/installer-stones.md`](docs/installer-stones.md)
+> (`make kernel-aurora-installer`, `make m1n1-installer`).
+
 > **Reviewing this?** Start with **[`FOR-AURORA.md`](FOR-AURORA.md)** - the three
 > things worth your time, and what to skip.
 
