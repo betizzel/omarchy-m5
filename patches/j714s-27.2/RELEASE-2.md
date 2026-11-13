@@ -1,7 +1,12 @@
 # omarchy-j714s 2: what is left
 
-Release 2 of the one J714s image (27.2 non-beta stub, Mach-O Stage 1). Prepared offline on
-2026-11-13 while release 1 was being installed. Not published.
+Release 2 of the one J714s image (27.2 non-beta stub, Mach-O Stage 1). **Published 2026-11-13 as
+the prerelease [`omarchy-j714s-2`](https://github.com/betizzel/omarchy-m5/releases/tag/omarchy-j714s-2)**
+(kernel and Aura v272-3; runs in `installer/README.md`). Its packages boot on TripleU613's J714s
+(15 CPUs, GPU 26B123, eDP 120 Hz, Wi-Fi, ANE READY with the pin, HDMI-A-1 present, camera
+setfiles collected). Known issues: no built-in sound card on 27.2 (the AOP never comes up; likely
+fixed by aurora-silicon/linux #1645, merged after a34d26c2, for the next kernel) and `ufw.service`
+fails. The rest of this file is the checklist as it was worked through.
 
 ## Ready now
 
@@ -66,7 +71,7 @@ git -C /tmp/t rev-parse 'HEAD^{tree}' > installer/patches-j714s-r2/TREE
    `patches-j714s-r2`.
 3. `installer-app.yml` defaults to release 1's engine (`b25a51d6df57`); pass the 0010 engine.
 
-**Recovery app CI for release 2 (done 2026-11-13):** `installer-recovery.yml` run 43477703681 on `1afdb5f` with `upstream-27.3 j714s j714s-r2` succeeded; artifact `native-recovery-input` id 14062718355, sha256 `15143a71974e7cfd4c3927c0b0a52c4b458ad9bc512405843f8ed12a4b3ca797`. Step 2 above (provenance block) still to do.
+**Recovery app CI for release 2 (done 2026-11-13):** `installer-recovery.yml` run 43477703681 on `1afdb5f` with `upstream-27.3 j714s j714s-r2` succeeded; artifact `native-recovery-input` id 14062718355, sha256 `15143a71974e7cfd4c3927c0b0a52c4b458ad9bc512405843f8ed12a4b3ca797`. Step 2 above: done (patches-j714s-r2 0002).
 
 **Correction:** the release-1 boot loop after a correct enrolment was the Stage 2 → U-Boot NVMe hand-off (aura #213), see `docs/install-failure-2026-11-13.md`. Release 2's Aura `22b71758` has the fix.
 

@@ -45,32 +45,34 @@ external display fix) has not booted yet. -7 has been installed and booted end t
 
 ## Try it
 
+**One image, one installer: [omarchy-j714s 2](https://github.com/betizzel/omarchy-m5/releases/tag/omarchy-j714s-2)**
+(prerelease). It runs on a Mac, not from a Linux PC.
+
 You need:
 
 - A **MacBook Pro 14-inch, M5 Pro** (J714s). Not M5 Max, not the 16-inch, not yet.
-- **macOS 27.3 beta 1 or newer** on it.
-- About **35 GB free** on the Mac's disk.
-- A Linux PC and a USB-C cable for the first setup.
+- **macOS 27.2 or newer** on it, FileVault on, an administrator account.
+- About **35 GB free** on the Mac's disk, the charger, and about an hour.
 
-Steps:
+Steps (the release page has every detail):
 
-1. **Set up the Mac once** so it can boot Linux:
-   follow [`docs/bringup.md`](docs/bringup.md). This is the only fiddly part.
-2. **Download the image** on your PC:
-   ```sh
-   gh release download j714s-developer-image-2026.11.11-7 -R betizzel/omarchy-m5
-   cat omarchy-2026.11.11-7-*.zip.part0 omarchy-2026.11.11-7-*.zip.part1 \
-     > omarchy-2026.11.11-aarch64-apple-silicon-mac-edge-os-package.zip
-   sha256sum -c SHA256SUMS --ignore-missing
-   ```
-3. *(Optional, for the experimental upstream image's camera)* in macOS run
-   [`tools/camera-setfiles/save-camera-setfiles.py`](tools/camera-setfiles/save-camera-setfiles.py)
-   and copy its `apple/` folder into `/usr/lib/firmware/` on the Mac's Linux.
-4. **Write it to the Mac** from Linux running on the Mac, as root:
-   ```sh
-   tools/install-image/install-from-linux.sh omarchy-2026.11.11-*.zip /usr/lib/firmware
-   ```
-5. **Reboot.** First boot sets things up, then asks for your name and password.
+1. **Download** the installer package from the release (online: small; offline: the `.partN`
+   files joined) and check it against `SHA256SUMS`.
+2. **Install and run** Omarchy Installer. It shrinks macOS, adds a new startup disk (Apple's 27.2
+   firmware, downloaded from Apple) and writes Omarchy.
+3. **Finish setup in Recovery:** shut down, hold the power button, pick the **Omarchy with the
+   logo icon**, sign in, click **Install** in Omarchy's own "Finish setup" window and wait (up to
+   30 minutes). Don't use Startup Security Utility.
+4. **Restart.** Each boot pauses about 15 seconds at the logo. First boot asks for a disk password,
+   then your name and password.
+
+Known gaps on 27.2: no built-in sound yet (speakers, headphone jack, microphones; fix planned for
+the next kernel). To go back: hold the power button at startup and pick macOS.
+
+Older images are **superseded** by omarchy-j714s 2 and no longer the way to install:
+`j714s-developer-image-2026.11.11-7` (stable, 27.3 beta stub, installed from Linux with
+`docs/bringup.md`), the `upstream-2026.11.1x-N` developer images, and `omarchy-j714s 1` (boot-loops
+after install; fixed in 2). The table above still describes those two older images.
 
 Stuck? Open an [issue](https://github.com/betizzel/omarchy-m5/issues) and paste what you see.
 

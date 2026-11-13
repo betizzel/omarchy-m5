@@ -124,20 +124,28 @@ Left out of the set: `linux-aurora-headers` (no headers role in the j714s profil
 
 Checked: engine overlay tests (426), engine tooling tests, `test/all`, image-builder tests, the Recovery fixtures and build on macOS-26 (throwaway run 43369240212). The engine's config fill is byte-identical to aura's `fill_stage1_config.py` on the real 27.2 Aura build, `aura-boot.macho` passes the layout check (`aura.macho` does not), and aura pads the carried object to kcrz 153141248, the value this Mac's 2026-11-07 Mach-O trial enrolled. Not booted on any J714s.
 
-## omarchy-j714s 2 (prepared 2026-11-13, not built as an image)
+## omarchy-j714s 2 (built 2026-11-13)
 
 Patch set [`patches-j714s-r2/`](patches-j714s-r2) goes on top of `patches/`,
-`patches-upstream-27.3/` and `patches-j714s/` 0001-0010 (tree in its `TREE`). It changes only the
-package set. `patches-j714s` 0008 (15000 ms Stage 1 proxy window, a `compress` switch that stays
-on) and 0009 (the Finish setup instructions) do
-change the Recovery app, so its provenance needs a new macOS run before an image; 0010 (engine
-`v0.9.2-omarchy.20261113.774d9abc59d3`) collects the J714s camera setfiles and light-sensor
-calibration.
+`patches-upstream-27.3/` and `patches-j714s/` 0001-0010 (tree in its `TREE`). With `patches-j714s`
+0008 (15000 ms Stage 1 proxy window, a `compress` switch that stays on), 0009 (the Finish setup
+instructions) and 0010 (engine `v0.9.2-omarchy.20261113.774d9abc59d3`: the J714s camera setfiles
+and light-sensor calibration).
 
 | # | What |
 | --- | --- |
-| 0001 | Two new support roles, `speakerguardd-v2` and `aurora-speaker-upgrade` (20 roles, as hyprland-m5 and aurora-sep were added); the re-pinned `linux-aurora 7.3.0.aurora17.v272-2` (integration/aurora a34d26c2) and `m1n1-aurora 1.6.1.aurora24.v272-2` (Aura 22b71758); `omarchy-aurora-firmware 20261014.j714s8` (one speaker path, the v2 UCM condition, the speaker auto-switch, VRR range on, first-boot camera setfile); the kernel qualification pins follow v272-2 |
+| 0001 | Two new support roles, `speakerguardd-v2` and `aurora-speaker-upgrade` (20 roles); `omarchy-aurora-firmware 20261014.j714s8` (one speaker path, the v2 UCM condition, the speaker auto-switch, VRR range on, first-boot camera setfile); kernel and Aura v272-2 (later replaced by 0003) |
+| 0002 | The Recovery app built from this set: `installer-recovery.yml` run 43477703681, artifact 14062718355 (zip `15143a71…`), inventory `7347ba8a…`, Recovery tree `2f10aee7`, commit `f3375020` |
+| 0003 | `linux-aurora 7.3.0.aurora17.v272-3` (the 27.2 ANE pin, FatBoy721's J714s HDMI) and `m1n1-aurora 1.6.1.aurora24.v272-3` (Aura 22b71758 with #213, FatBoy721's fixed DP PHY tunables), from ce20db7; set `j714s-dev-runtime-39ff82133d63`; qualification pins `7.3.0-17.v272-3-ARCH` |
 
-What is left (the Recovery app's macOS run and provenance, the first 27.2 boot's ANE pin, the
-DCP UUID if it differs) is in
+Built (2026-11-13):
+- Engine: release `engine-v0.9.2-omarchy.20261113.774d9abc59d3`.
+- Inputs: release `installer-build-inputs-j714s-96a3ddc4c077` (finish-inputs on the tree `rebuild-installer-tree.sh DEST upstream-27.3 j714s j714s-r2` makes, HEAD 4911902). `717e8649f3af` (v272-2) is superseded; it fed only check run 43479464407.
+- Image: `installer-image.yml` run 43490619162 (headSha 3ae33a1, `image-version` 2) → release `j714s-developer-image-omarchy-j714s-2`, `omarchy-j714s-2-aarch64-apple-silicon-mac-os-package.zip` sha256 `e0141d54442be9422f7fd5ea157b0ccf84db3623ce92f931e5f5f46b8cf20aa6`. Inspection and provenance checks passed; `m1n1/boot-ctxr.bin` is m1n1-aurora v272-3's Stage 2 (`1.0.0b13-g22b71758`).
+- update-check: run 43503843852.
+- App: `installer-app.yml` run 43503847960 → prerelease `omarchy-j714s-2`.
+
+Release 2's packages boot on TripleU613's J714s (installed over release 1 with pacman). Known
+issues on 27.2: no built-in sound card (the AOP doesn't come up; aurora-silicon/linux #1645 is the
+likely fix) and `ufw.service` fails. See
 [`patches/j714s-27.2/RELEASE-2.md`](../patches/j714s-27.2/RELEASE-2.md).
