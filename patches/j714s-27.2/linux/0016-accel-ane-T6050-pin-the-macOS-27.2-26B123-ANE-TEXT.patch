@@ -1,7 +1,7 @@
 From 795d53a9fac1a9688811b7f4f2862aea9d35f16f Mon Sep 17 00:00:00 2001
 From: TripleU <182648541+TripleU613@users.noreply.github.com>
 Date: Fri, 13 Nov 2026 13:06:46 -0500
-Subject: [PATCH 16/18] accel/ane: T6050: pin the macOS 27.2 (26B123) ANE TEXT
+Subject: [PATCH 16/19] accel/ane: T6050: pin the macOS 27.2 (26B123) ANE TEXT
 
 Read from the first J714s 27.2 boot: H17 ANE: preloaded TEXT sha256 b15dd8fb3367a6d5a77935a62b4c6c9d6a6e166cd11c1b2a886c65f114d7c40e.
 

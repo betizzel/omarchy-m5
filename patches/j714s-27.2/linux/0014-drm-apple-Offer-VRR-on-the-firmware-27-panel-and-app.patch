@@ -1,7 +1,7 @@
 From 0bb98db8e302cc614539f47798bba265f0f7b8af Mon Sep 17 00:00:00 2001
 From: Rolando Trevino <rolotrealanis@gmail.com>
 Date: Thu, 12 Nov 2026 12:29:34 -0500
-Subject: [PATCH 14/18] drm/apple: Offer VRR on the firmware 27 panel and apply
+Subject: [PATCH 14/19] drm/apple: Offer VRR on the firmware 27 panel and apply
  VRR_ENABLED (J716s daily)
 
 The T6050 ProMotion panel reports its 120 Hz timing with both

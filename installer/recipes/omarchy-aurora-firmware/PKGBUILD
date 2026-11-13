@@ -1,5 +1,5 @@
 pkgname=omarchy-aurora-firmware
-pkgver=20261014.j714s8
+pkgver=20261014.j714s9
 pkgrel=1
 pkgdesc='Order Apple peripheral admission after device firmware extraction'
 arch=('aarch64')
@@ -30,7 +30,7 @@ source=(aurora-firmware-order.conf aurora-peripheral-firmware.sh
         # liblzfse (BSD-3-Clause), for apfs_ro: macOS keeps many System files LZFSE-compressed; not in Arch Linux ARM
         "lzfse::git+https://github.com/lzfse/lzfse.git#commit=e634ca58b4821d9f3d560cdc6df5dec02ffc93fd")
 sha256sums=('e2d6d6008bfde44ba871da2fcaae22b409d52ea8695fcf672bc3b06d786f823e'
-            'abd1fd7f2c40561311356c5748f964687e45771ad461ef7786fbdbda2aff530d'
+            '54332b5909b40b0259ac7bfc35d1ef64fe33c899dd7ec2ef1f11fe3c6e0cc143'
             '328c689685f21bb760f3bea7984b42060a04f6a386d4a35b8237de95328ccc31'
             '4faf1f0cb3ba91dd5e1914c663114b99836f0068f43e3ebbcb07df1365c45882'
             '8ef54ee9d0f438864f2a99bbb8c0cf53aa8b7e0e217bd74b2fd324ff0b882a32'

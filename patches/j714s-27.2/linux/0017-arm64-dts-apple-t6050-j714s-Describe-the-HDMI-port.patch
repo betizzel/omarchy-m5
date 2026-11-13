@@ -1,7 +1,7 @@
 From 2cbc4bc52fd33487b7df608631f00ddd2d277dcc Mon Sep 17 00:00:00 2001
 From: FatBoy721 <203330788+FatBoy721@users.noreply.github.com>
 Date: Fri, 13 Nov 2026 13:30:00 -0500
-Subject: [PATCH 17/18] arm64: dts: apple: t6050-j714s: Describe the HDMI port
+Subject: [PATCH 17/19] arm64: dts: apple: t6050-j714s: Describe the HDMI port
 
 The J714s HDMI port: dcpext3 -> the atc3 display crossbar -> ATC3 as a fixed
 four-lane DP PHY (the J714sAP ADT has no usb-drd3) -> the on-board DP-to-HDMI

@@ -1,7 +1,7 @@
 From 9201da58be4e7dddd085314552e017621addcfce Mon Sep 17 00:00:00 2001
 From: Jens Axboe <axboe@kernel.dk>
 Date: Wed, 11 Nov 2026 12:00:39 -0700
-Subject: [PATCH 05/18] drm/asahi: t6050: identify the 27.2 (26B8125) G17S
+Subject: [PATCH 05/19] drm/asahi: t6050: identify the 27.2 (26B8125) G17S
  firmware of the K114/K116
 
 Applies on top of aurora-silicon/linux PR #1173.

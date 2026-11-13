@@ -7,6 +7,10 @@ boot object with no `__TEXT_BOOT_EXEC` (`kcbz` 0, so iBoot does not start SPTM),
 `kmutil configure-boot --compress` after `bputil -nc`; Linux runs at EL2 on every CPU inside the
 128 MiB code-execute window, as aurora-silicon targets 27.2 (`docs/move-to-27.2.md`).
 
+Status (2026-11-13, later): release 3 (`omarchy-j714s-3`) is release 2 plus kernel v272-4 (0019,
+Jens Axboe's AOP fix #1645: the 27.2 sound cards, microphones and AOP sensors) and
+omarchy-aurora-firmware j714s9 (loads `aop` at boot on the J714s).
+
 Status (2026-11-13): release 1 (`omarchy-j714s-1`) installed and enrolled correctly, then looped
 at the logo: its Aura (main 2232ae7a) handed U-Boot a powered-off NVMe controller (aura #213,
 `docs/install-failure-2026-11-13.md`). With a #213 Stage 2 the 27.2 stub booted on TripleU613's
@@ -63,6 +67,7 @@ Release 1 was built on linux `572eb88e8642` and Aura `2232ae7a` (git history of 
 | 0016 | The 27.2 ANE TEXT pin `b15dd8fb...c40e`, read from the first J714s 27.2 boot's refusal | this repo |
 | 0017 | **J714s HDMI port** (DT): dcpext3 → the atc3 display crossbar → ATC3 as a fixed four-lane DP PHY → the on-board DP-to-HDMI converter; frees AOP pin 14 (HPD) from `t6050-max-atc2.dtsi`'s reserved range, atc3_dpxbar power domains. Tested on his J714s on 27.3 (HP E240c, 1920x1080@60: cold plug, hotplug, replug); not tried on 27.2 | FatBoy721 (FatBoy721/omarchy-m5 898d8ad6cb), ported unchanged |
 | 0018 | appledrm: while the J714s HDMI output connects, complete its flips locally for 8 s, so a present the DCP swallows can't time out the IOMFB queue and leave the DCP crashed | FatBoy721, ported unchanged |
+| 0019 | **AOP on 27.2:** start every AFK endpoint the T6050 AOP firmware advertises (`AFK_ENDPOINT_COUNT` 0xf → 0x11, endpoints 0x2f and 0x30). Without it the 27.2 AOP firmware waits for endpoint 0x2f forever and announces no service: no sound card, no microphones, no lid/light sensors. aurora-silicon/linux #1645 (commit 367e36d02939, merged upstream in 03f060b251c8), applied unchanged | Jens Axboe (ported by Thomas Glanzmann, sithglan) |
 
 Camera presets: #1835 (DjDeveloperr, merged) gives seven sizes on config 6 (1920x1080, 640x480,
 1280x720, 1760x1328, 1328x1760, 1552x1552, 1080x1920). Our release-1 presets (edimoldovan's
@@ -137,6 +142,22 @@ goes on.
 
 
 ## Packages, release 2 (built 2026-11-13 on ush)
+
+**v272-4 (what release 3 ships):** the kernel adds 0019 (Jens Axboe's #1645, the 27.2 AOP), and
+omarchy-aurora-firmware j714s9 loads `aop` at boot on the J714s (it is blacklisted for autoload so
+it waits for the vendor firmware, and the J714s branch of `aurora-peripheral-firmware.sh` never
+loaded it; now the root stage does, non-fatally). The kernel was built incrementally in v272-3's
+build tree on ush (`makepkg -e` after setting `localversion.10-pkgrel` and `build/base/version` to
+v272-4 by hand; `patch -Np1` of the new `linux-j714s-27.2.patch` on the tarball reproduces that
+tree exactly); `check()` 35 tests OK. Every module carries vermagic `7.3.0-17.v272-4-ARCH`, the
+file list equals v272-3's, and the packaged `aop.ko`'s `.text`/`.rodata` equal the build tree's
+(the module tested on the J714s with `modprobe aop`). The firmware package was built in the Arch
+Linux ARM container; only `aurora-peripheral-firmware.sh` differs from j714s8.
+
+| Package | sha256 | Bytes |
+| --- | --- | --- |
+| `linux-aurora-7.3.0.aurora17.v272-4-aarch64.pkg.tar.zst` (`7.3.0-17.v272-4-ARCH`) | `964cd9a3e5863320ef11b272e34852a58e79f2c401b287163dcee79622bab246` | 44136582 |
+| `omarchy-aurora-firmware-20261014.j714s9-1-aarch64.pkg.tar.zst` | `8170bde1480eba36936bd3c14612e43bb0521f611dfde1cea6c5b259b4e145c3` | 48022 |
 
 **v272-3 (what release 2 ships):** the kernel adds 0016 (the 27.2 ANE pin) and FatBoy721's HDMI
 (0017-0018), and comments in `speakersafetyd-hold.conf` (no longer citing `j714.conf`); Aura adds

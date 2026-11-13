@@ -1,7 +1,7 @@
 From efa7f2723d0eebeafd313a534102bc637f3119aa Mon Sep 17 00:00:00 2001
 From: TripleU <182648541+TripleU613@users.noreply.github.com>
 Date: Thu, 12 Nov 2026 23:52:29 -0500
-Subject: [PATCH 06/18] accel/ane, media: apple: ave: T6050 Neural Engine on
+Subject: [PATCH 06/19] accel/ane, media: apple: ave: T6050 Neural Engine on
  macOS 27.3; AVE builds by TEXT CRC
 
 The T6050 ANE driver admits one preloaded firmware build, the macOS 27.0

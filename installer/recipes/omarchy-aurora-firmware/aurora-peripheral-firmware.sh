@@ -12,6 +12,13 @@ has_firmware() {
 
 # This candidate admits only its exact J714s profile; no sibling board inherits it.
 if grep -zFxq 'apple,j714s' "$compatible"; then
+  # The AOP (speakers, headphone jack, microphones, lid and light sensors) is blacklisted for
+  # autoload, so it is admitted here: in the root stage (the vendor firmware, with the ALS
+  # calibration, is extracted; before the display manager), as it was tested by hand on 27.2.
+  # Never fatal: the N1 radio below must still load.
+  if [ "${AURORA_ADMIT_BLUETOOTH:-0}" = 1 ]; then
+    "$modprobe_command" aop || echo 'Aurora: AOP probe failed' >&2
+  fi
   device_tree=${AURORA_DT_ROOT:-/sys/firmware/devicetree/base}
   names=()
   shopt -s globstar nullglob

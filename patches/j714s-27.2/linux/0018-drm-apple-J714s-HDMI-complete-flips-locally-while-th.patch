@@ -1,7 +1,7 @@
 From eba4864d3362ae4e757940f6c24e0a55d4a1e7c0 Mon Sep 17 00:00:00 2001
 From: FatBoy721 <203330788+FatBoy721@users.noreply.github.com>
 Date: Fri, 13 Nov 2026 13:30:00 -0500
-Subject: [PATCH 18/18] drm/apple: J714s HDMI: complete flips locally while the
+Subject: [PATCH 18/19] drm/apple: J714s HDMI: complete flips locally while the
  link comes up
 
 With a sink already attached at boot, the first link of the J714s HDMI output

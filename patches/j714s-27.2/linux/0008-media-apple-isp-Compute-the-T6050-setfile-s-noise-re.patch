@@ -1,7 +1,7 @@
 From 299c0248a9acf5325bdcd09ba5359c6fdfed4116 Mon Sep 17 00:00:00 2001
 From: Eduard Moldovan <edimoldovan@gmail.com>
 Date: Sun, 8 Nov 2026 14:11:59 +0100
-Subject: [PATCH 08/18] media: apple: isp: Compute the T6050 setfile's noise
+Subject: [PATCH 08/19] media: apple: isp: Compute the T6050 setfile's noise
  reduction radial gains
 
 The IMX958 setfile 2226_02 carries its noise reduction radial gains
