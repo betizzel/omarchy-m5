@@ -7,12 +7,13 @@ boot object with no `__TEXT_BOOT_EXEC` (`kcbz` 0, so iBoot does not start SPTM),
 `kmutil configure-boot --compress` after `bputil -nc`; Linux runs at EL2 on every CPU inside the
 128 MiB code-execute window, as aurora-silicon targets 27.2 (`docs/move-to-27.2.md`).
 
-Status (2026-11-13): release 1 (`omarchy-j714s-1`) was built on the previous pins; its first
-install stopped at the 27.2 stub (a progress bar for about 4 s, then power off; Stage 1 never
-reached the cable), which is being diagnosed separately. Release 2's kernel and Aura are re-pinned
-and cross-built (below); nothing here has booted a 27.2 stub yet. The remaining steps are in
-[`RELEASE-2.md`](RELEASE-2.md). The kernel also keeps every 27.3 beta 1 row, so it can be
-RAM-tested on a 27.3 setup first.
+Status (2026-11-13): release 1 (`omarchy-j714s-1`) installed and enrolled correctly, then looped
+at the logo: its Aura (main 2232ae7a) handed U-Boot a powered-off NVMe controller (aura #213,
+`docs/install-failure-2026-11-13.md`). With a #213 Stage 2 the 27.2 stub booted on TripleU613's
+J714s (15 CPUs at EL2, GPU 26B123, 120 Hz display through the DCP, Wi-Fi, camera) and gave the
+27.2 ANE TEXT pin. Release 2 (`omarchy-j714s-2`) carries kernel v272-3 (that pin and FatBoy721's
+HDMI) and Aura v272-3 (#213, HDMI PHY tunables); neither has booted yet. The kernel also keeps
+every 27.3 beta 1 row, so it can be RAM-tested on a 27.3 setup first.
 
 Recipes: [`installer/recipes/linux-aurora-j714s`](../../installer/recipes/linux-aurora-j714s)
 (`linux-j714s-27.2.patch` is `linux/*.patch` concatenated) and
@@ -59,6 +60,9 @@ Release 1 was built on linux `572eb88e8642` and Aura `2232ae7a` (git history of 
 | 0011-0013 | The camera light and its J714s pin (#422; J714s DT by this repo) | Eduard Moldovan; this repo |
 | 0014 | VRR on the firmware 27 panel, `appledrm.fw27_panel_vrr` (j716s-next 8ab10100a4); the image turns it on (omarchy-aurora-firmware `aurora-m5-vrr.conf`) | Rolando Trevino |
 | 0015 | ANE and AVE on 27.2 (26B123): layouts from the IPSW. ANE: 27.2 layout recognised, refused until its TEXT pin is known, and the refusal prints the digest. AVE: 26B123 admitted, probe only unless `apple_ave.ave_t6050_27_2_layout=1` | this repo |
+| 0016 | The 27.2 ANE TEXT pin `b15dd8fb...c40e`, read from the first J714s 27.2 boot's refusal | this repo |
+| 0017 | **J714s HDMI port** (DT): dcpext3 → the atc3 display crossbar → ATC3 as a fixed four-lane DP PHY → the on-board DP-to-HDMI converter; frees AOP pin 14 (HPD) from `t6050-max-atc2.dtsi`'s reserved range, atc3_dpxbar power domains. Tested on his J714s on 27.3 (HP E240c, 1920x1080@60: cold plug, hotplug, replug); not tried on 27.2 | FatBoy721 (FatBoy721/omarchy-m5 898d8ad6cb), ported unchanged |
+| 0018 | appledrm: while the J714s HDMI output connects, complete its flips locally for 8 s, so a present the DCP swallows can't time out the IOMFB queue and leave the DCP crashed | FatBoy721, ported unchanged |
 
 Camera presets: #1835 (DjDeveloperr, merged) gives seven sizes on config 6 (1920x1080, 640x480,
 1280x720, 1760x1328, 1328x1760, 1552x1552, 1080x1920). Our release-1 presets (edimoldovan's
@@ -83,6 +87,7 @@ eight sizes are untested on the 27.2 ISP firmware.
 | 0004 | J714s camera on 27.3 beta 1 (a row in #188's table) | this repo |
 | 0005 | **Internal display on 27.2:** admit `V27_2`, publish compat `<27 2 0>` (the kernel's `dcp_methods_27_2` key), pin the 27.2 DCP image `C51FB0C8-C45D-39B0-85BC-520E600FC950` | this repo |
 | 0006 | **J714s camera on 27.2:** sensor 0x74, the IPSW's ISP segments | this repo |
+| 0007 | ATC tunables for a fixed DP PHY (`apple,t6050-dp-phy`, the J714s ATC3 behind HDMI), needed by kernel 0017. Tested on 27.3 with 0017 | FatBoy721 (060831d4f8), ported unchanged |
 
 The recipe also packages the Stage 1 tooling: `aura-j714s-stage1 --esp-partuuid UUID OUT` fills
 the raw Stage 1 in place (Aura's `fill_stage1_config.py`, Stage 2 `m1n1/boot-ctxr.bin` by default)
@@ -111,8 +116,8 @@ goes on.
 
 1. `/proc/device-tree/chosen/firmware-version` (or Aura's log) = `mBoot-20457.41.3`, and "All
    CPU(s) started at EL2" on 15 CPUs, `/chosen/aurora,ctxr-exec-window` present.
-2. **ANE TEXT pin.** The driver logs `H17 ANE: preloaded TEXT sha256 <64 hex>` and refuses. Put
-   it in `ane_t6050_text_pin_27_2` (0015), rebuild, check `READY` and `/dev/accel/accel0`. Also
+2. **ANE TEXT pin.** Collected: `b15dd8fb...c40e` (0016, kernel v272-3). On the first v272-3 boot
+   check `READY` and `/dev/accel/accel0`. Also
    log the ADT `ane0` segment-ranges from Aura (expect TEXT 0xbc000 at DVA 0x10000000000).
 3. **DCP UUID.** Aura logs `DCP image <uuid>, firmware-compat 27.2.0` when it hands over, or
    `DCP image <uuid> is not C51FB0C8-...` when it refuses (simpledrm). If refused, the logged UUID
@@ -131,7 +136,20 @@ goes on.
    and a reboot (`macsmc-reboot`; there is no PSCI reset under the window).
 
 
-## Packages, release 2 (built 2026-11-13 on ush, from 1b9d5ef)
+## Packages, release 2 (built 2026-11-13 on ush)
+
+**v272-3 (what release 2 ships):** the kernel adds 0016 (the 27.2 ANE pin) and FatBoy721's HDMI
+(0017-0018), and comments in `speakersafetyd-hold.conf` (no longer citing `j714.conf`); Aura adds
+FatBoy721's 0007. Cross-built on ush from the recipes in this commit; kernel `check()` 35 tests
+OK, Aura `check()` filled and padded a Stage 1 (kcrz 153141248, Stage 2 `1.0.0b13-g22b71758`).
+Not installed or booted.
+
+| Package | sha256 | Bytes |
+| --- | --- | --- |
+| `linux-aurora-7.3.0.aurora17.v272-3-aarch64.pkg.tar.zst` (`7.3.0-17.v272-3-ARCH`) | `0e720d3f9cbd6f49c08f5a53cd26d1c0cd1da36d1d119778b002b0c1bd7b48fc` | 44134953 |
+| `m1n1-aurora-1.6.1.aurora24.v272-3-aarch64.pkg.tar.zst` | `bf09a9e13163bbdf342c8c14dd86f1f1b28ee7e94644bbda7e3e0407d970d833` | 2471050 |
+
+**v272-2 and the support packages (from 1b9d5ef):**
 
 Kernel cross-built (`OMARCHY_CROSS_KERNEL=1`, kernel package only; `check()` 35 tests OK); Aura
 built on x86 (bare metal, same code; `check()` filled and padded a Stage 1, kcrz 153141248); the

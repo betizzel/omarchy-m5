@@ -1,0 +1,157 @@
+From 2cbc4bc52fd33487b7df608631f00ddd2d277dcc Mon Sep 17 00:00:00 2001
+From: FatBoy721 <203330788+FatBoy721@users.noreply.github.com>
+Date: Fri, 13 Nov 2026 13:30:00 -0500
+Subject: [PATCH 17/18] arm64: dts: apple: t6050-j714s: Describe the HDMI port
+
+The J714s HDMI port: dcpext3 -> the atc3 display crossbar -> ATC3 as a fixed
+four-lane DP PHY (the J714sAP ADT has no usb-drd3) -> the on-board DP-to-HDMI
+converter. Tested on the owner's J714s (27.3): an HP E240c shows the desktop at
+1920x1080@60, cold plug at boot, hotplug and replug (with patch 0012).
+
+From the J714sAP ADT (macOS 27.3, 26C5035r) and macOS itself:
+- atc3-dpphy: atc-dpphy,t602x, port-type 6, dp-switch-dfp-endpoint 3, dfp-port 0,
+  dp2hdmi-gpio-parent = dp2hdmi-gpio0.
+- dp2hdmi-gpio0: function-hdmi_hpd = aop-gpio0 pin 14;
+  function-hdmi_pwr_en = pKW8('pcIO', 0x800000, 0xf0000);
+  function-dp2hdmi_pwr_en = pKW8('pcIO', 0x0, 0x1a0000), the J775d's pins.
+- Crossbar source = 2 * dp-switch-ufp-endpoint (dcpext3: 3) + port 0 = 6. This
+  matches AppleT8142ATCDPXBAR::bringConnectionUp in the 27.3 kernelcache
+  (ufpBit = 1 << (2 * endpoint + port), same registers as Linux t8142_link_up).
+- macOS trains this port at HBR3 x4 with PHY pclk 1 / crossbar PCLK1, as Linux does.
+
+Three things beyond the J614s recipe, each found on hardware:
+- t6050-max-atc2.dtsi reserves AOP GPIOs 0-80, so gpiod_get(hdmi-hpd) failed
+  with -EINVAL and dcpext3 did not probe. Pin 14 is freed (15 stays reserved).
+- atc3_dpxbar needs its usb-aon/common power domains, as atc1_dpxbar has them:
+  without them the crossbar driver writes its select register with ATC3 off
+  and the Mac resets ~11 s into boot.
+- The ATC3 node becomes "apple,t6050-dp-phy" (6 regs, a 0x2c400 core window,
+  3 power domains); usb_drd3's links to it are dropped.
+
+Needs the boot loader to fill the ATC tunables of a dp-phy node (Aura, 0011).
+
+Ported unchanged from FatBoy721/omarchy-m5 j714s-hdmi-upstream273 (898d8ad6cb) onto the J714s 27.2
+series (integration/aurora a34d26c2 + betizzel/omarchy-m5 patches/j714s-27.2/linux). Not tried on 27.2.
+
+Signed-off-by: FatBoy721 <203330788+FatBoy721@users.noreply.github.com>
+---
+ .../boot/dts/apple/t6050-j714s-hdmi.dtsi      | 95 +++++++++++++++++++
+ arch/arm64/boot/dts/apple/t6050-j714s.dts     |  3 +
+ 2 files changed, 98 insertions(+)
+ create mode 100644 arch/arm64/boot/dts/apple/t6050-j714s-hdmi.dtsi
+
+diff --git a/arch/arm64/boot/dts/apple/t6050-j714s-hdmi.dtsi b/arch/arm64/boot/dts/apple/t6050-j714s-hdmi.dtsi
+new file mode 100644
+index 000000000000..7677e05b0d6f
+--- /dev/null
++++ b/arch/arm64/boot/dts/apple/t6050-j714s-hdmi.dtsi
+@@ -0,0 +1,95 @@
++// SPDX-License-Identifier: GPL-2.0+ OR MIT
++/*
++ * J714s HDMI: dcpext3 -> atc3 display crossbar -> atc3 (fixed four-lane DP PHY,
++ * no USB controller: the J714sAP ADT has no usb-drd3) -> the on-board DP-to-HDMI
++ * converter. The same chain as the M4 Pro J614s (t6040-j614s-extdisp-hdmi.dtsi);
++ * the converter's pins match the M5 Ultra J775d's (t6050-j775d.dts).
++ *
++ * From the J714sAP ADT (macOS 27.3, 26C5035r):
++ *   atc3-dpphy: atc-dpphy,t602x, port-type 6, dp-switch-dfp-endpoint 3, dfp-port 0,
++ *     dp2hdmi-gpio-parent dp2hdmi-gpio0.
++ *   atc3-dpxbar@8B24C000 (atc-dpxbar,t6050): this file's atc3_dpxbar.
++ *   dp2hdmi-gpio0: function-hdmi_hpd = aop-gpio0 pin 14 (interrupts <0x0e 0x05000004>);
++ *     function-hdmi_pwr_en = pKW8('pcIO', 0x800000, 0xf0000);
++ *     function-dp2hdmi_pwr_en = pKW8('pcIO', 0x0, 0x1a0000);
++ *     function-force-dpfu = aop-gpio0 pin 15 (left undescribed, as on J614s).
++ *   display-crossbar0: dcpextN is ufp endpoint N, so dcpext3 -> atc3 is
++ *     crossbar state 2 * 3 + 0 = 6.
++ *
++ * dcpext3 is taken from the USB-C routes: it was dcpext2's pair for modes that need
++ * two pipelines, so those modes are lost on dcpext2's route. dcpext0/dcpext1 keep
++ * theirs. As with the USB-C engines, the boot loader hands dcpext3 over.
++ *
++ * Needs the boot loader to fill the ATC tunables of an "apple,t6050-dp-phy" node
++ * (Aura's kboot_atc only does so for apple,t6050-combo-phy today).
++ */
++
++/*
++ * The SMC pcIO outputs: 0 is the SD reader's (t6050-j714s.dts); 1 and 2 are the
++ * HDMI converter's power enables, in J775d's encoding.
++ */
++&smc_pcio {
++	apple,output-commands = /bits/ 64 <0x0019000000000000 0x000f000000800000
++					   0x001a000000000000>;
++};
++
++/*
++ * t6050-max-atc2.dtsi exposes only pin 81 of the AOP GPIO controller. Free the
++ * converter's HPD (pin 14) too; force-dpfu (pin 15) stays reserved.
++ */
++&pinctrl_aop {
++	gpio-reserved-ranges = <0 14>, <15 66>, <82 3>;
++};
++
++&atc3_phy {
++	compatible = "apple,t6050-dp-phy";
++	/* The fixed DP PHY needs the core window up to 0x2c400. */
++	reg = <0x3 0x8b000000 0x0 0x2c400>,
++	      <0x3 0x8b200000 0x0 0x4000>,
++	      <0x3 0x8b244000 0x0 0x4000>,
++	      <0x3 0x88000000 0x0 0x8000>,
++	      <0x3 0x88020000 0x0 0x4000>,
++	      <0x3 0x8b250000 0x0 0x4000>;
++	reg-names = "core", "reset", "fabric", "axi2af", "lioa", "common-cfg";
++	#phy-cells = <0>;
++	/delete-property/ #reset-cells;
++	/delete-property/ apple,guest-port-reserved;
++	/delete-property/ mode-switch;
++	/delete-property/ orientation-switch;
++	/delete-property/ mboxes;
++	power-domains = <&ps_atc3_usb_aon>, <&ps_atc3_common>, <&ps_atc3_phymxwrap>;
++	power-domain-names = "usb-aon", "common", "wrapper";
++	status = "okay";
++};
++
++/*
++ * As atc1_dpxbar (t6050-j714s-display.dtsi): without Linux-managed domains the
++ * crossbar driver writes its select register with ATC3 powered down.
++ */
++&atc3_dpxbar {
++	power-domains = <&ps_atc3_usb_aon>, <&ps_atc3_common>;
++	power-domain-names = "usb-aon", "common";
++	status = "okay";
++};
++
++&dcpext3 {
++	apple,connector-type = "HDMI-A";
++	apple,dptx-die = <0>;
++	apple,dptx-phy = <3>;
++	hdmi-hpd-gpios = <&pinctrl_aop 14 GPIO_ACTIVE_HIGH>;
++	hdmi-pwren-gpios = <&smc_pcio 1 GPIO_ACTIVE_HIGH>;
++	dp2hdmi-pwren-gpios = <&smc_pcio 2 GPIO_ACTIVE_HIGH>;
++	phys = <&atc3_phy>;
++	phy-names = "dp-phy";
++	mux-controls = <&atc3_dpxbar 0>;
++	mux-control-names = "dp-xbar";
++	/* 2 * dp-switch-ufp-endpoint (3) + port (0), as macOS's AppleT8142ATCDPXBAR */
++	mux-index = <6>;
++};
++
++/* No usb-drd3 on this board (disabled in t6050-j714s.dts): drop its links to the now DP-only PHY. */
++&usb_drd3 {
++	/delete-property/ phys;
++	/delete-property/ phy-names;
++	/delete-property/ resets;
++};
+diff --git a/arch/arm64/boot/dts/apple/t6050-j714s.dts b/arch/arm64/boot/dts/apple/t6050-j714s.dts
+index d0b713627078..7166e951ac3d 100644
+--- a/arch/arm64/boot/dts/apple/t6050-j714s.dts
++++ b/arch/arm64/boot/dts/apple/t6050-j714s.dts
+@@ -1011,3 +1011,6 @@ &ave0_dart1 {
+ &ave0 {
+ 	status = "okay";
+ };
++
++/* HDMI, through ATC3 and the on-board DP-to-HDMI converter */
++#include "t6050-j714s-hdmi.dtsi"
+-- 
+2.56.0
+

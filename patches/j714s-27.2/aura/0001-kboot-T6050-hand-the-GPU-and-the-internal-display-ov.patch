@@ -1,7 +1,7 @@
 From 643302f57c3af654d3d64ce878859729b07cd96d Mon Sep 17 00:00:00 2001
 From: TripleU <182648541+TripleU613@users.noreply.github.com>
 Date: Wed, 11 Nov 2026 17:02:15 -0500
-Subject: [PATCH 1/6] kboot: T6050: hand the GPU and the internal display over
+Subject: [PATCH 1/7] kboot: T6050: hand the GPU and the internal display over
  on 27.3 beta 1
 
 The J714s needs the macOS 27.3 beta 1 stub (26C5035r, mBoot-20457.60.65.0.1) to boot all of

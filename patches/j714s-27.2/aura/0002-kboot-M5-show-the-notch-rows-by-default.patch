@@ -1,7 +1,7 @@
 From 383577ab302e9b2e624f6d3e9ed79aad6b425413 Mon Sep 17 00:00:00 2001
 From: TripleU <usher@gentechsolution.com>
 Date: Wed, 11 Nov 2026 18:39:56 -0500
-Subject: [PATCH 2/6] kboot: M5: show the notch rows by default
+Subject: [PATCH 2/7] kboot: M5: show the notch rows by default
 
 The full 3024x1964 panel (notch rows included) is what the J714s image wants by
 default, as our m1n1 (m1n1-installer 0006/0007) did. Without a config line

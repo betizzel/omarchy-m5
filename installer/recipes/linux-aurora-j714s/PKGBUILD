@@ -15,13 +15,16 @@
 #   0010     2560x1440 added to #1835's J714s presets
 #   0011-13  edimoldovan's camera light (#422) and its J714s pin
 #   0014     rolotrealanis98's firmware 27 panel VRR (8ab10100a4), opt-in appledrm.fw27_panel_vrr=1
-#   0015     ANE and AVE on 27.2: the 27.2 layouts from the IPSW; ANE refuses until its TEXT pin
-#            is collected, AVE probe-only unless apple_ave.ave_t6050_27_2_layout=1
+#   0015     ANE and AVE on 27.2: the 27.2 layouts from the IPSW; AVE probe-only unless
+#            apple_ave.ave_t6050_27_2_layout=1
+#   0016     the 27.2 ANE TEXT pin, read from the first J714s 27.2 boot
+#   0017-18  FatBoy721's J714s HDMI port (DT) and appledrm's flip hold while it connects (tested on
+#            his J714s on 27.3, not on 27.2)
 # Same package name as the image's kernel (linux-aurora); the version sorts above up273.
 
 _auroraver=7.3.0
 _aurorarel=17.v272
-pkgrel=2
+pkgrel=3
 
 _commit=a34d26c255c29bdd5548ace985d0d9c8e083aab1
 
@@ -53,9 +56,9 @@ sha256sums=('aca7420a18139474da62a81c77fc6e5c3f25001f872b6e11e18605cd892aa4c3'
             'd71a5756f6803008c92fd5b14bb377baa538cd56a5674970bfaea3584a60d291'
             '84a03d5fea19cae243c89f50c1736c639622d25d4d1de8d7d53ebd8f603c0f62'
             '32507b46e6d2bd6bc3c9bd933cb0236e3c1887a977ea8aff3ab46d9ece5f4eae'
-            'cda8dcb71c125fe875a6ba52d2e6228442cf4b9a78537ebbe8f5d2cf7c9eebc7'
+            '6023fefec1068184e014ac795beffb2cedeb74aff2bc59e8ceb176868d4d1a48'
             '1408e3fdeafbd86be3b31e04e8bdd9930a9af2753e8c39a728cda7d1e42ad033'
-            'be3e29fc27e3f589c0e90c4722fcc309e54bc211fae9708476a80fc92709bfb7')
+            'd3e222ba146df83ab33a4cfa344534c13d125525c2a6d63747452bbce3302669')
 
 # Kbuild takes ARCH literally and knows arm64, not aarch64.
 export ARCH=arm64

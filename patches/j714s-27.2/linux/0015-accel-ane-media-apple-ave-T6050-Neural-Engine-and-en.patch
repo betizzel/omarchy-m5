@@ -1,7 +1,7 @@
 From 1f63895beea5249275f675c3b7d5a79b1e61b6c5 Mon Sep 17 00:00:00 2001
 From: TripleU <182648541+TripleU613@users.noreply.github.com>
 Date: Thu, 12 Nov 2026 23:54:15 -0500
-Subject: [PATCH 15/15] accel/ane, media: apple: ave: T6050 Neural Engine and
+Subject: [PATCH 15/18] accel/ane, media: apple: ave: T6050 Neural Engine and
  encoder on macOS 27.2
 
 The J714s 27.2 stub (UniversalMac_27.2_26B123, J714s identity) preloads

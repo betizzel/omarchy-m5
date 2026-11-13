@@ -1,7 +1,7 @@
 From b914777284b14fad22356763ef9454a28aaa5c18 Mon Sep 17 00:00:00 2001
 From: TripleU <182648541+TripleU613@users.noreply.github.com>
 Date: Thu, 12 Nov 2026 23:55:40 -0500
-Subject: [PATCH 5/6] kboot: T6050: hand the internal display over on 27.2
+Subject: [PATCH 5/7] kboot: T6050: hand the internal display over on 27.2
 
 The J714s moves its Linux stub to macOS 27.2 (26B123, mBoot-20457.41.3),
 upstream's Mach-O target. The T6050 DCP hand-off admitted 27.0 and 27.3

@@ -1,0 +1,122 @@
+From d206511226b06083a6e2e6ac9adfdbb7faa4f9e5 Mon Sep 17 00:00:00 2001
+From: FatBoy721 <203330788+FatBoy721@users.noreply.github.com>
+Date: Thu, 12 Nov 2026 21:37:36 -0500
+Subject: [PATCH 7/7] kboot: T6050: fill the ATC tunables of a fixed DP PHY too
+
+A T6050 ATC with no usb-drdN, such as the J714s's ATC3 that feeds the HDMI
+converter, is described as "apple,t6050-dp-phy" (a fixed four-lane DP PHY; see
+the binding's apple,combo-phy.yaml). t6050_setup_atc() only looked at
+"apple,t6050-combo-phy" nodes and required usb-drdN, so such a PHY probed with
+no tunables and failed with "missing or invalid apple,tunable-...".
+
+Walk "apple,t6050-dp-phy" nodes too. For them, skip the usb-drdN pairing and
+export only the first nine lists: axi2af, fabric, common-cfg, lioa, both lanes'
+RX clock and EQ, and auspll. atc-t6050-dp.c reads no CIO, USB2 or PIPE lists
+without mode-switch. Each list is still checked against its ADT bank (the DT
+reg must equal the ADT reg), as for the combo PHYs.
+
+Tested with the HDMI DT on FatBoy721's J714s (27.3): an HP E240c at 1920x1080@60.
+It was built on main d35655304e with omarchy-m5's upstream-27.3 Aura patches.
+
+Ported unchanged from FatBoy721/omarchy-m5 j714s-hdmi-upstream273 (060831d4f8) onto
+main 22b71758 + betizzel/omarchy-m5 patches/j714s-27.2/aura. Not tried on 27.2.
+
+Signed-off-by: FatBoy721 <203330788+FatBoy721@users.noreply.github.com>
+---
+ src/kboot_atc.c | 56 +++++++++++++++++++++++++++++++------------------
+ 1 file changed, 36 insertions(+), 20 deletions(-)
+
+diff --git a/src/kboot_atc.c b/src/kboot_atc.c
+index a8ab9d94..e50c4cd4 100644
+--- a/src/kboot_atc.c
++++ b/src/kboot_atc.c
+@@ -1131,7 +1131,14 @@ static const struct t6050_atc_tunable t6050_atc_tunables[] = {
+     {"tunable_PIPE_HANDLER_DEFAULT", "apple,tunable-pipe-default", "pipehandler", 3, 0},
+ };
+ 
+-static T6050_ATC int t6050_export_atc(void *dt, int node, u32 port)
++/*
++ * A fixed DisplayPort PHY ("apple,t6050-dp-phy": an ATC with no usb-drdN, as the
++ * J714s's ATC3 that feeds the HDMI converter) takes the first T6050_ATC_DP_ONLY
++ * lists only: no CIO, USB2 or PIPE. atc-t6050-dp.c skips the rest without mode-switch.
++ */
++#define T6050_ATC_DP_ONLY 9
++
++static T6050_ATC int t6050_export_atc(void *dt, int node, u32 port, bool dp_only)
+ {
+     char path[24];
+     int trace[2][8], src[2], len, parent = fdt_parent_offset(dt, node);
+@@ -1139,20 +1146,24 @@ static T6050_ATC int t6050_export_atc(void *dt, int node, u32 port)
+ 
+     if (parent < 0 || fdt_address_cells(dt, parent) != 2 || fdt_size_cells(dt, parent) != 2)
+         return -1;
+-    for (int i = 0; i < 2; i++) {
++    for (int i = 0; i < (dp_only ? 1 : 2); i++) {
+         snprintf(path, sizeof(path), i ? "/arm-io/usb-drd%u" : "/arm-io/atc-phy%u", port);
+         src[i] = adt_path_offset_trace(adt, path, trace[i]);
+         if (src[i] < 0)
+             return -1;
+     }
+-    /* usb-drdN must be the controller of atc-phyN */
+-    const u32 *phandle = adt_getprop(adt, src[0], "AAPL,phandle", &plen);
+-    const u32 *phy = adt_getprop(adt, src[1], "atc-phy-parent", &dlen);
+-    if (!adt_is_compatible_at(adt, src[0], "atc-phy,t6050", 0) || !phandle || !phy || plen != 4 ||
+-        dlen != 4 || *phandle != *phy)
++    if (!adt_is_compatible_at(adt, src[0], "atc-phy,t6050", 0))
+         return -1;
++    if (!dp_only) {
++        /* usb-drdN must be the controller of atc-phyN */
++        const u32 *phandle = adt_getprop(adt, src[0], "AAPL,phandle", &plen);
++        const u32 *phy = adt_getprop(adt, src[1], "atc-phy-parent", &dlen);
++        if (!phandle || !phy || plen != 4 || dlen != 4 || *phandle != *phy)
++            return -1;
++    }
+ 
+-    for (size_t i = 0; i < ARRAY_SIZE(t6050_atc_tunables); i++) {
++    size_t count = dp_only ? T6050_ATC_DP_ONLY : ARRAY_SIZE(t6050_atc_tunables);
++    for (size_t i = 0; i < count; i++) {
+         const struct t6050_atc_tunable *t = &t6050_atc_tunables[i];
+         bool drd = i == ARRAY_SIZE(t6050_atc_tunables) - 1;
+         int index = fdt_stringlist_search(dt, node, "reg-names", t->res);
+@@ -1183,21 +1194,26 @@ static T6050_ATC_INIT void t6050_clear_atc(void *dt, int node)
+ /* All or nothing per port; on failure the PHY is left without tunables, as before. */
+ static T6050_ATC_INIT void t6050_setup_atc(void *dt)
+ {
+-    int node = -1;
++    static const char *const compat[] = {"apple,t6050-combo-phy", "apple,t6050-dp-phy"};
+ 
+-    while ((node = fdt_node_offset_by_compatible(dt, node, "apple,t6050-combo-phy")) >= 0) {
+-        int len;
+-        const fdt32_t *index = fdt_getprop(dt, node, "apple,port-index", &len);
+-        u32 port = index && len == 4 ? fdt32_ld(index) : 0;
++    for (size_t c = 0; c < ARRAY_SIZE(compat); c++) {
++        int node = -1;
+ 
+-        /* Port 0 carries aura's debug link: never describe it */
+-        if (!port || port > 5)
+-            continue;
+-        t6050_clear_atc(dt, node);
+-        bool ok = !t6050_export_atc(dt, node, port);
+-        if (!ok)
++        while ((node = fdt_node_offset_by_compatible(dt, node, compat[c])) >= 0) {
++            int len;
++            const fdt32_t *index = fdt_getprop(dt, node, "apple,port-index", &len);
++            u32 port = index && len == 4 ? fdt32_ld(index) : 0;
++
++            /* Port 0 carries aura's debug link: never describe it */
++            if (!port || port > 5)
++                continue;
+             t6050_clear_atc(dt, node);
+-        printf("FDT: T6050 ATC%u tunables %s\n", port, ok ? "copied" : "unavailable");
++            bool ok = !t6050_export_atc(dt, node, port, c == 1);
++            if (!ok)
++                t6050_clear_atc(dt, node);
++            printf("FDT: T6050 ATC%u%s tunables %s\n", port, c ? " (DP)" : "",
++                   ok ? "copied" : "unavailable");
++        }
+     }
+ }
+ 
+-- 
+2.56.0
+

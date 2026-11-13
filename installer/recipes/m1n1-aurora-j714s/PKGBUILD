@@ -13,11 +13,12 @@
 #   0004  J714s camera on 27.3 beta 1
 #   0005  internal display on 27.2: compat <27 2 0>, DCP image pinned to the IPSW's C51FB0C8-...
 #   0006  J714s camera on 27.2 (the IPSW's ISP segments)
+#   0007  FatBoy721's ATC tunables for a fixed DP PHY (the J714s HDMI port; tested on 27.3)
 # Packaged as m1n1-aurora so the image builder and update-m1n1 treat it as the image's Stage 2.
 # Ordinary updates refresh the ESP Stage 2, never enroll Stage 1.
 pkgname=m1n1-aurora
 pkgver=1.6.1.aurora24.v272
-pkgrel=2
+pkgrel=3
 pkgdesc='Aura bootloader for the J714s on macOS 27.2 (Stage 2, and the Mach-O Stage 1 to enroll)'
 arch=('aarch64')
 groups=('omarchy-platform-apple-silicon')
@@ -32,7 +33,7 @@ _commit=22b71758dfd048f6a874073db55fbe6bd1d17f44
 source=("aura::git+$url.git#commit=$_commit"
         aura-j714s-27.2.patch aura-j714s-stage1 bootlogo_48.bin bootlogo_128.bin bootlogo_256.bin)
 sha256sums=('SKIP'
-            '6d23914eaf60fe4f8ed88a260b1064027843ed17f67a6dd9ec67045812ba76c1'
+            '37d1231652b96fce4d00fc84452ac74743b69d132bbf80eee9b3699e1fc07c78'
             '5804e26c5e13dab34ad21a69e99f495c89126d989844ba0c44ce8b730d622f81'
             '6668050653645711ad7523fe2abeb4cbe85a92c875f3eec754b6db23cea2191c'
             'b19cb017645c7a9068ea0be9b6bb394131d7ca11b28093cf6caa1ffca74b0a4e'

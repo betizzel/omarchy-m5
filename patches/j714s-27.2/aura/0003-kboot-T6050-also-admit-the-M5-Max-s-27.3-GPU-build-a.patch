@@ -1,7 +1,7 @@
 From b10b85be0eeea839f4ee410bdd3962520bc194cc Mon Sep 17 00:00:00 2001
 From: TripleU <usher@gentechsolution.com>
 Date: Wed, 11 Nov 2026 19:25:29 -0500
-Subject: [PATCH 3/6] kboot: T6050: also admit the M5 Max's 27.3 GPU build
+Subject: [PATCH 3/7] kboot: T6050: also admit the M5 Max's 27.3 GPU build
  (aura #172)
 
 joshuaswarren's aurora-silicon/aura #172 (60a3b0fdb3) accepts the 26C5035r digest he

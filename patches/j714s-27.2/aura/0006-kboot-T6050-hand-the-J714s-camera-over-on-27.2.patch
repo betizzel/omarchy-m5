@@ -1,7 +1,7 @@
 From 0a38505cff50b4c37e5f6303b6dd15d48705648b Mon Sep 17 00:00:00 2001
 From: TripleU <182648541+TripleU613@users.noreply.github.com>
 Date: Thu, 12 Nov 2026 23:55:40 -0500
-Subject: [PATCH 6/6] kboot: T6050: hand the J714s camera over on 27.2
+Subject: [PATCH 6/7] kboot: T6050: hand the J714s camera over on 27.2
 
 Add a J714s 27.2 (26B123) row to the T6050 camera table. The J714s identity
 of UniversalMac_27.2_26B123 loads Firmware/isp_bni/adc-nyx-sc7x.im4p (uuid

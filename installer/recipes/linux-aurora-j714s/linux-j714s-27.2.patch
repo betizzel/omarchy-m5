@@ -1,7 +1,7 @@
 From b7f44ec31425549b47a894f386f14955f68bd917 Mon Sep 17 00:00:00 2001
 From: Rolando Trevino <rolotrealanis@gmail.com>
 Date: Thu, 12 Nov 2026 10:56:02 -0500
-Subject: [PATCH 01/15] drm/asahi: M5: InitData for the macOS 27.2 and 27.3
+Subject: [PATCH 01/18] drm/asahi: M5: InitData for the macOS 27.2 and 27.3
  firmware (#1173)
 
 aurora-silicon/linux #1173 (Rolando Trevino, rolotrealanis98; head
@@ -1628,7 +1628,7 @@ index 949bd81d00ed..9e8b1392d94f 100644
 From 7163c457accea60da368cfed44edd92c38673dd8 Mon Sep 17 00:00:00 2001
 From: Rolando Trevino <rolotrealanis@gmail.com>
 Date: Sat, 7 Nov 2026 15:41:37 -0500
-Subject: [PATCH 02/15] drm/apple: Name the firmware 27 adaptive sync parameter
+Subject: [PATCH 02/18] drm/apple: Name the firmware 27 adaptive sync parameter
 
 The firmware 27 template instance sends adaptive sync as a bare 15,
 where every other instance sends IOMFBPARAM_ADAPTIVE_SYNC (14). The DCP
@@ -1698,7 +1698,7 @@ index 42308171be80..5586bbae0f36 100644
 From 4d042d88fe6b805d6106707b7dff4d6b65e322ff Mon Sep 17 00:00:00 2001
 From: Rolando Trevino <rolotrealanis@gmail.com>
 Date: Sat, 7 Nov 2026 18:21:40 -0500
-Subject: [PATCH 03/15] drm/apple: Refuse panel brightness once the display
+Subject: [PATCH 03/18] drm/apple: Refuse panel brightness once the display
  processor crashed
 
 A panel that presents its level in the swap gets a new level only with
@@ -1747,7 +1747,7 @@ index 00f29157241f..46c162f20121 100644
 From 1a0a6bc58569279039d19b60c9bda1d4e463318b Mon Sep 17 00:00:00 2001
 From: Rolando Trevino <rolotrealanis@gmail.com>
 Date: Thu, 12 Nov 2026 08:13:48 -0500
-Subject: [PATCH 04/15] drm/apple: firmware 27.3: the full IOMFB method table
+Subject: [PATCH 04/18] drm/apple: firmware 27.3: the full IOMFB method table
  and the 27.3 swap record (J716s daily)
 
 Private to the J716s daily: the IDs beyond the 20 traced ones and the 27.3 swap layout were
@@ -2058,7 +2058,7 @@ index 28063a45d6a6..8a5271105ffd 100644
 From 9201da58be4e7dddd085314552e017621addcfce Mon Sep 17 00:00:00 2001
 From: Jens Axboe <axboe@kernel.dk>
 Date: Wed, 11 Nov 2026 12:00:39 -0700
-Subject: [PATCH 05/15] drm/asahi: t6050: identify the 27.2 (26B8125) G17S
+Subject: [PATCH 05/18] drm/asahi: t6050: identify the 27.2 (26B8125) G17S
  firmware of the K114/K116
 
 Applies on top of aurora-silicon/linux PR #1173.
@@ -2140,7 +2140,7 @@ index 9e8b1392d94f..6b7ebe1852da 100644
 From efa7f2723d0eebeafd313a534102bc637f3119aa Mon Sep 17 00:00:00 2001
 From: TripleU <182648541+TripleU613@users.noreply.github.com>
 Date: Thu, 12 Nov 2026 23:52:29 -0500
-Subject: [PATCH 06/15] accel/ane, media: apple: ave: T6050 Neural Engine on
+Subject: [PATCH 06/18] accel/ane, media: apple: ave: T6050 Neural Engine on
  macOS 27.3; AVE builds by TEXT CRC
 
 The T6050 ANE driver admits one preloaded firmware build, the macOS 27.0
@@ -2708,7 +2708,7 @@ index 0454611f1a42..cb4bbe7673c3 100644
 From 576c68baee9deaa19ffd61a172e5ea3c0aef9d4c Mon Sep 17 00:00:00 2001
 From: Eduard Moldovan <edimoldovan@gmail.com>
 Date: Sun, 8 Nov 2026 12:56:36 +0100
-Subject: [PATCH 07/15] media: apple: isp: Tune the J714c IMX958 with setfile
+Subject: [PATCH 07/18] media: apple: isp: Tune the J714c IMX958 with setfile
  2226_02
 
 macOS's appleh16camerad carries three setfiles naming sensor 0x958:
@@ -2803,7 +2803,7 @@ index 3551018baf17..79a4445d1c4f 100644
 From 299c0248a9acf5325bdcd09ba5359c6fdfed4116 Mon Sep 17 00:00:00 2001
 From: Eduard Moldovan <edimoldovan@gmail.com>
 Date: Sun, 8 Nov 2026 14:11:59 +0100
-Subject: [PATCH 08/15] media: apple: isp: Compute the T6050 setfile's noise
+Subject: [PATCH 08/18] media: apple: isp: Compute the T6050 setfile's noise
  reduction radial gains
 
 The IMX958 setfile 2226_02 carries its noise reduction radial gains
@@ -2986,7 +2986,7 @@ index 79a4445d1c4f..6b7e6b5f9a70 100644
 From 6ebb9a70162d17138d35665be18b78db48cbea9c Mon Sep 17 00:00:00 2001
 From: Eduard Moldovan <edimoldovan@gmail.com>
 Date: Sun, 8 Nov 2026 14:13:01 +0100
-Subject: [PATCH 09/15] media: apple: isp: Set the J714c lens shading target
+Subject: [PATCH 09/18] media: apple: isp: Set the J714c lens shading target
  and scene metering
 
 macOS's appleh16camerad sets the IMX958's lens shading ideal percent to
@@ -3129,7 +3129,7 @@ index 6b7e6b5f9a70..c13914ef62e9 100644
 From ca22b22899c1d782b1d53b05a231061e84daad4a Mon Sep 17 00:00:00 2001
 From: TripleU <182648541+TripleU613@users.noreply.github.com>
 Date: Fri, 13 Nov 2026 11:16:29 -0500
-Subject: [PATCH 10/15] arm64: dts: apple: t6050-j714s: Also offer 2560x1440
+Subject: [PATCH 10/18] arm64: dts: apple: t6050-j714s: Also offer 2560x1440
  from sensor config 6
 
 DjDeveloperr's J714s presets (#1835) crop and scale sensor config 6 to
@@ -3180,7 +3180,7 @@ index f9d5789c9855..4cea8adb301b 100644
 From 42a3efb6edb109eb89c2b96ce1778960bbddc903 Mon Sep 17 00:00:00 2001
 From: Eduard Moldovan <edimoldovan@gmail.com>
 Date: Sun, 8 Nov 2026 12:56:35 +0100
-Subject: [PATCH 11/15] media: apple: isp: Drive the J714c camera light from
+Subject: [PATCH 11/18] media: apple: isp: Drive the J714c camera light from
  the driver
 
 On the J714c the camera light belongs to the exclave indicator
@@ -3409,7 +3409,7 @@ index 09b691228650..3c39a1d5fc9d 100644
 From d70557057d89b49caddecda61a8d5f947d1c7c4b Mon Sep 17 00:00:00 2001
 From: Eduard Moldovan <edimoldovan@gmail.com>
 Date: Sun, 8 Nov 2026 12:56:36 +0100
-Subject: [PATCH 12/15] media: apple: isp: Turn the J714c camera light off
+Subject: [PATCH 12/18] media: apple: isp: Turn the J714c camera light off
  after a firmware halt
 
 A firmware that dies mid-start can leave the sensor powered, and a
@@ -3519,7 +3519,7 @@ index 3c39a1d5fc9d..a35961de0f15 100644
 From a820947dd267eab1070fe6e1de9821053c886340 Mon Sep 17 00:00:00 2001
 From: TripleU <182648541+TripleU613@users.noreply.github.com>
 Date: Thu, 12 Nov 2026 05:03:13 -0500
-Subject: [PATCH 13/15] arm64: dts: apple: t6050-j714s: Describe the camera
+Subject: [PATCH 13/18] arm64: dts: apple: t6050-j714s: Describe the camera
  light
 
 edimoldovan's camera light driver (omacom/linux-aurora #422, 5a3e9d8a5f0b
@@ -3573,7 +3573,7 @@ index 4cea8adb301b..d0b713627078 100644
 From 0bb98db8e302cc614539f47798bba265f0f7b8af Mon Sep 17 00:00:00 2001
 From: Rolando Trevino <rolotrealanis@gmail.com>
 Date: Thu, 12 Nov 2026 12:29:34 -0500
-Subject: [PATCH 14/15] drm/apple: Offer VRR on the firmware 27 panel and apply
+Subject: [PATCH 14/18] drm/apple: Offer VRR on the firmware 27 panel and apply
  VRR_ENABLED (J716s daily)
 
 The T6050 ProMotion panel reports its 120 Hz timing with both
@@ -3833,7 +3833,7 @@ index 462c6ee46825..21ac0deb9785 100644
 From 1f63895beea5249275f675c3b7d5a79b1e61b6c5 Mon Sep 17 00:00:00 2001
 From: TripleU <182648541+TripleU613@users.noreply.github.com>
 Date: Thu, 12 Nov 2026 23:54:15 -0500
-Subject: [PATCH 15/15] accel/ane, media: apple: ave: T6050 Neural Engine and
+Subject: [PATCH 15/18] accel/ane, media: apple: ave: T6050 Neural Engine and
  encoder on macOS 27.2
 
 The J714s 27.2 stub (UniversalMac_27.2_26B123, J714s identity) preloads
@@ -4003,6 +4003,365 @@ index cb4bbe7673c3..db9e9f766525 100644
 +#define AVE_FW_TEXT_CRC_T6050_26B123 0xd33ed3b4
  /* macOS 27.3 beta 1 (26C5035r) / T6050: TEXT 0x158000, DATA 0x134000. */
  #define AVE_FW_TEXT_CRC_T6050_26C5035 0xc25b4ddb
+ 
+-- 
+2.56.0
+
+From 795d53a9fac1a9688811b7f4f2862aea9d35f16f Mon Sep 17 00:00:00 2001
+From: TripleU <182648541+TripleU613@users.noreply.github.com>
+Date: Fri, 13 Nov 2026 13:06:46 -0500
+Subject: [PATCH 16/18] accel/ane: T6050: pin the macOS 27.2 (26B123) ANE TEXT
+
+Read from the first J714s 27.2 boot: H17 ANE: preloaded TEXT sha256 b15dd8fb3367a6d5a77935a62b4c6c9d6a6e166cd11c1b2a886c65f114d7c40e.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+---
+ drivers/accel/ane/ane_fw_platform.c | 16 ++++++++++------
+ 1 file changed, 10 insertions(+), 6 deletions(-)
+
+diff --git a/drivers/accel/ane/ane_fw_platform.c b/drivers/accel/ane/ane_fw_platform.c
+index 7320942f260a..5dda5883d335 100644
+--- a/drivers/accel/ane/ane_fw_platform.c
++++ b/drivers/accel/ane/ane_fw_platform.c
+@@ -58,13 +58,17 @@ static const u8 ane_t6050_text_pin_27_3[] = {
+ };
+ 
+ /*
+- * The macOS 27.2 build (26B123). Its TEXT digest as iBoot preloads it is not
+- * known yet: the IPSW image is not what the loader hands off (27.0's file
+- * hashes to d4a64be9..., its preloaded TEXT to 93ae3a37...). All zeroes match
+- * no TEXT, so the 27.2 layout is recognised but refused, and the refusal
+- * prints the preloaded TEXT sha256 to pin here from the first 27.2 boot.
++ * The macOS 27.2 build (26B123), its TEXT as iBoot preloads it (sha256
++ * b15dd8fb...), read from the first J714s 27.2 boot's refusal. The IPSW image
++ * is not what the loader hands off (27.0's file hashes to d4a64be9..., its
++ * preloaded TEXT to 93ae3a37...), so the pin is the preloaded digest.
+  */
+-static const u8 ane_t6050_text_pin_27_2[32];
++static const u8 ane_t6050_text_pin_27_2[32] = {
++	0xb1, 0x5d, 0xd8, 0xfb, 0x33, 0x67, 0xa6, 0xd5,
++	0xa7, 0x79, 0x35, 0xa6, 0x2b, 0x4c, 0x6c, 0x9d,
++	0x6a, 0x6e, 0x16, 0x6c, 0xd1, 0x1c, 0x1b, 0x2a,
++	0x88, 0x6c, 0x65, 0xf1, 0x14, 0xd7, 0xc4, 0x0e,
++};
+ 
+ /*
+  * T6050 builds, by their ADT ane0 segment-ranges. 27.3 moved 0x2c000 bytes
+-- 
+2.56.0
+
+From 2cbc4bc52fd33487b7df608631f00ddd2d277dcc Mon Sep 17 00:00:00 2001
+From: FatBoy721 <203330788+FatBoy721@users.noreply.github.com>
+Date: Fri, 13 Nov 2026 13:30:00 -0500
+Subject: [PATCH 17/18] arm64: dts: apple: t6050-j714s: Describe the HDMI port
+
+The J714s HDMI port: dcpext3 -> the atc3 display crossbar -> ATC3 as a fixed
+four-lane DP PHY (the J714sAP ADT has no usb-drd3) -> the on-board DP-to-HDMI
+converter. Tested on the owner's J714s (27.3): an HP E240c shows the desktop at
+1920x1080@60, cold plug at boot, hotplug and replug (with patch 0012).
+
+From the J714sAP ADT (macOS 27.3, 26C5035r) and macOS itself:
+- atc3-dpphy: atc-dpphy,t602x, port-type 6, dp-switch-dfp-endpoint 3, dfp-port 0,
+  dp2hdmi-gpio-parent = dp2hdmi-gpio0.
+- dp2hdmi-gpio0: function-hdmi_hpd = aop-gpio0 pin 14;
+  function-hdmi_pwr_en = pKW8('pcIO', 0x800000, 0xf0000);
+  function-dp2hdmi_pwr_en = pKW8('pcIO', 0x0, 0x1a0000), the J775d's pins.
+- Crossbar source = 2 * dp-switch-ufp-endpoint (dcpext3: 3) + port 0 = 6. This
+  matches AppleT8142ATCDPXBAR::bringConnectionUp in the 27.3 kernelcache
+  (ufpBit = 1 << (2 * endpoint + port), same registers as Linux t8142_link_up).
+- macOS trains this port at HBR3 x4 with PHY pclk 1 / crossbar PCLK1, as Linux does.
+
+Three things beyond the J614s recipe, each found on hardware:
+- t6050-max-atc2.dtsi reserves AOP GPIOs 0-80, so gpiod_get(hdmi-hpd) failed
+  with -EINVAL and dcpext3 did not probe. Pin 14 is freed (15 stays reserved).
+- atc3_dpxbar needs its usb-aon/common power domains, as atc1_dpxbar has them:
+  without them the crossbar driver writes its select register with ATC3 off
+  and the Mac resets ~11 s into boot.
+- The ATC3 node becomes "apple,t6050-dp-phy" (6 regs, a 0x2c400 core window,
+  3 power domains); usb_drd3's links to it are dropped.
+
+Needs the boot loader to fill the ATC tunables of a dp-phy node (Aura, 0011).
+
+Ported unchanged from FatBoy721/omarchy-m5 j714s-hdmi-upstream273 (898d8ad6cb) onto the J714s 27.2
+series (integration/aurora a34d26c2 + betizzel/omarchy-m5 patches/j714s-27.2/linux). Not tried on 27.2.
+
+Signed-off-by: FatBoy721 <203330788+FatBoy721@users.noreply.github.com>
+---
+ .../boot/dts/apple/t6050-j714s-hdmi.dtsi      | 95 +++++++++++++++++++
+ arch/arm64/boot/dts/apple/t6050-j714s.dts     |  3 +
+ 2 files changed, 98 insertions(+)
+ create mode 100644 arch/arm64/boot/dts/apple/t6050-j714s-hdmi.dtsi
+
+diff --git a/arch/arm64/boot/dts/apple/t6050-j714s-hdmi.dtsi b/arch/arm64/boot/dts/apple/t6050-j714s-hdmi.dtsi
+new file mode 100644
+index 000000000000..7677e05b0d6f
+--- /dev/null
++++ b/arch/arm64/boot/dts/apple/t6050-j714s-hdmi.dtsi
+@@ -0,0 +1,95 @@
++// SPDX-License-Identifier: GPL-2.0+ OR MIT
++/*
++ * J714s HDMI: dcpext3 -> atc3 display crossbar -> atc3 (fixed four-lane DP PHY,
++ * no USB controller: the J714sAP ADT has no usb-drd3) -> the on-board DP-to-HDMI
++ * converter. The same chain as the M4 Pro J614s (t6040-j614s-extdisp-hdmi.dtsi);
++ * the converter's pins match the M5 Ultra J775d's (t6050-j775d.dts).
++ *
++ * From the J714sAP ADT (macOS 27.3, 26C5035r):
++ *   atc3-dpphy: atc-dpphy,t602x, port-type 6, dp-switch-dfp-endpoint 3, dfp-port 0,
++ *     dp2hdmi-gpio-parent dp2hdmi-gpio0.
++ *   atc3-dpxbar@8B24C000 (atc-dpxbar,t6050): this file's atc3_dpxbar.
++ *   dp2hdmi-gpio0: function-hdmi_hpd = aop-gpio0 pin 14 (interrupts <0x0e 0x05000004>);
++ *     function-hdmi_pwr_en = pKW8('pcIO', 0x800000, 0xf0000);
++ *     function-dp2hdmi_pwr_en = pKW8('pcIO', 0x0, 0x1a0000);
++ *     function-force-dpfu = aop-gpio0 pin 15 (left undescribed, as on J614s).
++ *   display-crossbar0: dcpextN is ufp endpoint N, so dcpext3 -> atc3 is
++ *     crossbar state 2 * 3 + 0 = 6.
++ *
++ * dcpext3 is taken from the USB-C routes: it was dcpext2's pair for modes that need
++ * two pipelines, so those modes are lost on dcpext2's route. dcpext0/dcpext1 keep
++ * theirs. As with the USB-C engines, the boot loader hands dcpext3 over.
++ *
++ * Needs the boot loader to fill the ATC tunables of an "apple,t6050-dp-phy" node
++ * (Aura's kboot_atc only does so for apple,t6050-combo-phy today).
++ */
++
++/*
++ * The SMC pcIO outputs: 0 is the SD reader's (t6050-j714s.dts); 1 and 2 are the
++ * HDMI converter's power enables, in J775d's encoding.
++ */
++&smc_pcio {
++	apple,output-commands = /bits/ 64 <0x0019000000000000 0x000f000000800000
++					   0x001a000000000000>;
++};
++
++/*
++ * t6050-max-atc2.dtsi exposes only pin 81 of the AOP GPIO controller. Free the
++ * converter's HPD (pin 14) too; force-dpfu (pin 15) stays reserved.
++ */
++&pinctrl_aop {
++	gpio-reserved-ranges = <0 14>, <15 66>, <82 3>;
++};
++
++&atc3_phy {
++	compatible = "apple,t6050-dp-phy";
++	/* The fixed DP PHY needs the core window up to 0x2c400. */
++	reg = <0x3 0x8b000000 0x0 0x2c400>,
++	      <0x3 0x8b200000 0x0 0x4000>,
++	      <0x3 0x8b244000 0x0 0x4000>,
++	      <0x3 0x88000000 0x0 0x8000>,
++	      <0x3 0x88020000 0x0 0x4000>,
++	      <0x3 0x8b250000 0x0 0x4000>;
++	reg-names = "core", "reset", "fabric", "axi2af", "lioa", "common-cfg";
++	#phy-cells = <0>;
++	/delete-property/ #reset-cells;
++	/delete-property/ apple,guest-port-reserved;
++	/delete-property/ mode-switch;
++	/delete-property/ orientation-switch;
++	/delete-property/ mboxes;
++	power-domains = <&ps_atc3_usb_aon>, <&ps_atc3_common>, <&ps_atc3_phymxwrap>;
++	power-domain-names = "usb-aon", "common", "wrapper";
++	status = "okay";
++};
++
++/*
++ * As atc1_dpxbar (t6050-j714s-display.dtsi): without Linux-managed domains the
++ * crossbar driver writes its select register with ATC3 powered down.
++ */
++&atc3_dpxbar {
++	power-domains = <&ps_atc3_usb_aon>, <&ps_atc3_common>;
++	power-domain-names = "usb-aon", "common";
++	status = "okay";
++};
++
++&dcpext3 {
++	apple,connector-type = "HDMI-A";
++	apple,dptx-die = <0>;
++	apple,dptx-phy = <3>;
++	hdmi-hpd-gpios = <&pinctrl_aop 14 GPIO_ACTIVE_HIGH>;
++	hdmi-pwren-gpios = <&smc_pcio 1 GPIO_ACTIVE_HIGH>;
++	dp2hdmi-pwren-gpios = <&smc_pcio 2 GPIO_ACTIVE_HIGH>;
++	phys = <&atc3_phy>;
++	phy-names = "dp-phy";
++	mux-controls = <&atc3_dpxbar 0>;
++	mux-control-names = "dp-xbar";
++	/* 2 * dp-switch-ufp-endpoint (3) + port (0), as macOS's AppleT8142ATCDPXBAR */
++	mux-index = <6>;
++};
++
++/* No usb-drd3 on this board (disabled in t6050-j714s.dts): drop its links to the now DP-only PHY. */
++&usb_drd3 {
++	/delete-property/ phys;
++	/delete-property/ phy-names;
++	/delete-property/ resets;
++};
+diff --git a/arch/arm64/boot/dts/apple/t6050-j714s.dts b/arch/arm64/boot/dts/apple/t6050-j714s.dts
+index d0b713627078..7166e951ac3d 100644
+--- a/arch/arm64/boot/dts/apple/t6050-j714s.dts
++++ b/arch/arm64/boot/dts/apple/t6050-j714s.dts
+@@ -1011,3 +1011,6 @@ &ave0_dart1 {
+ &ave0 {
+ 	status = "okay";
+ };
++
++/* HDMI, through ATC3 and the on-board DP-to-HDMI converter */
++#include "t6050-j714s-hdmi.dtsi"
+-- 
+2.56.0
+
+From eba4864d3362ae4e757940f6c24e0a55d4a1e7c0 Mon Sep 17 00:00:00 2001
+From: FatBoy721 <203330788+FatBoy721@users.noreply.github.com>
+Date: Fri, 13 Nov 2026 13:30:00 -0500
+Subject: [PATCH 18/18] drm/apple: J714s HDMI: complete flips locally while the
+ link comes up
+
+With a sink already attached at boot, the first link of the J714s HDMI output
+(dcpext3, 27.3 firmware) never shows a picture: the sink drops HPD ~2 s after
+the mode set. DCP meanwhile swallows the compositor's presents ("swallowed swap
+ID n as fControllerPowerState is 0 for External Display") without completing
+them. dcp_swap_watchdog_arm() only watches Type-C outputs, desktop pipes and
+the fw27 VRR panel, so the dropped present holds the IOMFB queue until the
+10 s transaction timeout marks the DCP crashed, and HDMI stays dead until the
+next boot ("wait for power timed out, connector will be broken"). A hotplug
+after login works, because the compositor is idle while the link comes up.
+
+While the fixed HDMI output connects (sink at boot, power-on, any HPD edge),
+complete its flips locally for 8 s instead of presenting them. The automatic
+reconnect after the sink drops the first link then works. Tested on the
+owner's J714s: cold plug at boot, hotplug and replug all show the desktop;
+the internal panel and the shell are not delayed. j714s_hdmi_hold=0 turns it off.
+
+This is a workaround, not the root cause: arming the swap watchdog for a fixed
+HDMI output on its own (dcp_swap_watchdog_arm) did not help on the H17P queue
+path, and why the first link after boot shows no picture is still open.
+
+Ported unchanged from FatBoy721/omarchy-m5 j714s-hdmi-upstream273 (898d8ad6cb) onto the J714s 27.2
+series (integration/aurora a34d26c2 + betizzel/omarchy-m5 patches/j714s-27.2/linux). Not tried on 27.2.
+
+Signed-off-by: FatBoy721 <203330788+FatBoy721@users.noreply.github.com>
+---
+ drivers/gpu/drm/apple/dcp-fabric.c     |  2 ++
+ drivers/gpu/drm/apple/dcp.c            |  4 +++
+ drivers/gpu/drm/apple/iomfb.c          | 39 ++++++++++++++++++++++++++
+ drivers/gpu/drm/apple/iomfb_template.c |  2 ++
+ 4 files changed, 47 insertions(+)
+
+diff --git a/drivers/gpu/drm/apple/dcp-fabric.c b/drivers/gpu/drm/apple/dcp-fabric.c
+index e00de74092ed..a0bf1c6cb0bc 100644
+--- a/drivers/gpu/drm/apple/dcp-fabric.c
++++ b/drivers/gpu/drm/apple/dcp-fabric.c
+@@ -5206,6 +5206,7 @@ static void dcp_hdmi_update_locked(struct apple_dcp *dcp)
+ 	dcp_fabric_run_hdmi(&dcp_hdmi_ops, dcp);
+ }
+ 
++void j714s_hdmi_hold_presents(struct apple_dcp *dcp, unsigned int ms, const char *why);
+ irqreturn_t dcp_dp2hdmi_hpd(int irq, void *data)
+ {
+ 	struct apple_dcp *dcp = data;
+@@ -5213,6 +5214,7 @@ irqreturn_t dcp_dp2hdmi_hpd(int irq, void *data)
+ 	if (dcp->fw_compat == DCP_FIRMWARE_V_26_6_DESKTOP)
+ 		return dcp_desktop_dp2hdmi_hpd(dcp);
+ 
++	j714s_hdmi_hold_presents(dcp, 8000, "HPD");
+ 	guard(mutex)(&dcp_typec_fabric_lock);
+ 	dcp_hdmi_update_locked(dcp);
+ 	/* The GPIO edge detector is off throughout an oneshot handler. */
+diff --git a/drivers/gpu/drm/apple/dcp.c b/drivers/gpu/drm/apple/dcp.c
+index 9f4993297748..789f3150f388 100644
+--- a/drivers/gpu/drm/apple/dcp.c
++++ b/drivers/gpu/drm/apple/dcp.c
+@@ -4414,6 +4414,8 @@ static const struct dcp_fabric_resume_ops dcp_resume_ops = {
+ 	.sample = dcp_resume_sample,
+ };
+ 
++void j714s_hdmi_hold_presents(struct apple_dcp *dcp, unsigned int ms, const char *why);
++
+ static int dcp_enable_dp2hdmi_hpd(struct apple_dcp *dcp)
+ {
+ 	if (dcp_is_typec_output(dcp)) {
+@@ -4424,6 +4426,8 @@ static int dcp_enable_dp2hdmi_hpd(struct apple_dcp *dcp)
+ 		bool connected = gpiod_get_value_cansleep(dcp->hdmi_hpd);
+ 		dev_info(dcp->dev, "%s: DP2HDMI HPD connected:%d\n", __func__, connected);
+ 
++		if (connected)
++			j714s_hdmi_hold_presents(dcp, 8000, "sink at boot");
+ 		if (connected && !READ_ONCE(dcp->hdmi_yielded))
+ 			dcp_dptx_connect(dcp, 0);
+ 		else if (!connected)
+diff --git a/drivers/gpu/drm/apple/iomfb.c b/drivers/gpu/drm/apple/iomfb.c
+index 9f82797f1255..546520c36d88 100644
+--- a/drivers/gpu/drm/apple/iomfb.c
++++ b/drivers/gpu/drm/apple/iomfb.c
+@@ -3735,6 +3735,40 @@ static bool dcp_fw27_vrr_switch(struct apple_dcp *dcp, struct drm_crtc *crtc,
+ 	return false;
+ }
+ 
++/*
++ * J714s HDMI (2026-11-13 test 20): while the fixed HDMI output connects, its
++ * firmware drops presents without completing them, and one dropped present
++ * blocks the IOMFB queue until the DCP is declared crashed. Complete the
++ * compositor's flips locally instead, as if it were idle, until the link has
++ * been stable for a while.
++ */
++static bool j714s_hdmi_hold = true;
++module_param(j714s_hdmi_hold, bool, 0644);
++MODULE_PARM_DESC(j714s_hdmi_hold, "J714s: complete HDMI flips locally while the link comes up (test)");
++static unsigned long j714s_hdmi_hold_until;
++
++static bool j714s_hdmi_output(struct apple_dcp *dcp)
++{
++	return dcp->hdmi_hpd && dcp->fixed_phy && !dcp->main_display &&
++	       !dcp->active_typec_route;
++}
++
++void j714s_hdmi_hold_presents(struct apple_dcp *dcp, unsigned int ms, const char *why)
++{
++	if (!j714s_hdmi_hold || !j714s_hdmi_output(dcp))
++		return;
++	WRITE_ONCE(j714s_hdmi_hold_until, jiffies + msecs_to_jiffies(ms));
++	dev_info(dcp->dev, "J714S hold HDMI presents %u ms (%s)\n", ms, why);
++}
++
++static bool j714s_hdmi_presents_held(struct apple_dcp *dcp)
++{
++	unsigned long until = READ_ONCE(j714s_hdmi_hold_until);
++
++	return j714s_hdmi_hold && until && j714s_hdmi_output(dcp) &&
++	       time_before(jiffies, until);
++}
++
+ void dcp_flush(struct drm_crtc *crtc, struct drm_atomic_commit *commit)
+ {
+ 	struct platform_device *pdev = to_apple_crtc(crtc)->dcp;
+@@ -3763,6 +3797,11 @@ void dcp_flush(struct drm_crtc *crtc, struct drm_atomic_commit *commit)
+ 		return;
+ 	}
+ 
++	if (j714s_hdmi_presents_held(dcp)) {
++		dcp_drm_crtc_vblank(to_apple_crtc(crtc));
++		return;
++	}
++
+ 	if (dcp->fw_compat == DCP_FIRMWARE_V_26_6) {
+ 		iomfb_v26_6_flush(dcp, crtc, commit);
+ 		return;
+diff --git a/drivers/gpu/drm/apple/iomfb_template.c b/drivers/gpu/drm/apple/iomfb_template.c
+index 21ac0deb9785..c118939c9310 100644
+--- a/drivers/gpu/drm/apple/iomfb_template.c
++++ b/drivers/gpu/drm/apple/iomfb_template.c
+@@ -40,6 +40,7 @@
+ #include "dcp-property.h"
+ #include "trace.h"
+ #include "version_utils.h"
++void j714s_hdmi_hold_presents(struct apple_dcp *dcp, unsigned int ms, const char *why);
+ 
+ /* Register defines used in bandwidth setup structure */
+ #define REG_DOORBELL_BIT(idx) (2 + (idx))
+@@ -2473,6 +2474,7 @@ void DCP_FW_NAME(iomfb_poweron)(struct apple_dcp *dcp)
+ 	u32 handle;
+ #endif
+ 	dev_info(dcp->dev, "dcp_poweron() starting\n");
++	j714s_hdmi_hold_presents(dcp, 8000, "power on");
+ 	/* The firmware announces its compact services again after poweron. */
+ 	WRITE_ONCE(dcp->afk_power_gen, dcp->afk_power_gen + 1);
  
 -- 
 2.56.0

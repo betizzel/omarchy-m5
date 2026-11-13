@@ -1,0 +1,43 @@
+From 795d53a9fac1a9688811b7f4f2862aea9d35f16f Mon Sep 17 00:00:00 2001
+From: TripleU <182648541+TripleU613@users.noreply.github.com>
+Date: Fri, 13 Nov 2026 13:06:46 -0500
+Subject: [PATCH 16/18] accel/ane: T6050: pin the macOS 27.2 (26B123) ANE TEXT
+
+Read from the first J714s 27.2 boot: H17 ANE: preloaded TEXT sha256 b15dd8fb3367a6d5a77935a62b4c6c9d6a6e166cd11c1b2a886c65f114d7c40e.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+---
+ drivers/accel/ane/ane_fw_platform.c | 16 ++++++++++------
+ 1 file changed, 10 insertions(+), 6 deletions(-)
+
+diff --git a/drivers/accel/ane/ane_fw_platform.c b/drivers/accel/ane/ane_fw_platform.c
+index 7320942f260a..5dda5883d335 100644
+--- a/drivers/accel/ane/ane_fw_platform.c
++++ b/drivers/accel/ane/ane_fw_platform.c
+@@ -58,13 +58,17 @@ static const u8 ane_t6050_text_pin_27_3[] = {
+ };
+ 
+ /*
+- * The macOS 27.2 build (26B123). Its TEXT digest as iBoot preloads it is not
+- * known yet: the IPSW image is not what the loader hands off (27.0's file
+- * hashes to d4a64be9..., its preloaded TEXT to 93ae3a37...). All zeroes match
+- * no TEXT, so the 27.2 layout is recognised but refused, and the refusal
+- * prints the preloaded TEXT sha256 to pin here from the first 27.2 boot.
++ * The macOS 27.2 build (26B123), its TEXT as iBoot preloads it (sha256
++ * b15dd8fb...), read from the first J714s 27.2 boot's refusal. The IPSW image
++ * is not what the loader hands off (27.0's file hashes to d4a64be9..., its
++ * preloaded TEXT to 93ae3a37...), so the pin is the preloaded digest.
+  */
+-static const u8 ane_t6050_text_pin_27_2[32];
++static const u8 ane_t6050_text_pin_27_2[32] = {
++	0xb1, 0x5d, 0xd8, 0xfb, 0x33, 0x67, 0xa6, 0xd5,
++	0xa7, 0x79, 0x35, 0xa6, 0x2b, 0x4c, 0x6c, 0x9d,
++	0x6a, 0x6e, 0x16, 0x6c, 0xd1, 0x1c, 0x1b, 0x2a,
++	0x88, 0x6c, 0x65, 0xf1, 0x14, 0xd7, 0xc4, 0x0e,
++};
+ 
+ /*
+  * T6050 builds, by their ADT ane0 segment-ranges. 27.3 moved 0x2c000 bytes
+-- 
+2.56.0
+
