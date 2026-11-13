@@ -45,7 +45,7 @@ external display fix) has not booted yet. -7 has been installed and booted end t
 
 ## Try it
 
-**One image, one installer: [omarchy-j714s 2](https://github.com/betizzel/omarchy-m5/releases/tag/omarchy-j714s-2)**
+**One image, one installer: [omarchy-j714s 3](https://github.com/betizzel/omarchy-m5/releases/tag/omarchy-j714s-3)**
 (prerelease). It runs on a Mac, not from a Linux PC.
 
 You need:
@@ -66,13 +66,16 @@ Steps (the release page has every detail):
 4. **Restart.** Each boot pauses about 15 seconds at the logo. First boot asks for a disk password,
    then your name and password.
 
-Known gaps on 27.2: no built-in sound yet (speakers, headphone jack, microphones; fix planned for
-the next kernel). To go back: hold the power button at startup and pick macOS.
+New in 3: built-in sound on 27.2 (Jens Axboe's AOP fix: sound cards, microphones, lid and light
+sensors). On TripleU613's J714s speakerguardd v2 passed its checks and owns the speakers (first
+start at 30%); nobody has listened yet, so follow the low-level test before playing loud. Known
+gaps: `ufw.service` fails, AVE is probe only, HDMI on 27.2 untested with a monitor, and no fresh
+install with the installer yet. To go back: hold the power button at startup and pick macOS.
 
-Older images are **superseded** by omarchy-j714s 2 and no longer the way to install:
+Older images are **superseded** by omarchy-j714s 3 and no longer the way to install:
 `j714s-developer-image-2026.11.11-7` (stable, 27.3 beta stub, installed from Linux with
 `docs/bringup.md`), the `upstream-2026.11.1x-N` developer images, and `omarchy-j714s 1` (boot-loops
-after install; fixed in 2). The table above still describes those two older images.
+after install; fixed in 2) and `omarchy-j714s 2` (no built-in sound on 27.2; fixed in 3). The table above still describes those two older images.
 
 Stuck? Open an [issue](https://github.com/betizzel/omarchy-m5/issues) and paste what you see.
 

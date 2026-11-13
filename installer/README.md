@@ -137,6 +137,7 @@ and light-sensor calibration).
 | 0001 | Two new support roles, `speakerguardd-v2` and `aurora-speaker-upgrade` (20 roles); `omarchy-aurora-firmware 20261014.j714s8` (one speaker path, the v2 UCM condition, the speaker auto-switch, VRR range on, first-boot camera setfile); kernel and Aura v272-2 (later replaced by 0003) |
 | 0002 | The Recovery app built from this set: `installer-recovery.yml` run 43477703681, artifact 14062718355 (zip `15143a71…`), inventory `7347ba8a…`, Recovery tree `2f10aee7`, commit `f3375020` |
 | 0003 | `linux-aurora 7.3.0.aurora17.v272-3` (the 27.2 ANE pin, FatBoy721's J714s HDMI) and `m1n1-aurora 1.6.1.aurora24.v272-3` (Aura 22b71758 with #213, FatBoy721's fixed DP PHY tunables), from ce20db7; set `j714s-dev-runtime-39ff82133d63`; qualification pins `7.3.0-17.v272-3-ARCH` |
+| 0004 | release 3: `linux-aurora 7.3.0.aurora17.v272-4` (kernel 0019, Jens Axboe's #1645: the 27.2 AOP) and `omarchy-aurora-firmware 20261014.j714s9` (loads `aop` at boot on the J714s), from ac63a3d; set `j714s-dev-runtime-7cd4572ff7ef`; qualification pins `7.3.0-17.v272-4-ARCH`; TREE `437d6908` |
 
 Built (2026-11-13):
 - Engine: release `engine-v0.9.2-omarchy.20261113.774d9abc59d3`.
@@ -149,3 +150,17 @@ Release 2's packages boot on TripleU613's J714s (installed over release 1 with p
 issues on 27.2: no built-in sound card (the AOP doesn't come up; aurora-silicon/linux #1645 is the
 likely fix) and `ufw.service` fails. See
 [`patches/j714s-27.2/RELEASE-2.md`](../patches/j714s-27.2/RELEASE-2.md).
+
+## omarchy-j714s 3 (built 2026-11-13)
+
+Release 2 plus `patches-j714s-r2` 0004 (above): kernel v272-4 and firmware j714s9. Same engine
+(`v0.9.2-omarchy.20261113.774d9abc59d3`) and Recovery app (run 43477703681) as release 2.
+
+- Inputs: release `installer-build-inputs-j714s-6d03ea37204e` (finish-inputs on the tree `rebuild-installer-tree.sh DEST upstream-27.3 j714s j714s-r2` makes, HEAD 1e32b6f).
+- Image: `installer-image.yml` run 43508507939 (headSha cfbe533, `image-version` 3) → release `j714s-developer-image-omarchy-j714s-3`, `omarchy-j714s-3-aarch64-apple-silicon-mac-os-package.zip` sha256 `1156ef803f0131cb8c071aec461510bdd2b2095f6a1a97250d41a8b8e78ede0a`. Inspection and provenance checks passed; `m1n1/boot-ctxr.bin` is m1n1-aurora v272-3's Stage 2 (`1.0.0b13-g22b71758`).
+- update-check: run 43511484883.
+- App: `installer-app.yml` run 43511488985 → prerelease `omarchy-j714s-3`.
+
+The kernel change was tested on TripleU613's J714s as a hand-built `aop.ko` on v272-3 (sound
+cards, mics, AOP sensors; speakerguardd v2 passed its checks and owns the speakers, not yet
+confirmed by ear). The at-boot `aop` load (firmware j714s9) has not run on the Mac yet.
