@@ -194,3 +194,7 @@ mesa/vulkan-aurora, uboot-aurora and the omacom packages. The device trees grow 
 
 Release 1's packages (linux `7ed98691…`, m1n1 `1f30e3ff…`, built on 572eb88e/2232ae7a) are in
 this file's git history and on ush in `~/m5-build/pkg272/out/`.
+
+## Queued for the next kernel (after release 3)
+
+- **HDMI v2 (FatBoy721, branch `j714s-hdmi-upstream273`, commit 267c7ea3cb, 2026-11-13):** his 0012 v2 (`…-t6050-hdmi-hold-presents.patch`: per-DCP hold state, only for `apple,t6050-dcpext` HDMI outputs, off with `appledrm.hdmi_hold_presents=0`) replaces the 0012 we carry as kernel 0018, and his new 0013 (`…-t6050-hdmi-irq-hpd.patch`: the converter IRQ_HPD forwarder for T6050) is added. Both tested on his J714s on 27.3. Both are in `appledrm`, so a one-module rebuild against the v272-4 tree is enough to try them on the Mac before a full release.
