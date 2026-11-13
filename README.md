@@ -67,7 +67,7 @@ Steps (the release page has every detail):
    then your name and password.
 
 New in 3: built-in sound on 27.2 (Jens Axboe's AOP fix: sound cards, microphones, lid and light
-sensors). On TripleU613's J714s speakerguardd v2 passed its checks and owns the speakers (first
+sensors; loading the AOP driver at boot is untried on the Mac, `sudo modprobe aop` if missing). On TripleU613's J714s speakerguardd v2 passed its checks and owns the speakers (first
 start at 30%); nobody has listened yet, so follow the low-level test before playing loud. Known
 gaps: `ufw.service` fails, AVE is probe only, HDMI on 27.2 untested with a monitor, and no fresh
 install with the installer yet. To go back: hold the power button at startup and pick macOS.

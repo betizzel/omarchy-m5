@@ -151,7 +151,8 @@ build tree on ush (`makepkg -e` after setting `localversion.10-pkgrel` and `buil
 v272-4 by hand; `patch -Np1` of the new `linux-j714s-27.2.patch` on the tarball reproduces that
 tree exactly); `check()` 35 tests OK. Every module carries vermagic `7.3.0-17.v272-4-ARCH`, the
 file list equals v272-3's, and the packaged `aop.ko`'s `.text`/`.rodata` equal the build tree's
-(the module tested on the J714s with `modprobe aop`). The firmware package was built in the Arch
+and those of the module tested on the J714s with `modprobe aop` (built in the same tree before
+the version bump). The at-boot load from j714s9 has not run on the Mac yet. The firmware package was built in the Arch
 Linux ARM container; only `aurora-peripheral-firmware.sh` differs from j714s8.
 
 | Package | sha256 | Bytes |

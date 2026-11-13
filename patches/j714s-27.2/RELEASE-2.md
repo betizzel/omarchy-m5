@@ -1,6 +1,6 @@
 # omarchy-j714s 2: what is left
 
-**Superseded by [omarchy-j714s 3](https://github.com/betizzel/omarchy-m5/releases/tag/omarchy-j714s-3)**, which adds built-in sound on 27.2 (kernel v272-4 with Jens Axboe's AOP fix #1645, firmware j714s9 loading `aop` at boot).
+**Superseded by [omarchy-j714s 3](https://github.com/betizzel/omarchy-m5/releases/tag/omarchy-j714s-3)**, which adds built-in sound on 27.2 (kernel v272-4 with Jens Axboe's AOP fix #1645, firmware j714s9 loading `aop` at boot, untested on the Mac so far).
 
 Release 2 of the one J714s image (27.2 non-beta stub, Mach-O Stage 1). **Published 2026-11-13 as
 the prerelease [`omarchy-j714s-2`](https://github.com/betizzel/omarchy-m5/releases/tag/omarchy-j714s-2)**
