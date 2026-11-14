@@ -35,7 +35,7 @@ external display fix) has not booted yet. -7 has been installed and booted end t
 | Ambient light sensor | 🟡 needs this Mac's calibration ([`save-als-cal.py`](tools/als-calibration/save-als-cal.py)) | 🟡 same | DjDeveloperr, aurora-silicon |
 | Sleep (lid close) | ✅ | untested | FatBoy721, betizzel |
 | USB host on all three USB-C ports | ✅ | ✅ | edimoldovan, DjDeveloperr |
-| USB4, external displays | ❌ | 🟡 USB-C: all four display engines come up with -8's fix (tried as a config line on -7's kernel), no monitor tried yet; HDMI ❌ | DjDeveloperr, erikwb, this repo |
+| USB4, external displays | ❌ | 🟡 USB-C: all four display engines come up with -8's fix (tried as a config line on -7's kernel), no monitor tried yet; HDMI 🟡 works on 27.3 with upstream-27.3 0010-0012 (FatBoy721, not in an image yet) | DjDeveloperr, erikwb, this repo |
 | Quiet fans at idle | ✅ | ✅ | edimoldovan |
 | Updates (`omarchy update`) | ✅ (checked in CI, [`update-check`](.github/workflows/update-check.yml)) | ✅ | this repo |
 
