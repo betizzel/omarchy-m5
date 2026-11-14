@@ -29,8 +29,10 @@ sudo cp /etc/fstab /etc/fstab.bak-fsuuid
 # replace the two UUID= entries for /boot and /boot/efi with PARTUUID=<id from lsblk>
 sudo systemctl daemon-reload
 sudo umount /boot/efi /boot && sudo mount /boot && sudo mount /boot/efi
-sudo pacman -S linux-aurora m1n1-aurora   # or pacman -U the same package files
+sudo pacman -U linux-aurora-*.pkg.tar.zst m1n1-aurora-*.pkg.tar.zst   # the release's own package files
 ```
+
+Do not use `pacman -S` for this: the public `omarchy` repository carries the generic kernel and loader, not the J714s builds.
 
 Then `grep "Kernel version" /boot/efi/limine.conf` must show the installed kernel.
 
