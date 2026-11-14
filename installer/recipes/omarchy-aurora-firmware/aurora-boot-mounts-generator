@@ -1,0 +1,71 @@
+#!/bin/bash
+# systemd generator: mount /boot/efi and /boot from the partitions this system booted from.
+#
+# Every Omarchy image carries the same filesystem IDs for the ESP and /boot, and /etc/fstab
+# mounts by them. With a second Omarchy install on the same disk, either pair can win, and a
+# kernel update then lands on the other install's boot partition (docs/duplicate-boot-ids.md).
+#
+# m1n1 names the ESP it booted from in the device tree. /boot is the partition after it.
+# This writes boot.mount and boot-efi.mount for exactly those two partitions into the early
+# generator directory, where they take precedence over the units made from /etc/fstab.
+# Any doubt: write nothing and leave /etc/fstab in charge.
+set -u
+early=${2:-}
+[ -n "$early" ] || exit 0
+dt=${AURORA_BOOT_MOUNTS_DT:-/proc/device-tree/chosen/asahi,efi-system-partition}
+sys=${AURORA_BOOT_MOUNTS_SYS:-/sys/class/block}
+[ -r "$dt" ] || exit 0
+esp_uuid=$(tr -d '\0' < "$dt" | tr 'A-F' 'a-f')
+[[ $esp_uuid =~ ^[0-9a-f-]{36}$ ]] || exit 0
+
+field() { sed -n "s/^$2=//p" "$1/uevent" 2>/dev/null | head -n1; }
+
+esp=
+for d in "$sys"/*; do
+  [ "$(field "$d" PARTUUID | tr 'A-F' 'a-f')" = "$esp_uuid" ] && { esp=$d; break; }
+done
+[ -n "$esp" ] || exit 0
+esp_n=$(field "$esp" PARTN)
+[[ $esp_n =~ ^[0-9]+$ ]] || exit 0
+disk=$(readlink -f "$esp/..") || exit 0
+
+boot=
+for d in "$disk"/*/; do
+  d=${d%/}
+  [ "$(field "$d" PARTN)" = "$((esp_n + 1))" ] && { boot=$d; break; }
+done
+[ -n "$boot" ] || exit 0
+boot_uuid=$(field "$boot" PARTUUID | tr 'A-F' 'a-f')
+[[ $boot_uuid =~ ^[0-9a-f-]{36}$ ]] || exit 0
+
+# The partition after the ESP must be the image's ext4 /boot (magic 0xEF53, label OMARCHY_BOOT).
+node=/dev/$(field "$boot" DEVNAME)
+[ -b "$node" ] || exit 0
+[ "$(dd if="$node" bs=1 skip=1080 count=2 2>/dev/null | od -An -tx1 | tr -d ' \n')" = 53ef ] || exit 0
+[ "$(dd if="$node" bs=1 skip=1144 count=16 2>/dev/null | tr -d '\0')" = OMARCHY_BOOT ] || exit 0
+
+unit() { # mountpoint partuuid fstype options after
+  local where=$1 dev=/dev/disk/by-partuuid/$2 name esc
+  name=$(systemd-escape -p --suffix=mount "$where") || return 1
+  esc=$(systemd-escape -p "$dev") || return 1
+  cat > "$early/$name" <<UNIT
+# Written by aurora-boot-mounts-generator (omarchy-aurora-firmware): the partitions this
+# system booted from, instead of the filesystem IDs in /etc/fstab that other installs share.
+[Unit]
+Documentation=https://github.com/betizzel/omarchy-m5/blob/main/docs/duplicate-boot-ids.md
+Before=local-fs.target
+Wants=systemd-fsck@$esc.service
+After=systemd-fsck@$esc.service blockdev@$esc.target${5:+ $5}
+
+[Mount]
+What=$dev
+Where=$where
+Type=$3
+Options=$4
+UNIT
+  mkdir -p "$early/local-fs.target.wants" && ln -sf "../$name" "$early/local-fs.target.wants/$name"
+}
+
+unit /boot "$boot_uuid" ext4 defaults,noatime "" || exit 0
+unit /boot/efi "$esp_uuid" vfat umask=0077 boot.mount || { rm -f "$early/boot.mount" "$early/local-fs.target.wants/boot.mount"; exit 0; }
+exit 0

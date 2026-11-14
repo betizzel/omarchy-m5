@@ -1,5 +1,5 @@
 pkgname=omarchy-aurora-firmware
-pkgver=20261014.j714s9
+pkgver=20261014.j714s10
 pkgrel=1
 pkgdesc='Order Apple peripheral admission after device firmware extraction'
 arch=('aarch64')
@@ -25,6 +25,8 @@ source=(aurora-firmware-order.conf aurora-peripheral-firmware.sh
         ucm-macaudio-j714.conf ucm-macaudio-hifi-j714.conf ucm-aop-j714.conf wireplumber-81-aurora-busy-discovery.conf
         # J714s: speakerguardd v2 at boot once it qualifies, the panel's VRR range, the camera's tuning
         70-aurora-speaker-upgrade-auto.conf aurora-m5-vrr.conf aurora-j714s-camera-setfile aurora-j714s-camera-setfile.service
+        # /boot and /boot/efi from the partitions this system booted from (docs/duplicate-boot-ids.md)
+        aurora-boot-mounts-generator
         # The video decoder's v5-t2 firmware (MIT), built from source; avd-fw 0.1 has up to v5-t1
         "avd-fw::git+https://github.com/aurora-silicon/avd-fw.git#commit=ea3a65cc9c0c41907e6ad2714b813e4be6858485"
         # liblzfse (BSD-3-Clause), for apfs_ro: macOS keeps many System files LZFSE-compressed; not in Arch Linux ARM
@@ -55,6 +57,7 @@ sha256sums=('e2d6d6008bfde44ba871da2fcaae22b409d52ea8695fcf672bc3b06d786f823e'
             '340e0ed3b664ae7e5845169826b1f54188a4252bfacfdae55a20c3f45b24134b'
             '52ed437db809ed363b03da071d959b59c53d30688b64187adf3f66f7c9dcbbd9'
             '3d91c4be5f110df0b6703effdf82d637a93928b51467c45f775fd9ac68c59492'
+            '18eb3cf71c3a0614080263833fc020a6e2aa6af3bfa393bf5461b6c9ed4290d1'
             'SKIP'
             'SKIP')
 build() {
@@ -136,6 +139,11 @@ package() {
   install -Dm644 aurora-j714s-camera-setfile.service "$pkgdir/usr/lib/systemd/system/aurora-j714s-camera-setfile.service"
   ln -s ../aurora-j714s-camera-setfile.service \
     "$pkgdir/usr/lib/systemd/system/multi-user.target.wants/aurora-j714s-camera-setfile.service"
+
+  # Two Omarchy installs on one disk share the image's filesystem IDs for the ESP and /boot.
+  # This generator mounts the pair this system booted from (m1n1 names the ESP in the device
+  # tree), so a kernel update can't land on the other install. Any doubt: /etc/fstab stands.
+  install -Dm755 aurora-boot-mounts-generator "$pkgdir/usr/lib/systemd/system-generators/aurora-boot-mounts-generator"
 
   install -Dm755 liblzfse.so.1 "$pkgdir/usr/lib/omarchy-aurora/liblzfse.so.1"
   install -Dm644 lzfse/LICENSE "$pkgdir/usr/share/licenses/$pkgname/lzfse-LICENSE"
