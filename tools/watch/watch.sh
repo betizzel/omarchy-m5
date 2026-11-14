@@ -1,7 +1,7 @@
 #!/bin/bash
 # Print every watched M5 repo branch whose head moved since the last run, then record the new heads.
-# Usage: watch.sh [--quiet-record]   State: $M5_WATCH_DIR (default ~/.cache/m5-watch)/state.tsv; needs gh (logged in). First run only records (repo<TAB>branch<TAB>sha)
-cd "${M5_WATCH_DIR:-$HOME/.cache/m5-watch}" 2>/dev/null || { mkdir -p "${M5_WATCH_DIR:-$HOME/.cache/m5-watch}"; cd "${M5_WATCH_DIR:-$HOME/.cache/m5-watch}"; }
+# Usage: watch.sh [--quiet-record]   State: ~/m5/watch/state.tsv (repo<TAB>branch<TAB>sha)
+cd "$(dirname "$0")"
 REPOS=(
  aurora-silicon/linux:integration/aurora aurora-silicon/aura:main
  omacom/linux-aurora: omacom/m1n1: omacom/omarchy-mac-pkgs: omacom/omarchy-mac-installer:
@@ -26,7 +26,7 @@ done
 # People: every repo they pushed to in the last 3 days, each branch head
 PEOPLE=(maralcbr scottjones chriskearney malik-na DjDeveloperr joshuaswarren themartiano riverscn RyanTheTide Acelogic LiamRay11 erykwieliczko subedijaidip shawnyeager jondkinney
         rolotrealanis98 edimoldovan betizzel erikwb satchlj joske TripleU613 FatBoy721 cameroncooper
-        IronsideXXVI jgoyvaerts kazuhidet andreinita21 fbalazsy Blueemi pixbroker sithglan nickyrice04)
+        IronsideXXVI jgoyvaerts kazuhidet andreinita21 fbalazsy Blueemi pixbroker sithglan nickyrice04 Isaac-Duarte)
 since=$(date -u -d '3 days ago' +%Y-%m-%dT%H:%M:%SZ)
 for u in "${PEOPLE[@]}"; do
   gh repo list "$u" --limit 200 --json nameWithOwner,pushedAt -q ".[]|select(.pushedAt>\"$since\")|.nameWithOwner" 2>/dev/null | while read -r r; do
