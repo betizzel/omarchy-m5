@@ -36,6 +36,12 @@ Do not use `pacman -S` for this: the public `omarchy` repository carries the gen
 
 Then `grep "Kernel version" /boot/efi/limine.conf` must show the installed kernel.
 
-## To do in the installer
+## Fixed from release 4
 
-Write `/etc/fstab` with `PARTUUID=` at install time (or give each install fresh filesystem IDs). Not in release 3.
+`omarchy-aurora-firmware` j714s10 (in [omarchy-j714s 4](https://github.com/betizzel/omarchy-m5/releases/tag/omarchy-j714s-4)) adds a systemd generator, `aurora-boot-mounts-generator`. At boot it reads the ESP m1n1 booted from (`/proc/device-tree/chosen/asahi,efi-system-partition`), takes the ext4 `OMARCHY_BOOT` partition right after it, and mounts both by `PARTUUID`. Its units take precedence over the ones made from `/etc/fstab`. If anything does not match, it writes nothing and `/etc/fstab` stays in charge.
+
+Installed systems get it with the package (`sudo pacman -U` the j714s10 package from the release's inputs bundle); it takes effect at the next boot. If the boot files already went to the other install's partitions, put them back first as above.
+
+Tried on the J714s: generator dry run, `systemctl daemon-reload`, unmount/mount cycle; each gave the right partitions. Not yet tried across a restart.
+
+Still open: the installer writes the same filesystem IDs into every install. Writing `/etc/fstab` with `PARTUUID=` (or giving each install fresh filesystem IDs) would remove the cause.

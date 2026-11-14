@@ -138,6 +138,7 @@ and light-sensor calibration).
 | 0002 | The Recovery app built from this set: `installer-recovery.yml` run 43477703681, artifact 14062718355 (zip `15143a71…`), inventory `7347ba8a…`, Recovery tree `2f10aee7`, commit `f3375020` |
 | 0003 | `linux-aurora 7.3.0.aurora17.v272-3` (the 27.2 ANE pin, FatBoy721's J714s HDMI) and `m1n1-aurora 1.6.1.aurora24.v272-3` (Aura 22b71758 with #213, FatBoy721's fixed DP PHY tunables), from ce20db7; set `j714s-dev-runtime-39ff82133d63`; qualification pins `7.3.0-17.v272-3-ARCH` |
 | 0004 | release 3: `linux-aurora 7.3.0.aurora17.v272-4` (kernel 0019, Jens Axboe's #1645: the 27.2 AOP) and `omarchy-aurora-firmware 20261014.j714s9` (loads `aop` at boot on the J714s), from ac63a3d; set `j714s-dev-runtime-7cd4572ff7ef`; qualification pins `7.3.0-17.v272-4-ARCH`; TREE `437d6908` |
+| 0005 | release 4: `omarchy-aurora-firmware 20261014.j714s10` (mounts `/boot` and `/boot/efi` from the partitions the system booted from, [`docs/duplicate-boot-ids.md`](../docs/duplicate-boot-ids.md)), from 0abeef9; set `j714s-dev-runtime-228cfc8f0fa9`; kernel pins unchanged; TREE `7530a7b9` |
 
 Built (2026-11-13):
 - Engine: release `engine-v0.9.2-omarchy.20261113.774d9abc59d3`.
@@ -164,3 +165,17 @@ Release 2 plus `patches-j714s-r2` 0004 (above): kernel v272-4 and firmware j714s
 The kernel change was tested on TripleU613's J714s as a hand-built `aop.ko` on v272-3 (sound
 cards, mics, AOP sensors; speakerguardd v2 passed its checks and owns the speakers, not yet
 confirmed by ear). The at-boot `aop` load (firmware j714s9) has not run on the Mac yet.
+
+## omarchy-j714s 4 (built 2026-11-14)
+
+Release 3 plus `patches-j714s-r2` 0005 (above): firmware j714s10 only. Same kernel (v272-4), Aura
+(v272-3), engine (`v0.9.2-omarchy.20261113.774d9abc59d3`) and Recovery app (run 43477703681) as
+release 3; the other 19 packages in the signed set are byte-identical to release 3's.
+
+- Inputs: release `installer-build-inputs-j714s-6d1387f12ffc` (finish-inputs on the tree `rebuild-installer-tree.sh DEST upstream-27.3 j714s j714s-r2` makes, HEAD b73a54c).
+- Image: `installer-image.yml` run 43567639898 (headSha f936744, `image-version` 4) → release `j714s-developer-image-omarchy-j714s-4`, `omarchy-j714s-4-aarch64-apple-silicon-mac-os-package.zip` sha256 `1ebd380dde37f67c1a09294382316671195a0ad7bb842a6b101abc3ae23da8ee`. Inspection and provenance checks passed.
+- update-check: run 43569148431.
+- App: `installer-app.yml` run 43569150473 → prerelease `omarchy-j714s-4`.
+
+The j714s10 generator was tried on TripleU613's J714s (generator dry run, daemon-reload,
+unmount/mount cycle: the right partitions), not yet across a restart.
