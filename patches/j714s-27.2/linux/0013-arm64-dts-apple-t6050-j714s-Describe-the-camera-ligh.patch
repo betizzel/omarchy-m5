@@ -1,4 +1,4 @@
-From a820947dd267eab1070fe6e1de9821053c886340 Mon Sep 17 00:00:00 2001
+From dadec94d4c034ccb462b6ff4aa0cc1782dc3f44e Mon Sep 17 00:00:00 2001
 From: TripleU <182648541+TripleU613@users.noreply.github.com>
 Date: Thu, 12 Nov 2026 05:03:13 -0500
 Subject: [PATCH 13/19] arm64: dts: apple: t6050-j714s: Describe the camera

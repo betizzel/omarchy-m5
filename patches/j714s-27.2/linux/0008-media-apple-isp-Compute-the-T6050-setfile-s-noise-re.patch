@@ -1,4 +1,4 @@
-From 299c0248a9acf5325bdcd09ba5359c6fdfed4116 Mon Sep 17 00:00:00 2001
+From 0e860e54d44531a0b50896445467ad9251b3cc96 Mon Sep 17 00:00:00 2001
 From: Eduard Moldovan <edimoldovan@gmail.com>
 Date: Sun, 8 Nov 2026 14:11:59 +0100
 Subject: [PATCH 08/19] media: apple: isp: Compute the T6050 setfile's noise

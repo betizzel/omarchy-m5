@@ -7,6 +7,10 @@ boot object with no `__TEXT_BOOT_EXEC` (`kcbz` 0, so iBoot does not start SPTM),
 `kmutil configure-boot --compress` after `bputil -nc`; Linux runs at EL2 on every CPU inside the
 128 MiB code-execute window, as aurora-silicon targets 27.2 (`docs/move-to-27.2.md`).
 
+Status (2026-11-14): kernel v272-5 is **built but has not been booted or installed**. It re-pins
+the kernel to upstream `a31b32f72efd`, drops 0019 (upstream now carries #1645) and replaces
+FatBoy721's HDMI v1 hold with his v2 plus his IRQ_HPD forwarder. See the v272-5 notes under "Packages" below.
+
 Status (2026-11-13, later): release 3 (`omarchy-j714s-3`) is release 2 plus kernel v272-4 (0019,
 Jens Axboe's AOP fix #1645: the 27.2 sound cards, microphones and AOP sensors) and
 omarchy-aurora-firmware j714s9 (loads `aop` at boot on the J714s).
@@ -24,9 +28,19 @@ Recipes: [`installer/recipes/linux-aurora-j714s`](../../installer/recipes/linux-
 [`installer/recipes/m1n1-aurora-j714s`](../../installer/recipes/m1n1-aurora-j714s)
 (`aura-j714s-27.2.patch` is `aura/*.patch` concatenated).
 
-## Bases (release 2, re-pinned 2026-11-13)
+## Bases (kernel re-pinned 2026-11-14 for v272-5; Aura as of release 2)
 
-- **Kernel:** aurora-silicon/linux `integration/aurora` at `a34d26c255c2` (2026-11-13, after #1752).
+- **Kernel (v272-5):** aurora-silicon/linux `integration/aurora` at `a31b32f72efd` (2026-11-14,
+  after #1866), 190 commits past `a34d26c2`. New there and so in v272-5: Jens Axboe's AOP endpoints
+  (#1645, commit 367e36d02939, was our 0019); DjDeveloperr's T6050 GPU mailboxes by interrupt
+  (#1844; the J714s GPU mailbox nodes already carry their send-empty/recv-not-empty interrupts);
+  joshuaswarren's firmware 27 mode gate (a4a0fb67bfe8, 3176918ba21e, 84b3b93c04e6: the T6050
+  internal panel, `apple,t6050-dcp`, now lists **only its 120 Hz mode**, by upstream's choice;
+  external `apple,t6050-dcpext` outputs, HDMI included, keep every mode); Mariano Miguel's die0
+  range over the ISP watchdog (403f0bc409ed); the T8142 AVE (55b7401a4b03) and ce546479986d's
+  refused-session message; Satya Benson's ISP exposure bound (8f9ffa30bbfb); K116s/J713/J575c
+  work that does not touch the J714s. No new Kconfig symbols (one help-text change).
+- **Kernel (v272-2 to v272-4):** aurora-silicon/linux `integration/aurora` at `a34d26c255c2` (2026-11-13, after #1752).
   Already merged there and so in the image: DjDeveloperr's display ADMAC and firmware 27 DisplayPort
   audio (#1748, #1749) and the J714s dcpext0 DP audio node (#1750); the J714s left-front USB-C
   USB4/Thunderbolt router (#1791) and the J714s camera sizes from sensor config 6 (#1835); the
@@ -65,9 +79,19 @@ Release 1 was built on linux `572eb88e8642` and Aura `2232ae7a` (git history of 
 | 0014 | VRR on the firmware 27 panel, `appledrm.fw27_panel_vrr` (j716s-next 8ab10100a4); the image turns it on (omarchy-aurora-firmware `aurora-m5-vrr.conf`) | Rolando Trevino |
 | 0015 | ANE and AVE on 27.2 (26B123): layouts from the IPSW. ANE: 27.2 layout recognised, refused until its TEXT pin is known, and the refusal prints the digest. AVE: 26B123 admitted, probe only unless `apple_ave.ave_t6050_27_2_layout=1` | this repo |
 | 0016 | The 27.2 ANE TEXT pin `b15dd8fb...c40e`, read from the first J714s 27.2 boot's refusal | this repo |
-| 0017 | **J714s HDMI port** (DT): dcpext3 → the atc3 display crossbar → ATC3 as a fixed four-lane DP PHY → the on-board DP-to-HDMI converter; frees AOP pin 14 (HPD) from `t6050-max-atc2.dtsi`'s reserved range, atc3_dpxbar power domains. Tested on his J714s on 27.3 (HP E240c, 1920x1080@60: cold plug, hotplug, replug); not tried on 27.2 | FatBoy721 (FatBoy721/omarchy-m5 898d8ad6cb), ported unchanged |
-| 0018 | appledrm: while the J714s HDMI output connects, complete its flips locally for 8 s, so a present the DCP swallows can't time out the IOMFB queue and leave the DCP crashed | FatBoy721, ported unchanged |
-| 0019 | **AOP on 27.2:** start every AFK endpoint the T6050 AOP firmware advertises (`AFK_ENDPOINT_COUNT` 0xf → 0x11, endpoints 0x2f and 0x30). Without it the 27.2 AOP firmware waits for endpoint 0x2f forever and announces no service: no sound card, no microphones, no lid/light sensors. aurora-silicon/linux #1645 (commit 367e36d02939, merged upstream in 03f060b251c8), applied unchanged | Jens Axboe (ported by Thomas Glanzmann, sithglan) |
+| 0017 | **J714s HDMI port** (DT): dcpext3 → the atc3 display crossbar → ATC3 as a fixed four-lane DP PHY → the on-board DP-to-HDMI converter; frees AOP pin 14 (HPD) from `t6050-max-atc2.dtsi`'s reserved range, atc3_dpxbar power domains. Tested on his J714s on 27.3 (HP E240c, 1920x1080@60: cold plug, hotplug, replug); not tried on 27.2. His `0010-linux-t6050-j714s-hdmi-dt.patch` at 267c7ea3cb gives a tree identical to this one | FatBoy721 (FatBoy721/omarchy-m5 898d8ad6cb), ported unchanged |
+| 0018 | **HDMI v2 hold** (v272-5, replaces v1): while a T6050 fixed HDMI output connects (sink at boot, power-on, HPD edge) complete its flips locally for 8 s, so a present the DCP swallows during the monitor's wake HPD cycle can't time out the IOMFB queue and leave the DCP crashed. Per-DCP state, only `apple,t6050-dcpext` with an HDMI HPD GPIO; `appledrm.hdmi_hold_presents=0` turns it off. Tested on his J714s on 27.3 | FatBoy721 (`j714s-hdmi-upstream273` 267c7ea3cb, his 0012 v2), applied unchanged |
+| 0019 | **HDMI IRQ_HPD** (v272-5, new): `dcp-hdmi.c`'s converter IRQ_HPD forwarder enabled for `apple,t6050-dcpext` as macOS does on the J714s (T6030 only before). Booted on his J714s on 27.3, no visible change on its own | FatBoy721 (267c7ea3cb, his 0013), applied unchanged |
+
+Dropped in v272-5: the old 0019 (AOP endpoints, Jens Axboe's #1645, ported by sithglan) is
+upstream as 367e36d02939 (our patch reverse-applies cleanly on `a31b32f7`); the old 0018 (HDMI v1 hold) is replaced
+by FatBoy721's v2 (new 0018). Rebased with `git am -3`; `git range-diff` shows 0001-0005,
+0007-0014, 0016 and 0017 unchanged. Two context conflicts, both keep-both merges: in 0006
+(`ave-sess.c`) the HEVC refusal for 27.3 now follows upstream's new "only 30 fps with 3 B-frames"
+`dev_info` block; in 0015 (`ave-fw.c`) the 26B123 TEXT CRC row sits beside upstream's new T8142
+row in `ave_known_text_crc[]`. Upstream's 120 Hz-only gate (`dcp_mode_settable()`) and 0014's
+VRR do not fight: VRR fills only `min_vrr`, the panel timing's `drm_mode_vrefresh()` stays 120,
+and the VRR switch reselects that same mode.
 
 Camera presets: #1835 (DjDeveloperr, merged) gives seven sizes on config 6 (1920x1080, 640x480,
 1280x720, 1760x1328, 1328x1760, 1552x1552, 1080x1920). Our release-1 presets (edimoldovan's
@@ -77,7 +101,11 @@ form. On T6050 the driver uses `apple,input-size` only to bound the crop (the P0
 compares it with the firmware's config is T6040-only), so both forms stream the same crop. All
 eight sizes are untested on the 27.2 ISP firmware.
 
-`patch -Np1` of `linux-j714s-27.2.patch` on the `a34d26c2` GitHub tarball (sha256
+v272-5: `patch -Np1` of `linux-j714s-27.2.patch` on the `a31b32f7` GitHub tarball (sha256
+`14030d01...1c1d193b`) gives the tree that was built, identical to ush `~/m5-build/up272-5/src`
+(branch `up-2725`: the series as 19 commits on `a31b32f72efd`). Config: unchanged.
+
+v272-2 to v272-4: `patch -Np1` of that release's `linux-j714s-27.2.patch` on the `a34d26c2` GitHub tarball (sha256
 `315c7a76...6d627f72`) gives the tree that was built (ush `~/m5-build/up272-2/src`, branch
 `up-2722`). Config: unchanged; #1791 is device tree only. `j714s-required.config` also requires
 `ARM64_CTXR_EXECMEM`, `APPLE_ADMAC` and `SND_SOC_APPLE_T8152_AOP_AUDIO`.
@@ -143,6 +171,20 @@ goes on.
 
 ## Packages, release 2 (built 2026-11-13 on ush)
 
+**v272-5 (built 2026-11-14, not in any release): built, NOT booted, NOT installed.** Full cross
+build on ush (`OMARCHY_CROSS_KERNEL=1`, `makepkg --config ../makepkg-aarch64.conf -d -f`) of this
+commit's recipe in `~/m5-build/pkg272-2/linux-aurora-j714s-v272-5` (log `build-v272-5.log`);
+`check()` 35 tests OK; no compiler warning in a file the series touches. Modules carry vermagic
+`7.3.0-17.v272-5-ARCH`; the file list equals v272-4's; `t6050-j714s.dtb` has the HDMI nodes and
+`appledrm.ko` the `hdmi_hold_presents` parameter. To check on the first boot, beyond the list
+below: the internal panel at 3024x1964@120 (upstream now lists only 120 Hz modes there), the GPU
+with #1844's mailbox interrupts on 27.2, the AOP sound cards with upstream's #1645, the camera
+(upstream's ISP watchdog range with 0011's light-gated feeding), and HDMI v2 on 27.2.
+
+| Package | sha256 | Bytes |
+| --- | --- | --- |
+| `linux-aurora-7.3.0.aurora17.v272-5-aarch64.pkg.tar.zst` (`7.3.0-17.v272-5-ARCH`) | `3ede08e66eced7c9811e5fdb11cae1e76a401f05e38669eb810d38a75feb04cd` | 44213354 |
+
 **v272-4 (what release 3 ships):** the kernel adds 0019 (Jens Axboe's #1645, the 27.2 AOP), and
 omarchy-aurora-firmware j714s9 loads `aop` at boot on the J714s (it is blacklisted for autoload so
 it waits for the vendor firmware, and the J714s branch of `aurora-peripheral-firmware.sh` never
@@ -195,6 +237,7 @@ mesa/vulkan-aurora, uboot-aurora and the omacom packages. The device trees grow 
 Release 1's packages (linux `7ed98691…`, m1n1 `1f30e3ff…`, built on 572eb88e/2232ae7a) are in
 this file's git history and on ush in `~/m5-build/pkg272/out/`.
 
-## Queued for the next kernel (after release 3)
+## Queued for the next kernel
 
-- **HDMI v2 (FatBoy721, branch `j714s-hdmi-upstream273`, commit 267c7ea3cb, 2026-11-13):** his 0012 v2 (`…-t6050-hdmi-hold-presents.patch`: per-DCP hold state, only for `apple,t6050-dcpext` HDMI outputs, off with `appledrm.hdmi_hold_presents=0`) replaces the 0012 we carry as kernel 0018, and his new 0013 (`…-t6050-hdmi-irq-hpd.patch`: the converter IRQ_HPD forwarder for T6050) is added. Both tested on his J714s on 27.3. Both are in `appledrm`, so a one-module rebuild against the v272-4 tree is enough to try them on the Mac before a full release.
+Nothing queued. FatBoy721's HDMI v2 (0012 v2 and 0013 on `j714s-hdmi-upstream273`, 267c7ea3cb)
+went into v272-5 as 0018 and 0019.

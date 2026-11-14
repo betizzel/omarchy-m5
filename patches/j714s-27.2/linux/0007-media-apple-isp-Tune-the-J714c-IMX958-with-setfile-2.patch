@@ -1,4 +1,4 @@
-From 576c68baee9deaa19ffd61a172e5ea3c0aef9d4c Mon Sep 17 00:00:00 2001
+From ab8576ab5a9cd7df0f1bea133499e008dba14a04 Mon Sep 17 00:00:00 2001
 From: Eduard Moldovan <edimoldovan@gmail.com>
 Date: Sun, 8 Nov 2026 12:56:36 +0100
 Subject: [PATCH 07/19] media: apple: isp: Tune the J714c IMX958 with setfile

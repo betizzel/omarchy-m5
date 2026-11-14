@@ -1,4 +1,4 @@
-From 2cbc4bc52fd33487b7df608631f00ddd2d277dcc Mon Sep 17 00:00:00 2001
+From cd63f1f33015621a60b0a60677d2a6f63705582f Mon Sep 17 00:00:00 2001
 From: FatBoy721 <203330788+FatBoy721@users.noreply.github.com>
 Date: Fri, 13 Nov 2026 13:30:00 -0500
 Subject: [PATCH 17/19] arm64: dts: apple: t6050-j714s: Describe the HDMI port

@@ -2,10 +2,11 @@
 # macOS 27.2 stub (UniversalMac_27.2_26B123, mBoot-20457.41.3), booted from a padded Aura Mach-O
 # Stage 1 with SPTM off: Linux at EL2 on every CPU inside the CTXR execute window.
 #
-# The one J714s image line. aurora-silicon/linux integration/aurora at a34d26c255c2 (includes DP
+# The one J714s image line. aurora-silicon/linux integration/aurora at a31b32f72efd (includes DP
 # audio #1748/#1749/#1750, the J714s Secure Enclave, CLPC, CPU PMU, JPEG, ProRes, MagSafe PD,
 # external displays, T6050 EL2 errata #1724, the appledrm combo-PHY softdep #1745, the 27.3 AVE
-# build #1747, the J714s left-front USB4 router #1791 and camera sizes #1835) plus
+# build #1747, the J714s left-front USB4 router #1791, camera sizes #1835, the 27.2 AOP endpoints
+# #1645, T6050 GPU mailboxes by interrupt #1844 and the 120 Hz-only T6050 internal panel modes) plus
 # linux-j714s-27.2.patch, betizzel/omarchy-m5 patches/j714s-27.2/linux:
 #   0001     #1173, GPU InitData for 27.2 (26B123) and 27.3 (Rolando Trevino)
 #   0002-04  rolotrealanis98's firmware 27 DCP fixes and the 27.3 IOMFB table (27.3 rollback stub)
@@ -18,17 +19,17 @@
 #   0015     ANE and AVE on 27.2: the 27.2 layouts from the IPSW; AVE probe-only unless
 #            apple_ave.ave_t6050_27_2_layout=1
 #   0016     the 27.2 ANE TEXT pin, read from the first J714s 27.2 boot
-#   0017-18  FatBoy721's J714s HDMI port (DT) and appledrm's flip hold while it connects (tested on
-#            his J714s on 27.3, not on 27.2)
-#   0019     #1645, start every AFK endpoint the 27.2 AOP firmware advertises (Jens Axboe, ported
-#            by sithglan; merged upstream in 03f060b251c8): the 27.2 sound cards and AOP sensors
+#   0017     FatBoy721's J714s HDMI port (DT)
+#   0018-19  FatBoy721's HDMI v2: per-DCP flip hold while a T6050 HDMI output connects
+#            (appledrm.hdmi_hold_presents=0 turns it off) and the converter IRQ_HPD forwarder
+#            (tested on his J714s on 27.3, not on 27.2)
 # Same package name as the image's kernel (linux-aurora); the version sorts above up273.
 
 _auroraver=7.3.0
 _aurorarel=17.v272
-pkgrel=4
+pkgrel=5
 
-_commit=a34d26c255c29bdd5548ace985d0d9c8e083aab1
+_commit=a31b32f72efd6085aa757a7d079a4d99d41df6d5
 
 # Any m1n1 1.6.1 loads these device trees. The Neo's own Stage 2 comes from the
 # image, so the floor stays where M1 and M2 users' m1n1-aurora already meets it.
@@ -54,11 +55,11 @@ source=(validate-config.py configure.sh "linux-${_commit}.tar.gz::https://github
         speakersafetyd-hold.conf)
 sha256sums=('aca7420a18139474da62a81c77fc6e5c3f25001f872b6e11e18605cd892aa4c3'
             'b95c0f0ddf106f3861e0e62a746af6a881fb8e0f356a892961f9e86062877400'
-            '315c7a7698f647851df2fb38a4aec1f2be520aa73bd28c2661ddebcb6d627f72'
+            '14030d01d1c406cf473dd7d9e5498113a66dc95104c65a43aef48d5d5c1d193b'
             'd71a5756f6803008c92fd5b14bb377baa538cd56a5674970bfaea3584a60d291'
             '84a03d5fea19cae243c89f50c1736c639622d25d4d1de8d7d53ebd8f603c0f62'
             '32507b46e6d2bd6bc3c9bd933cb0236e3c1887a977ea8aff3ab46d9ece5f4eae'
-            'a3140b092b5d68543bc89d261682f577ef52341499bbe58416a80ae999329230'
+            '2a36ea90997129d387f4cc362095612f83adfcc48ae94793e00d8d3339defdf3'
             '1408e3fdeafbd86be3b31e04e8bdd9930a9af2753e8c39a728cda7d1e42ad033'
             'd3e222ba146df83ab33a4cfa344534c13d125525c2a6d63747452bbce3302669')
 

@@ -1,4 +1,4 @@
-From 0bb98db8e302cc614539f47798bba265f0f7b8af Mon Sep 17 00:00:00 2001
+From 8bec4fe55760f9872bb79aa4dd3eacbbcc9ec03d Mon Sep 17 00:00:00 2001
 From: Rolando Trevino <rolotrealanis@gmail.com>
 Date: Thu, 12 Nov 2026 12:29:34 -0500
 Subject: [PATCH 14/19] drm/apple: Offer VRR on the firmware 27 panel and apply
@@ -44,10 +44,10 @@ Claude-Session: https://claude.ai/code/session_01BV6NpmcwB5iJuY9huL52C5
  4 files changed, 91 insertions(+), 7 deletions(-)
 
 diff --git a/drivers/gpu/drm/apple/dcp-internal.h b/drivers/gpu/drm/apple/dcp-internal.h
-index 649e76820e18..8a24a1e97bb3 100644
+index 55b70204bf34..63daa46d8b2d 100644
 --- a/drivers/gpu/drm/apple/dcp-internal.h
 +++ b/drivers/gpu/drm/apple/dcp-internal.h
-@@ -660,6 +660,8 @@ struct apple_dcp {
+@@ -662,6 +662,8 @@ struct apple_dcp {
  	bool typec_hpd_held;
  	bool use_timestamps;
  	bool vrr_enabled;
@@ -56,7 +56,7 @@ index 649e76820e18..8a24a1e97bb3 100644
  	/*
  	 * The mode set asks for a PQ signal; output_pq: the one set carries it;
  	 * output_edr: a panel shows the PQ content as EDR, edr_sent: swaps
-@@ -1148,6 +1150,14 @@ static inline bool dcp_vrr_live(struct apple_dcp *dcp)
+@@ -1150,6 +1152,14 @@ static inline bool dcp_vrr_live(struct apple_dcp *dcp)
  	       dcp_has_panel(dcp);
  }
  
@@ -72,7 +72,7 @@ index 649e76820e18..8a24a1e97bb3 100644
   * Does @dcp's firmware speak the 14.7 AFK, DPTX and DPAV endpoint protocol,
   * whichever IOMFB path drives it? DCP_FIRMWARE_V_14_7 is the native DCPLink
 diff --git a/drivers/gpu/drm/apple/dcp.c b/drivers/gpu/drm/apple/dcp.c
-index b65a534ad531..9f4993297748 100644
+index a5e8060eafca..862d08e9aa6d 100644
 --- a/drivers/gpu/drm/apple/dcp.c
 +++ b/drivers/gpu/drm/apple/dcp.c
 @@ -1549,6 +1549,12 @@ VISIBLE_IF_KUNIT void dcp_swap_watchdog(struct work_struct *work)
@@ -99,7 +99,7 @@ index b65a534ad531..9f4993297748 100644
  			msecs_to_jiffies(DCP_SWAP_WATCHDOG_MS);
  		mod_delayed_work(system_dfl_wq, &dcp->swap_watchdog_wq,
 diff --git a/drivers/gpu/drm/apple/iomfb.c b/drivers/gpu/drm/apple/iomfb.c
-index 174fc83c3add..9f82797f1255 100644
+index 301fdec5508b..b730134ba175 100644
 --- a/drivers/gpu/drm/apple/iomfb.c
 +++ b/drivers/gpu/drm/apple/iomfb.c
 @@ -44,6 +44,23 @@
@@ -126,7 +126,7 @@ index 174fc83c3add..9f82797f1255 100644
  struct dcp_identity_trace {
  	struct apple_dcp *dcp;
  	atomic_t *count;
-@@ -2101,7 +2118,12 @@ int dcp_modes_replace(struct apple_dcp *dcp, struct dcp_parse_ctx *ctx,
+@@ -2115,7 +2132,12 @@ int dcp_modes_replace(struct apple_dcp *dcp, struct dcp_parse_ctx *ctx,
  				       !dcp_has_panel(dcp);
  		ctx->pq_dsc = dcp->fw_compat == DCP_FIRMWARE_V_27_0;
  	}
@@ -140,7 +140,7 @@ index 174fc83c3add..9f82797f1255 100644
  	if (dcp->fixed_connector_type != DRM_MODE_CONNECTOR_eDP &&
  	    smp_load_acquire(&dcp->dptxport[0].tile_hint)) {
  		ctx->tiled_width = dcp->dptxport[0].tile_width;
-@@ -2475,6 +2497,8 @@ int dcp_get_modes(struct drm_connector *connector)
+@@ -2489,6 +2511,8 @@ int dcp_get_modes(struct drm_connector *connector)
  		}
  		vrr_capable |= modes[i].vrr;
  	}
@@ -149,7 +149,7 @@ index 174fc83c3add..9f82797f1255 100644
  	drm_connector_set_vrr_capable_property(connector, vrr_capable);
  modes_done:
  	mutex_unlock(&dcp->dcpavserv.lock);
-@@ -3673,6 +3697,44 @@ static void iomfb_queue_atomic(struct apple_dcp *dcp, struct drm_crtc *crtc,
+@@ -3695,6 +3719,44 @@ static void iomfb_queue_atomic(struct apple_dcp *dcp, struct drm_crtc *crtc,
  	schedule_work(&dcp->vblank_wq);
  }
  
@@ -194,7 +194,7 @@ index 174fc83c3add..9f82797f1255 100644
  void dcp_flush(struct drm_crtc *crtc, struct drm_atomic_commit *commit)
  {
  	struct platform_device *pdev = to_apple_crtc(crtc)->dcp;
-@@ -3739,6 +3801,11 @@ void dcp_flush(struct drm_crtc *crtc, struct drm_atomic_commit *commit)
+@@ -3761,6 +3823,11 @@ void dcp_flush(struct drm_crtc *crtc, struct drm_atomic_commit *commit)
  			dcp_hdr_metadata_sync(dcp, crtc, commit);
  	}
  
@@ -207,7 +207,7 @@ index 174fc83c3add..9f82797f1255 100644
  		iomfb_queue_atomic(dcp, crtc, commit);
  		return;
 diff --git a/drivers/gpu/drm/apple/iomfb_template.c b/drivers/gpu/drm/apple/iomfb_template.c
-index 462c6ee46825..21ac0deb9785 100644
+index 483a442072c6..e799f589acef 100644
 --- a/drivers/gpu/drm/apple/iomfb_template.c
 +++ b/drivers/gpu/drm/apple/iomfb_template.c
 @@ -4044,6 +4044,7 @@ int DCP_FW_NAME(iomfb_modeset)(struct apple_dcp *dcp,

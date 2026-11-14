@@ -1,4 +1,4 @@
-From 1a0a6bc58569279039d19b60c9bda1d4e463318b Mon Sep 17 00:00:00 2001
+From 9aae0d8558fd391110bdbab0320616acf817954a Mon Sep 17 00:00:00 2001
 From: Rolando Trevino <rolotrealanis@gmail.com>
 Date: Thu, 12 Nov 2026 08:13:48 -0500
 Subject: [PATCH 04/19] drm/apple: firmware 27.3: the full IOMFB method table
@@ -20,10 +20,10 @@ Claude-Session: https://claude.ai/code/session_01BV6NpkesyT31Ta49VjQELY
  5 files changed, 154 insertions(+), 42 deletions(-)
 
 diff --git a/drivers/gpu/drm/apple/dcp-internal.h b/drivers/gpu/drm/apple/dcp-internal.h
-index 8318f622d958..649e76820e18 100644
+index 84006276fcc1..55b70204bf34 100644
 --- a/drivers/gpu/drm/apple/dcp-internal.h
 +++ b/drivers/gpu/drm/apple/dcp-internal.h
-@@ -566,6 +566,8 @@ struct apple_dcp {
+@@ -568,6 +568,8 @@ struct apple_dcp {
  	struct dcp_swap_submit_req_v27 present_v27;
  	/* Both paired wire records belong to the primary endpoint lock. */
  	struct dcp_swap_submit_req_v27 peer_present_v27;
@@ -66,7 +66,7 @@ index bd4e50ad1fe6..325691adfea4 100644
  	if (READ_ONCE(peer->crashed))
  		dcp_peer_swap_error(owner, "peer publication", -EIO);
 diff --git a/drivers/gpu/drm/apple/iomfb_template.c b/drivers/gpu/drm/apple/iomfb_template.c
-index 5586bbae0f36..462c6ee46825 100644
+index b768962ce502..483a442072c6 100644
 --- a/drivers/gpu/drm/apple/iomfb_template.c
 +++ b/drivers/gpu/drm/apple/iomfb_template.c
 @@ -423,6 +423,11 @@ static void dcp_swap_submit(struct apple_dcp *dcp, bool oob,

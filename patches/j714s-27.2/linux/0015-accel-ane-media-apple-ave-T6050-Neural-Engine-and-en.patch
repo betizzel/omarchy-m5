@@ -1,4 +1,4 @@
-From 1f63895beea5249275f675c3b7d5a79b1e61b6c5 Mon Sep 17 00:00:00 2001
+From ee95410d44c95db17156111152a66f89b5554419 Mon Sep 17 00:00:00 2001
 From: TripleU <182648541+TripleU613@users.noreply.github.com>
 Date: Thu, 12 Nov 2026 23:54:15 -0500
 Subject: [PATCH 15/19] accel/ane, media: apple: ave: T6050 Neural Engine and
@@ -87,7 +87,7 @@ index a2b11206ee52..68d4cd02baad 100644
   */
  struct ane_fw_preload_build {
 diff --git a/drivers/media/platform/apple/ave/ave-drv.c b/drivers/media/platform/apple/ave/ave-drv.c
-index 88021a2dadb4..11c56e6f4e3a 100644
+index 84810b03196b..1330b0cfb397 100644
 --- a/drivers/media/platform/apple/ave/ave-drv.c
 +++ b/drivers/media/platform/apple/ave/ave-drv.c
 @@ -138,6 +138,12 @@ static const struct ave_fw_build ave_t6050_builds[] = {
@@ -104,18 +104,18 @@ index 88021a2dadb4..11c56e6f4e3a 100644
  
  static const struct ave_variant ave_t6050 = {
 diff --git a/drivers/media/platform/apple/ave/ave-fw.c b/drivers/media/platform/apple/ave/ave-fw.c
-index 9eb4e29bb886..344e729b8c31 100644
+index e35518823c73..1e1498fa76fd 100644
 --- a/drivers/media/platform/apple/ave/ave-fw.c
 +++ b/drivers/media/platform/apple/ave/ave-fw.c
-@@ -42,6 +42,7 @@ static const u32 ave_known_text_crc[] = {
- 	AVE_FW_TEXT_CRC_T6041_25G83, /* AppleAVE2FW 9003.78.0 / M4 Max */
+@@ -43,6 +43,7 @@ static const u32 ave_known_text_crc[] = {
  	AVE_FW_TEXT_CRC_T6050_26A428, /* AppleAVE2FW, macOS 27.0 26A428 / T6050 */
  	AVE_FW_TEXT_CRC_T6050_26C5035, /* AppleAVE2FW, macOS 27.3 26C5035r / T6050 */
+ 	AVE_FW_TEXT_CRC_T8142_26A428, /* AppleAVE2FW 9013.45.1, macOS 27.0 26A428 / T8142 */
 +	AVE_FW_TEXT_CRC_T6050_26B123, /* AppleAVE2FW, macOS 27.2 26B123 / T6050 */
  	0x460c7a7c, /* AppleAVE2FW 6070.11.1 / T6000 */
  	0x25bfd039, /* AppleAVE2FW 6070.11.1 / T8112 */
  };
-@@ -218,8 +219,8 @@ static int ave_fw_text_id(struct ave_dev *ave, u32 *crc)
+@@ -219,8 +220,8 @@ static int ave_fw_text_id(struct ave_dev *ave, u32 *crc)
  
  /*
   * The variant's build with these segment sizes and, unless @crc is 0, this
@@ -127,10 +127,10 @@ index 9eb4e29bb886..344e729b8c31 100644
  static const struct ave_fw_build *ave_fw_find_build(const struct ave_variant *v,
  						    size_t text, size_t data, u32 crc)
 diff --git a/drivers/media/platform/apple/ave/ave-layout.c b/drivers/media/platform/apple/ave/ave-layout.c
-index dc887d27b4cc..b0a593ca2258 100644
+index 41bea75af116..a79d9c875c67 100644
 --- a/drivers/media/platform/apple/ave/ave-layout.c
 +++ b/drivers/media/platform/apple/ave/ave-layout.c
-@@ -954,6 +954,11 @@ module_param(ave_t6050_27_3_hevc, bool, 0444);
+@@ -955,6 +955,11 @@ module_param(ave_t6050_27_3_hevc, bool, 0444);
  MODULE_PARM_DESC(ave_t6050_27_3_hevc,
  		 "HEVC on the T6050 macOS 27.3 (26C5035r) firmware (default on; 0 refuses it)");
  
@@ -142,7 +142,7 @@ index dc887d27b4cc..b0a593ca2258 100644
  /*
   * HEVC on the macOS 27.3 build encoded cleanly on two J714s boots (Main with
   * B-frames); ave_t6050_27_3_hevc=0 refuses it again.
-@@ -984,5 +989,12 @@ const struct ave_fw_layout *ave_layout_for_crc(u32 crc)
+@@ -990,5 +995,12 @@ const struct ave_fw_layout *ave_layout_for_crc(u32 crc)
  	 */
  	if (crc == AVE_FW_TEXT_CRC_T6050_26C5035)
  		return &ave_layout_26a428;
@@ -156,7 +156,7 @@ index dc887d27b4cc..b0a593ca2258 100644
  	return NULL;
  }
 diff --git a/drivers/media/platform/apple/ave/ave.h b/drivers/media/platform/apple/ave/ave.h
-index cb4bbe7673c3..db9e9f766525 100644
+index 4e2550ff472c..d74b8ba579ab 100644
 --- a/drivers/media/platform/apple/ave/ave.h
 +++ b/drivers/media/platform/apple/ave/ave.h
 @@ -174,6 +174,12 @@ enum ave_opcode {
@@ -171,7 +171,7 @@ index cb4bbe7673c3..db9e9f766525 100644
 +#define AVE_FW_TEXT_CRC_T6050_26B123 0xd33ed3b4
  /* macOS 27.3 beta 1 (26C5035r) / T6050: TEXT 0x158000, DATA 0x134000. */
  #define AVE_FW_TEXT_CRC_T6050_26C5035 0xc25b4ddb
- 
+ /* The M5 (T8142) build of the same 26A428 firmware (AppleAVE2FW 9013.45.1). */
 -- 
 2.56.0
 
