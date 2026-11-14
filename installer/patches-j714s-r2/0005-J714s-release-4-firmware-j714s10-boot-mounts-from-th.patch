@@ -1,0 +1,62 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: TripleU <182648541+TripleU613@users.noreply.github.com>
+Date: Sat, 14 Nov 2026 01:40:37 -0500
+Subject: [PATCH] J714s release 4: firmware j714s10 (boot mounts from the
+ booted partitions)
+
+Re-pinned from betizzel/omarchy-m5 0abeef9: omarchy-aurora-firmware
+20261014.j714s10 (3e98e8fb..., 49407 bytes) adds aurora-boot-mounts-generator,
+which mounts /boot and /boot/efi from the partitions the system booted from,
+so a second Omarchy install on the same disk can't take its kernel updates
+(docs/duplicate-boot-ids.md). Nothing else changes; the kernel pins stay at
+7.3.0-17.v272-4-ARCH. Set j714s-dev-runtime-228cfc8f0fa9.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+---
+ .../candidate-package-manifest.json                | 14 +++++++-------
+ 1 file changed, 7 insertions(+), 7 deletions(-)
+
+diff --git a/Integration/M5/J714s-Normal-System/candidate-package-manifest.json b/Integration/M5/J714s-Normal-System/candidate-package-manifest.json
+index 1101831..63c04aa 100644
+--- a/Integration/M5/J714s-Normal-System/candidate-package-manifest.json
++++ b/Integration/M5/J714s-Normal-System/candidate-package-manifest.json
+@@ -1,7 +1,7 @@
+ {
+   "schema": 1,
+   "candidate_only": true,
+-  "set": "j714s-dev-runtime-7cd4572ff7ef",
++  "set": "j714s-dev-runtime-228cfc8f0fa9",
+   "source": {
+     "repository": "omacom/omarchy",
+     "commit": "a948d8a6871f446b335258c827648ac5f4e9428b",
+@@ -162,15 +162,15 @@
+     },
+     {
+       "name": "omarchy-aurora-firmware",
+-      "version": "20261014.j714s9-1",
++      "version": "20261014.j714s10-1",
+       "arch": "aarch64",
+-      "filename": "omarchy-aurora-firmware-20261014.j714s9-1-aarch64.pkg.tar.zst",
+-      "sha256": "8170bde1480eba36936bd3c14612e43bb0521f611dfde1cea6c5b259b4e145c3",
++      "filename": "omarchy-aurora-firmware-20261014.j714s10-1-aarch64.pkg.tar.zst",
++      "sha256": "3e98e8fb81a51e95437375d593f395c63aab464de89e67bf2c7385d9a3f6395d",
+       "source": {
+         "repository": "betizzel/omarchy-m5",
+-        "commit": "ac63a3de54406d2a40e9b281679a57a02ad97494"
++        "commit": "0abeef96d6ff8c3ef6fabb18071733462fb8a646"
+       },
+-      "size_bytes": 48022
++      "size_bytes": 49407
+     },
+     {
+       "name": "omarchy-mac",
+@@ -264,5 +264,5 @@
+     "No physical installer or hardware qualification",
+     "No supported release or catalog promotion"
+   ],
+-  "set_sha256": "7cd4572ff7ef6add9f3bf594a727f0d80c55378aec05cc925fd5b93e985ea6e1"
++  "set_sha256": "228cfc8f0fa92fb034c0a950e09e25c3ecb147e9ed61efbc37003b202b14e3f6"
+ }
+-- 
+2.56.0
+
