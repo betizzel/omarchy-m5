@@ -1,7 +1,7 @@
-From 304a9cc371a82890b8582cc02c8adc45cebef23f Mon Sep 17 00:00:00 2001
+From a9e5791e1adcc6f393c32194fc8f3e3b633aefcd Mon Sep 17 00:00:00 2001
 From: Eduard Moldovan <edimoldovan@gmail.com>
 Date: Sun, 8 Nov 2026 12:56:35 +0100
-Subject: [PATCH 11/19] media: apple: isp: Drive the J714c camera light from
+Subject: [PATCH 11/23] media: apple: isp: Drive the J714c camera light from
  the driver
 
 On the J714c the camera light belongs to the exclave indicator
@@ -145,7 +145,7 @@ index 51c2f2ec6c07..b81efea0cb33 100644
  
  #endif /* __ISP_CAM_H__ */
 diff --git a/drivers/media/platform/apple/isp/isp-drv.c b/drivers/media/platform/apple/isp/isp-drv.c
-index fffb99c7c66f..b9f27e4b5ff8 100644
+index 0153f1da8263..f9cd871c88a1 100644
 --- a/drivers/media/platform/apple/isp/isp-drv.c
 +++ b/drivers/media/platform/apple/isp/isp-drv.c
 @@ -811,6 +811,25 @@ static int apple_isp_probe(struct platform_device *pdev)
@@ -174,7 +174,7 @@ index fffb99c7c66f..b9f27e4b5ff8 100644
  	isp->irq = platform_get_irq(pdev, 0);
  	if (isp->irq < 0) {
  		err = isp->irq;
-@@ -1428,6 +1447,8 @@ static const struct apple_isp_hw apple_isp_hw_t6050 = {
+@@ -1438,6 +1457,8 @@ static const struct apple_isp_hw apple_isp_hw_t6050 = {
  	/* As macOS's appleh16camerad sets them for the J714c's IMX958 */
  	.lsc_ideal_percent = 84,
  	.ae_fd_scene_metering = true,

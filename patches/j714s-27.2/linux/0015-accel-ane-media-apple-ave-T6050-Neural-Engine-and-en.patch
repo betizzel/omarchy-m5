@@ -1,7 +1,7 @@
-From ee95410d44c95db17156111152a66f89b5554419 Mon Sep 17 00:00:00 2001
+From c1163ac73cf2e7b341affcb14ca8f6535a61e64c Mon Sep 17 00:00:00 2001
 From: TripleU <182648541+TripleU613@users.noreply.github.com>
 Date: Thu, 12 Nov 2026 23:54:15 -0500
-Subject: [PATCH 15/19] accel/ane, media: apple: ave: T6050 Neural Engine and
+Subject: [PATCH 15/23] accel/ane, media: apple: ave: T6050 Neural Engine and
  encoder on macOS 27.2
 
 The J714s 27.2 stub (UniversalMac_27.2_26B123, J714s identity) preloads
@@ -36,10 +36,10 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
  6 files changed, 48 insertions(+), 3 deletions(-)
 
 diff --git a/drivers/accel/ane/ane_fw_platform.c b/drivers/accel/ane/ane_fw_platform.c
-index c17656c17e47..7320942f260a 100644
+index 3cd75deb62ef..4f4a033f79b2 100644
 --- a/drivers/accel/ane/ane_fw_platform.c
 +++ b/drivers/accel/ane/ane_fw_platform.c
-@@ -57,6 +57,15 @@ static const u8 ane_t6050_text_pin_27_3[] = {
+@@ -58,6 +58,15 @@ static const u8 ane_t6050_text_pin_27_3[] = {
  	0xc7, 0x19, 0x10, 0xac, 0x66, 0xdc, 0x60, 0x66,
  };
  
@@ -55,7 +55,7 @@ index c17656c17e47..7320942f260a 100644
  /*
   * T6050 builds, by their ADT ane0 segment-ranges. 27.3 moved 0x2c000 bytes
   * from DATA into TEXT; the firmware span (heap tail, pool, IPC) is unchanged.
-@@ -68,6 +77,16 @@ static const struct ane_fw_preload_build ane_t6050_builds[] = {
+@@ -69,6 +78,16 @@ static const struct ane_fw_preload_build ane_t6050_builds[] = {
  		.size = { 0xc0000, 0x2ac000 },
  		.text_pin = ane_t6050_text_pin_27_0,
  	},
@@ -73,7 +73,7 @@ index c17656c17e47..7320942f260a 100644
  		.name = "27.3",
  		.dva = { 0x10000000000, 0x100000ec000 },
 diff --git a/drivers/accel/ane/ane_fw_platform.h b/drivers/accel/ane/ane_fw_platform.h
-index a2b11206ee52..68d4cd02baad 100644
+index 1c1d662bf253..0335337f4853 100644
 --- a/drivers/accel/ane/ane_fw_platform.h
 +++ b/drivers/accel/ane/ane_fw_platform.h
 @@ -28,7 +28,8 @@ enum ane_fw_irq_role {

@@ -1,7 +1,7 @@
-From dadec94d4c034ccb462b6ff4aa0cc1782dc3f44e Mon Sep 17 00:00:00 2001
+From 818d74db010733b93cae5e832818692ed00f153c Mon Sep 17 00:00:00 2001
 From: TripleU <182648541+TripleU613@users.noreply.github.com>
 Date: Thu, 12 Nov 2026 05:03:13 -0500
-Subject: [PATCH 13/19] arm64: dts: apple: t6050-j714s: Describe the camera
+Subject: [PATCH 13/23] arm64: dts: apple: t6050-j714s: Describe the camera
  light
 
 edimoldovan's camera light driver (omacom/linux-aurora #422, 5a3e9d8a5f0b

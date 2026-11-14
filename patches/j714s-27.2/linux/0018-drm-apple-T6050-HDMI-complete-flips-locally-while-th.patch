@@ -1,7 +1,7 @@
-From d57954fb8f8773925a2e9b14c1a0070a128f03cf Mon Sep 17 00:00:00 2001
+From ed2bf75af510185670b33fec822829fcfa9066af Mon Sep 17 00:00:00 2001
 From: FatBoy721 <203330788+FatBoy721@users.noreply.github.com>
 Date: Fri, 13 Nov 2026 17:15:00 -0500
-Subject: [PATCH 18/19] drm/apple: T6050 HDMI: complete flips locally while the
+Subject: [PATCH 18/23] drm/apple: T6050 HDMI: complete flips locally while the
  output connects
 
 A monitor that wakes from standby when the HDMI link comes up drops HPD about
@@ -51,7 +51,7 @@ index 1e057d87c782..7c158398c812 100644
  	dcp_hdmi_update_locked(dcp);
  	/* The GPIO edge detector is off throughout an oneshot handler. */
 diff --git a/drivers/gpu/drm/apple/dcp-internal.h b/drivers/gpu/drm/apple/dcp-internal.h
-index 63daa46d8b2d..939b52fe2f58 100644
+index a3ffcfc8b0b6..393b0c6d2a70 100644
 --- a/drivers/gpu/drm/apple/dcp-internal.h
 +++ b/drivers/gpu/drm/apple/dcp-internal.h
 @@ -999,6 +999,9 @@ struct apple_dcp {
@@ -73,10 +73,10 @@ index 63daa46d8b2d..939b52fe2f58 100644
  void dcp_announce_work(struct work_struct *work);
  void dcp_external_crtc_released(struct apple_dcp *dcp);
 diff --git a/drivers/gpu/drm/apple/dcp.c b/drivers/gpu/drm/apple/dcp.c
-index 862d08e9aa6d..c3d633d81ef8 100644
+index 15e25aa9b8df..fa771f5d7d99 100644
 --- a/drivers/gpu/drm/apple/dcp.c
 +++ b/drivers/gpu/drm/apple/dcp.c
-@@ -4424,6 +4424,8 @@ static int dcp_enable_dp2hdmi_hpd(struct apple_dcp *dcp)
+@@ -4438,6 +4438,8 @@ static int dcp_enable_dp2hdmi_hpd(struct apple_dcp *dcp)
  		bool connected = gpiod_get_value_cansleep(dcp->hdmi_hpd);
  		dev_info(dcp->dev, "%s: DP2HDMI HPD connected:%d\n", __func__, connected);
  
@@ -85,7 +85,7 @@ index 862d08e9aa6d..c3d633d81ef8 100644
  		if (connected && !READ_ONCE(dcp->hdmi_yielded))
  			dcp_dptx_connect(dcp, 0);
  		else if (!connected)
-@@ -6694,6 +6696,9 @@ static int dcp_platform_probe_pipe(struct platform_device *pdev)
+@@ -6708,6 +6710,9 @@ static int dcp_platform_probe_pipe(struct platform_device *pdev)
  		ret = dcp_hdmi_init(dcp);
  		if (ret)
  			return ret;
@@ -159,7 +159,7 @@ index b730134ba175..888402c4400f 100644
  		iomfb_v26_6_flush(dcp, crtc, commit);
  		return;
 diff --git a/drivers/gpu/drm/apple/iomfb_template.c b/drivers/gpu/drm/apple/iomfb_template.c
-index e799f589acef..3cd830a24130 100644
+index 5803ca0f0c7f..13d86066b1f3 100644
 --- a/drivers/gpu/drm/apple/iomfb_template.c
 +++ b/drivers/gpu/drm/apple/iomfb_template.c
 @@ -2473,6 +2473,7 @@ void DCP_FW_NAME(iomfb_poweron)(struct apple_dcp *dcp)

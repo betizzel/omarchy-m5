@@ -1,0 +1,111 @@
+From 8e0a7d1d8639ee97c400557016e37556982444da Mon Sep 17 00:00:00 2001
+From: Isaac Duarte <31712685+Isaac-Duarte@users.noreply.github.com>
+Date: Sat, 14 Nov 2026 10:40:33 -0700
+Subject: [PATCH 23/23] arm64: dts: apple: t6050-j714s: route dcpext1 to the
+ right port's DP tunnels
+
+The J714s describes routes for dcpext0 and dcpext2 only, keeping dcpext1
+and dcpext3 as peers for modes wider than one pipeline. A Thunderbolt dock
+on the right port can carry up to four DP tunnels, so a third display has
+no pipeline to go to on Linux, while macOS drives three.
+
+Give dcpext1 a route to the right port's DP IN crossbar outputs. Its
+crossbar source, 2 (dispext1 port 0), follows the 2 * dispext pattern of
+dcpext0 (0) and dcpext2 (4) and matches dcpext1 on T6040; it is confirmed
+by a display driven through it. The route has no mode-switch: hpm2 already
+has TYPEC_MUX_MAX_DEVS (3) mode-switch providers, and tunnels find their
+port through the endpoint rather than the Type-C mux. It is marked
+apple,tunnel-only, so DP alt mode displays stay on dcpext0 and dcpext2.
+
+A routed DCP is no longer a merged-mode peer (dcp-peer-v27), so dcpext0 and
+dcpext2 now share dcpext3 as their peer: one display wider than one
+pipeline at a time instead of two.
+
+Needs "drm/apple: dcp-fabric: give T6050 DP IN 2 and 3 their own tunnel
+slots" for the third tunnel to be routed, and "drm/apple: dcp-fabric:
+support tunnel-only Type-C routes" for apple,tunnel-only.
+
+Signed-off-by: Isaac Duarte <31712685+Isaac-Duarte@users.noreply.github.com>
+---
+ .../boot/dts/apple/t6050-j714s-display.dtsi   | 52 +++++++++++++++++--
+ 1 file changed, 47 insertions(+), 5 deletions(-)
+
+diff --git a/arch/arm64/boot/dts/apple/t6050-j714s-display.dtsi b/arch/arm64/boot/dts/apple/t6050-j714s-display.dtsi
+index f14c7ab163e3..003b229e2640 100644
+--- a/arch/arm64/boot/dts/apple/t6050-j714s-display.dtsi
++++ b/arch/arm64/boot/dts/apple/t6050-j714s-display.dtsi
+@@ -1,17 +1,54 @@
+ // SPDX-License-Identifier: GPL-2.0+ OR MIT
+ /*
+  * J714s external displays: DisplayPort alt mode on the left-front and right ports and USB4
+- * DisplayPort tunnels on the right port. dcpext0 and dcpext2 drive the routes; dcpext1 and
+- * dcpext3 are their pairs for modes that need two pipelines. The left-back port (ATC0) is the
+- * debug port and is not described. Addresses and interrupts are from the J714sAP ADT. The boot
+- * loader hands each engine over: it enables the engine, its mailbox and DARTs, publishes its
+- * bandwidth scratch and adds its display DART to the display subsystem.
++ * DisplayPort tunnels on the right port. dcpext0 and dcpext2 drive the DP alt mode and tunnel
++ * routes, dcpext1 a third tunnel on the right port only; dcpext3 is the pair for modes that
++ * need two pipelines. The left-back port (ATC0) is the debug port and is not described.
++ * Addresses and interrupts are from the J714sAP ADT. The boot loader hands each engine over: it
++ * enables the engine, its mailbox and DARTs, publishes its bandwidth scratch and adds its
++ * display DART to the display subsystem.
+  */
+ 
+ &dcpext1 {
+ 	apple,dcp-index = <2>;
+ 	apple,connector-type = "USB-C";
+ 	apple,dptx-die = <0>;
++	/*
++	 * A third pipeline for USB4 DP tunnels on the right port, so a dock can
++	 * drive three displays as on macOS. Routing dcpext1 stops it being a
++	 * merged-mode peer; dcpext0, dcpext1 and dcpext2 then pair with dcpext3,
++	 * so only one display wider than one pipeline runs at a time.
++	 * Crossbar source 2 (dispext1 port 0) follows the 2 * dispext pattern of
++	 * dcpext0 (0) and dcpext2 (4), and the T6040 dcpext1 (2).
++	 * No mode-switch: hpm2 already has TYPEC_MUX_MAX_DEVS (3) mode-switch
++	 * providers; tunnels find the port through the endpoint, not the mux.
++	 * apple,tunnel-only keeps DP alt mode displays off it: only tunnels
++	 * have been driven through it.
++	 */
++	apple,typec-dptx-phys = <2>;
++	apple,typec-mux-indices = <2>;
++	phys = <&atc2_phy 6>;
++	phy-names = "typec0";
++	mux-controls = <&atc2_xbar 0>, <&atc2_xbar 1>, <&atc2_xbar 2>, <&atc2_xbar 3>,
++		       <&atc2_xbar 4>;
++	mux-control-names = "typec0", "typec0-dpin0", "typec0-dpin1", "typec0-dpin2",
++			    "typec0-dpin3";
++
++	typec-routes {
++		#address-cells = <1>;
++		#size-cells = <0>;
++
++		route@0 {
++			reg = <0>;
++			apple,tunnel-only;
++
++			port {
++				dcpext1_right: endpoint {
++					remote-endpoint = <&hpm2_dp2>;
++				};
++			};
++		};
++	};
+ };
+ 
+ &dcpext2 {
+@@ -111,6 +148,11 @@ hpm2_dp1: endpoint@1 {
+ 					reg = <1>;
+ 					remote-endpoint = <&dcpext2_right>;
+ 				};
++
++				hpm2_dp2: endpoint@2 {
++					reg = <2>;
++					remote-endpoint = <&dcpext1_right>;
++				};
+ 			};
+ 		};
+ 	};
+-- 
+2.56.0
+

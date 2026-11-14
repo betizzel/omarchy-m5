@@ -1,0 +1,484 @@
+From ac5b0b0b9a9d075daa033c68397a150b16a1267a Mon Sep 17 00:00:00 2001
+From: Isaac Duarte <31712685+Isaac-Duarte@users.noreply.github.com>
+Date: Sat, 14 Nov 2026 10:40:33 -0700
+Subject: [PATCH 20/23] drm/apple: dcp-fabric: give T6050 DP IN 2 and 3 their
+ own tunnel slots
+
+A port's Thunderbolt DP tunnels are kept in two owner slots, primary and
+secondary, and dcp_fabric_dpin_slot() maps DP IN n and n + 2 onto the same
+one. That models the dual-stream DCPs, but on T6050 every pipeline drives a
+single DP IN (fixed CRTCs), and the host router has four DP IN adapters. A
+dock with three displays gets DP IN 0, 1 and 2; the third lands in DP IN 0's
+occupied slot and is refused before any free pipeline is considered:
+
+  apple-dcp 2b2e00000.dcp: port already routed, not taking DP tunnel dpin2
+  thunderbolt-apple-acio 381ac0000.acio: dpin2: DP tunnel setup failed: -98
+
+Widen the core port's owner array to one slot per DP IN, and let
+dcp_fabric_tunnel_owner() pick a DP IN's slot: its stream slot as before,
+or, with fixed CRTCs, the DP IN's own. dcp_fabric_tunnel_slot() takes the
+same choice, so DP IN 2 and 3 are admitted by the one set of rules. The
+driver's port keeps owner, secondary_owner and the new dpin_owner[] as views
+of one slots[] array in the core's order, and every owner-slot lookup goes
+through dcp_tb_slot() (attach, release, request finish, DP events). The
+fabric snapshot, the port's HPD, connector binding and route unregistration
+cover all four slots, and the Type-C mux path counts a tunnel in any slot
+as holding the port, so a DP alt mode state is not applied to a port whose
+DP IN 0 tunnel went first while DP IN 2's is still up.
+
+dcp_tb_candidate() still takes the stream of DP IN 2/3 from its parity; it
+only feeds the dual-stream pairing order, which fixed-CRTC machines do not
+run.
+
+The slot change follows the SoC (apple,t6050), so J716c gets it too; other
+SoCs keep the two-slot mapping.
+
+Tested on J714s (M5 Pro) with a Thunderbolt 5 dock (Ugreen 10-in-1) and
+three 1080p displays, together with the J714s device tree change that gives
+dcpext1 a route to the right port: DP IN 0, 1 and 2 go to dcpext0, dcpext1
+and dcpext2, and all three displays light up, as they do on macOS. The
+firmware accepts the DPTX DFP port of DP IN 2.
+
+Signed-off-by: Isaac Duarte <31712685+Isaac-Duarte@users.noreply.github.com>
+---
+ drivers/gpu/drm/apple/dcp-fabric-core.c |  13 ++-
+ drivers/gpu/drm/apple/dcp-fabric-core.h |  26 ++++-
+ drivers/gpu/drm/apple/dcp-fabric-test.c |  54 ++++++++-
+ drivers/gpu/drm/apple/dcp-fabric.c      | 144 ++++++++++++++++--------
+ 4 files changed, 179 insertions(+), 58 deletions(-)
+
+diff --git a/drivers/gpu/drm/apple/dcp-fabric-core.c b/drivers/gpu/drm/apple/dcp-fabric-core.c
+index 6a7fab89c190..8b87a129eae9 100644
+--- a/drivers/gpu/drm/apple/dcp-fabric-core.c
++++ b/drivers/gpu/drm/apple/dcp-fabric-core.c
+@@ -288,11 +288,18 @@ void dcp_fabric_plan(struct dcp_fabric_pipeline *pipelines,
+ }
+ EXPORT_SYMBOL_GPL(dcp_fabric_plan);
+ 
+-/* 1 means an already handed, matching stream; zero admits allocation. */
++/*
++ * 1 means an already handed, matching stream; zero admits allocation.
++ * @per_dpin: DP IN 2 and 3 have owner slots of their own.
++ */
+ int dcp_fabric_tunnel_slot(const struct dcp_fabric_port *port,
+-			   unsigned int dpin)
++			   unsigned int dpin, bool per_dpin)
+ {
+-	const struct dcp_fabric_route *slot = port->owner[dcp_fabric_dpin_slot(dpin)];
++	const struct dcp_fabric_route *slot;
++
++	if (dpin >= DCP_FABRIC_DPIN_MAX)
++		return -EINVAL;
++	slot = port->owner[dcp_fabric_tunnel_owner(dpin, per_dpin)];
+ 
+ 	if (slot)
+ 		return slot->tunnel && slot->dpin == dpin ? 1 : -EADDRINUSE;
+diff --git a/drivers/gpu/drm/apple/dcp-fabric-core.h b/drivers/gpu/drm/apple/dcp-fabric-core.h
+index 602e7b2efb7f..a775649ff934 100644
+--- a/drivers/gpu/drm/apple/dcp-fabric-core.h
++++ b/drivers/gpu/drm/apple/dcp-fabric-core.h
+@@ -8,8 +8,10 @@
+ /*
+  * A Thunderbolt DP tunnel enters through one of up to four DP IN adapters of
+  * the port's host router, each behind a crossbar output of its own. A port
+- * carries at most two streams, primary and secondary: DP IN n and n + 2 share
+- * a stream slot.
++ * carries two streams, primary and secondary: DP IN n and n + 2 share a
++ * stream slot. Where every pipeline drives one DP IN of its own (T6050, fixed
++ * CRTCs), DP IN 2 and 3 have owner slots of their own as well; see
++ * dcp_fabric_tunnel_owner().
+  */
+ #define DCP_FABRIC_DPIN_MAX	4
+ 
+@@ -18,6 +20,16 @@ static inline unsigned int dcp_fabric_dpin_slot(unsigned int dpin)
+ 	return dpin & 1;
+ }
+ 
++/*
++ * The owner slot (dcp_fabric_port.owner[]) of DP IN @dpin: its stream slot,
++ * or the DP IN itself when @per_dpin, each pipeline taking one DP IN.
++ */
++static inline unsigned int dcp_fabric_tunnel_owner(unsigned int dpin,
++						   bool per_dpin)
++{
++	return per_dpin ? dpin : dcp_fabric_dpin_slot(dpin);
++}
++
+ enum dcp_fabric_presence_state {
+ 	DCP_FABRIC_ABSENT,
+ 	DCP_FABRIC_SETTLING,
+@@ -65,7 +77,13 @@ struct dcp_fabric_port {
+ 	unsigned long key;
+ 	struct dcp_fabric_port *next;
+ 	struct dcp_fabric_route *routes;
+-	struct dcp_fabric_route *owner[2];
++	/*
++	 * Indexed by dcp_fabric_tunnel_owner(): [0] the primary stream (direct
++	 * DP, DP IN 0, and DP IN 2 unless per-DP IN), [1] the secondary (DP
++	 * IN 1, and 3 unless per-DP IN), [2] and [3] DP IN 2 and 3 with per-DP
++	 * IN slots.
++	 */
++	struct dcp_fabric_route *owner[DCP_FABRIC_DPIN_MAX];
+ 	struct dcp_fabric_route *preferred;
+ 	u32 candidate_crtcs[2];
+ 	bool wanted;
+@@ -196,7 +214,7 @@ void dcp_fabric_plan(struct dcp_fabric_pipeline *pipelines,
+ 		     const struct dcp_fabric_port *ports,
+ 		     const struct dcp_fabric_port *arriving, unsigned int dpin);
+ int dcp_fabric_tunnel_slot(const struct dcp_fabric_port *port,
+-			   unsigned int dpin);
++			   unsigned int dpin, bool per_dpin);
+ struct dcp_fabric_route *
+ dcp_fabric_tunnel_candidate(const struct dcp_fabric_port *port,
+ 			    const struct dcp_fabric_policy *policy,
+diff --git a/drivers/gpu/drm/apple/dcp-fabric-test.c b/drivers/gpu/drm/apple/dcp-fabric-test.c
+index ef6381b15907..fed2534f6584 100644
+--- a/drivers/gpu/drm/apple/dcp-fabric-test.c
++++ b/drivers/gpu/drm/apple/dcp-fabric-test.c
+@@ -69,7 +69,7 @@ static int fabric_tunnel(struct fabric_fixture *f, unsigned int p,
+ 	struct dcp_fabric_route *route;
+ 	int error;
+ 
+-	error = dcp_fabric_tunnel_slot(&f->port[p], dpin);
++	error = dcp_fabric_tunnel_slot(&f->port[p], dpin, false);
+ 	if (error)
+ 		return error > 0 ? 0 : error;
+ 	route = dcp_fabric_tunnel_candidate(&f->port[p], &f->policy, NULL,
+@@ -370,14 +370,14 @@ static void fabric_scenario_test(struct kunit *test)
+ 	case 17:
+ 		KUNIT_ASSERT_EQ(test, fabric_tunnel(&f, 0, 0), 0);
+ 		f.route[0][1].dpin = 1;
+-		KUNIT_EXPECT_EQ(test, dcp_fabric_tunnel_slot(&f.port[0], 0),
++		KUNIT_EXPECT_EQ(test, dcp_fabric_tunnel_slot(&f.port[0], 0, false),
+ 				-EADDRINUSE);
+ 		fabric_init(&f, false);
+ 		KUNIT_ASSERT_EQ(test, fabric_direct(&f, 0), 0);
+-		KUNIT_EXPECT_EQ(test, dcp_fabric_tunnel_slot(&f.port[0], 1),
++		KUNIT_EXPECT_EQ(test, dcp_fabric_tunnel_slot(&f.port[0], 1, false),
+ 				-EBUSY);
+ 		/* Preserve the original occupied-primary errno in this extraction. */
+-		KUNIT_EXPECT_EQ(test, dcp_fabric_tunnel_slot(&f.port[0], 0),
++		KUNIT_EXPECT_EQ(test, dcp_fabric_tunnel_slot(&f.port[0], 0, false),
+ 				-EADDRINUSE);
+ 		break;
+ 	case 18:
+@@ -2063,6 +2063,51 @@ static void fabric_t6030_plan_test(struct kunit *test)
+ 	KUNIT_EXPECT_PTR_EQ(test, f.plan[0].target[1], NULL);
+ }
+ 
++/* T6050: each pipeline takes one DP IN, so DP IN 2 and 3 own slots of their own. */
++static void fabric_per_dpin_slot_test(struct kunit *test)
++{
++	struct dcp_fabric_pipeline pipeline[3] = {};
++	struct dcp_fabric_route route[3] = {};
++	struct dcp_fabric_port port = {};
++	unsigned int i;
++
++	KUNIT_EXPECT_EQ(test, dcp_fabric_tunnel_owner(0, false), 0);
++	KUNIT_EXPECT_EQ(test, dcp_fabric_tunnel_owner(2, false), 0);
++	KUNIT_EXPECT_EQ(test, dcp_fabric_tunnel_owner(3, false), 1);
++	KUNIT_EXPECT_EQ(test, dcp_fabric_tunnel_owner(1, true), 1);
++	KUNIT_EXPECT_EQ(test, dcp_fabric_tunnel_owner(2, true), 2);
++	KUNIT_EXPECT_EQ(test, dcp_fabric_tunnel_owner(3, true), 3);
++
++	for (i = 0; i < 3; i++) {
++		route[i].pipeline = &pipeline[i];
++		route[i].tunnel = true;
++		route[i].dpin = i;
++	}
++
++	/* A dock's three displays: DP IN 0, 1 and 2 each get a slot. */
++	for (i = 0; i < 3; i++) {
++		KUNIT_EXPECT_EQ(test, dcp_fabric_tunnel_slot(&port, i, true), 0);
++		port.owner[dcp_fabric_tunnel_owner(i, true)] = &route[i];
++	}
++	KUNIT_EXPECT_PTR_EQ(test, port.owner[2], &route[2]);
++	/* the handed stream repeats; DP IN 3 is still free */
++	KUNIT_EXPECT_EQ(test, dcp_fabric_tunnel_slot(&port, 2, true), 1);
++	KUNIT_EXPECT_EQ(test, dcp_fabric_tunnel_slot(&port, 3, true), 0);
++	KUNIT_EXPECT_EQ(test, dcp_fabric_tunnel_slot(&port, DCP_FABRIC_DPIN_MAX, true),
++			-EINVAL);
++
++	/* Elsewhere DP IN 2 shares DP IN 0's occupied slot. */
++	port.owner[2] = NULL;
++	KUNIT_EXPECT_EQ(test, dcp_fabric_tunnel_slot(&port, 2, false), -EADDRINUSE);
++
++	/* A direct DP-alt display holds the port against every DP IN. */
++	memset(&port, 0, sizeof(port));
++	route[0].tunnel = false;
++	port.owner[0] = &route[0];
++	KUNIT_EXPECT_EQ(test, dcp_fabric_tunnel_slot(&port, 2, true), -EBUSY);
++	KUNIT_EXPECT_EQ(test, dcp_fabric_tunnel_slot(&port, 3, true), -EBUSY);
++}
++
+ static void fabric_t6030_follow_test(struct kunit *test)
+ {
+ 	struct fabric_fixture f;
+@@ -2387,6 +2432,7 @@ static struct kunit_case fabric_tests[] = {
+ 	KUNIT_CASE(fabric_t6030_clock_header_parity_test),
+ 	KUNIT_CASE(fabric_t6030_plan_test),
+ 	KUNIT_CASE(fabric_t6030_follow_test),
++	KUNIT_CASE(fabric_per_dpin_slot_test),
+ 	KUNIT_CASE(fabric_reclaim_transaction_test),
+ 	KUNIT_CASE_PARAM(fabric_shared_wiring_test, fabric_wiring_gen_params),
+ 	KUNIT_CASE(fabric_binding_cookie_test),
+diff --git a/drivers/gpu/drm/apple/dcp-fabric.c b/drivers/gpu/drm/apple/dcp-fabric.c
+index 7c158398c812..6d50b8dffcf0 100644
+--- a/drivers/gpu/drm/apple/dcp-fabric.c
++++ b/drivers/gpu/drm/apple/dcp-fabric.c
+@@ -96,8 +96,21 @@ struct apple_dcp_typec_port {
+ 	struct list_head link;
+ 	struct list_head routes;
+ 	struct device_node *connector_np;
+-	struct apple_dcp_typec_route *owner;
+-	struct apple_dcp_typec_route *secondary_owner;
++	/* The owner slots, as core.owner[] (see dcp_fabric_tunnel_owner()). */
++	union {
++		struct {
++			struct apple_dcp_typec_route *owner;
++			struct apple_dcp_typec_route *secondary_owner;
++			/*
++			 * T6050 (fixed CRTCs): each pipeline drives one DP IN,
++			 * so DP IN 2 and 3 get slots of their own instead of
++			 * sharing DP IN 0/1's (see dcp_tb_slot()). Always NULL
++			 * elsewhere.
++			 */
++			struct apple_dcp_typec_route *dpin_owner[2];
++		};
++		struct apple_dcp_typec_route *slots[DCP_FABRIC_DPIN_MAX];
++	};
+ 	/* Keep a port on its last DCP while that pipeline remains free. */
+ 	struct apple_dcp_typec_route *preferred_route;
+ 	/* DRM connector for this physical port, driven by whichever DCP owns it */
+@@ -361,6 +374,52 @@ bool dcp_typec_fixed_crtcs(void)
+ 	return of_machine_is_compatible("apple,t6050");
+ }
+ 
++static_assert(offsetof(struct apple_dcp_typec_port, dpin_owner[1]) ==
++	      offsetof(struct apple_dcp_typec_port, slots[DCP_FABRIC_DPIN_MAX - 1]));
++
++/*
++ * The owner slot of a Thunderbolt DP IN. Elsewhere a port carries two
++ * streams and DP IN n and n + 2 share a slot (dcp_fabric_dpin_slot()). With
++ * fixed CRTCs every pipeline takes one DP IN of its own, so DP IN 2 and 3 get
++ * separate slots and a third or fourth dock display can claim a free pipeline.
++ */
++static struct apple_dcp_typec_route **
++dcp_tb_slot(struct apple_dcp_typec_port *port, unsigned int dpin)
++{
++	bool per_dpin = dpin < DCP_FABRIC_DPIN_MAX && dcp_typec_fixed_crtcs();
++
++	return &port->slots[dcp_fabric_tunnel_owner(dpin, per_dpin)];
++}
++
++static bool dcp_typec_port_owned(const struct apple_dcp_typec_port *port)
++{
++	for (unsigned int i = 0; i < ARRAY_SIZE(port->slots); i++)
++		if (port->slots[i])
++			return true;
++	return false;
++}
++
++static bool dcp_typec_port_owner_is(const struct apple_dcp_typec_port *port,
++				    const struct apple_dcp_typec_route *route)
++{
++	for (unsigned int i = 0; i < ARRAY_SIZE(port->slots); i++)
++		if (port->slots[i] == route)
++			return true;
++	return false;
++}
++
++/*
++ * Does a Thunderbolt DP tunnel hold any of @port's slots? Its teardown is
++ * its own path's, whichever DP IN went first.
++ */
++static bool dcp_typec_port_tunneled(const struct apple_dcp_typec_port *port)
++{
++	for (unsigned int i = 0; i < ARRAY_SIZE(port->slots); i++)
++		if (port->slots[i] && port->slots[i]->tunnel)
++			return true;
++	return false;
++}
++
+ static struct apple_connector *
+ dcp_typec_route_connector(struct apple_dcp_typec_route *route, bool tunnel)
+ {
+@@ -1316,9 +1375,9 @@ static void dcp_fabric_snapshot_port(struct apple_dcp_typec_port *port,
+ 	struct dcp_fabric_route **tail = &port->core.routes;
+ 
+ 	lockdep_assert_held(&dcp_typec_fabric_lock);
+-	port->core.owner[0] = port->owner ? &port->owner->core : NULL;
+-	port->core.owner[1] =
+-		port->secondary_owner ? &port->secondary_owner->core : NULL;
++	for (unsigned int i = 0; i < ARRAY_SIZE(port->slots); i++)
++		port->core.owner[i] =
++			port->slots[i] ? &port->slots[i]->core : NULL;
+ 	port->core.preferred =
+ 		port->preferred_route ? &port->preferred_route->core : NULL;
+ 	port->core.wanted = port->dp_wanted && !port->typec_yielded;
+@@ -1939,7 +1998,7 @@ static int dcp_typec_route_set(struct typec_mux_dev *mux,
+ 		}
+ 
+ 		/* a Thunderbolt/USB4 DP tunnel is torn down by its own path */
+-		if (port->owner && port->owner->tunnel) {
++		if (dcp_typec_port_tunneled(port)) {
+ 			port->applied_valid = true;
+ 			return 0;
+ 		}
+@@ -1973,7 +2032,7 @@ static int dcp_typec_route_set(struct typec_mux_dev *mux,
+ 	 * way): don't act on or remember this state; the tunnel teardown drops
+ 	 * what was recorded so the next update is applied.
+ 	 */
+-	if (port->owner && port->owner->tunnel) {
++	if (dcp_typec_port_tunneled(port)) {
+ 		port->applied_valid = false;
+ 		return 0;
+ 	}
+@@ -2720,6 +2779,12 @@ static int dcp_tb_candidate(void *data)
+ 	struct apple_dcp_typec_route *best, *planned = NULL;
+ 	struct mux_control *ctl;
+ 	unsigned int dpin = ctx->dpin;
++	/*
++	 * The stream picks the pairing order's connector and CRTC mask. Only
++	 * the dual-stream policy reads them, which fixed-CRTC machines, the
++	 * ones with per-DP IN owner slots, never run (see
++	 * dcp_typec_ordered_dual_stream()).
++	 */
+ 	unsigned int stream = dcp_fabric_dpin_slot(dpin);
+ 	bool ordered;
+ 	int ret;
+@@ -3116,8 +3181,7 @@ static int dcp_tb_split_locked(struct apple_dcp_typec_port *port,
+ static int dcp_tb_release_locked(struct apple_dcp_typec_port *port,
+ 				 unsigned int dpin)
+ {
+-	struct apple_dcp_typec_route **slot = dcp_fabric_dpin_slot(dpin) ?
+-		&port->secondary_owner : &port->owner;
++	struct apple_dcp_typec_route **slot = dcp_tb_slot(port, dpin);
+ 	struct apple_dcp *dcp;
+ 	int ret;
+ 
+@@ -3158,7 +3222,7 @@ static int dcp_tb_release_locked(struct apple_dcp_typec_port *port,
+ 		return ret;
+ 	}
+ 	*slot = NULL;
+-	port->hpd = !!(port->owner || port->secondary_owner);
++	port->hpd = dcp_typec_port_owned(port);
+ 	/* re-apply the next Type-C mux state in full */
+ 	port->applied_valid = false;
+ 	if (dcp->hdmi_hpd && dcp->active &&
+@@ -3178,7 +3242,7 @@ static int dcp_tb_dispatch_request(void *data, const struct dcp_fabric_port *fou
+ 	unsigned int dpin = ctx->dpin;
+ 	int ret;
+ 
+-	slot = dcp_fabric_dpin_slot(dpin) ? &port->secondary_owner : &port->owner;
++	slot = dcp_tb_slot(port, dpin);
+ 
+ 	if (dpin == 1 && (tiled_split || port->split_dcp)) {
+ 		ret = dcp_tb_split_locked(port, ctx);
+@@ -3215,24 +3279,19 @@ static int dcp_tb_dispatch_request(void *data, const struct dcp_fabric_port *fou
+ 		return dcp_tb_release_locked(port, dpin);
+ 
+ 	{
+-		struct dcp_fabric_port state = {
+-			.owner[0] = port->owner ? &port->owner->core : NULL,
+-			.owner[1] = port->secondary_owner ?
+-					    &port->secondary_owner->core :
+-					    NULL,
+-		};
++		struct dcp_fabric_port state = {};
+ 
+-		if (port->owner) {
+-			port->owner->core.tunnel = port->owner->tunnel;
+-			port->owner->core.dpin = port->owner->tunnel_dpin;
++		for (unsigned int i = 0; i < ARRAY_SIZE(port->slots); i++) {
++			struct apple_dcp_typec_route *owner = port->slots[i];
++
++			if (!owner)
++				continue;
++			owner->core.tunnel = owner->tunnel;
++			owner->core.dpin = owner->tunnel_dpin;
++			state.owner[i] = &owner->core;
+ 		}
+-		if (port->secondary_owner) {
+-			port->secondary_owner->core.tunnel =
+-				port->secondary_owner->tunnel;
+-			port->secondary_owner->core.dpin =
+-				port->secondary_owner->tunnel_dpin;
+-		}
+-		ret = dcp_fabric_tunnel_slot(&state, dpin);
++		ret = dcp_fabric_tunnel_slot(&state, dpin,
++					     dcp_typec_fixed_crtcs());
+ 		if (ret > 0)
+ 			return 0;
+ 		if (ret) {
+@@ -3262,8 +3321,7 @@ static int dcp_tb_dispatch_request(void *data, const struct dcp_fabric_port *fou
+ static void dcp_tb_finish_request(struct apple_dcp_typec_port *port,
+ 				  const struct dcp_tb_attach_context *request)
+ {
+-	struct apple_dcp_typec_route *route = dcp_fabric_dpin_slot(request->dpin) ?
+-		port->secondary_owner : port->owner;
++	struct apple_dcp_typec_route *route = *dcp_tb_slot(port, request->dpin);
+ 	struct apple_dcp *dcp;
+ 	bool matching;
+ 
+@@ -3417,7 +3475,7 @@ int apple_dcp_tb_dp_event(struct device_node *connector_np, unsigned int dpin,
+ 
+ 		if (pos->connector_np != connector_np)
+ 			continue;
+-		route = dcp_fabric_dpin_slot(dpin) ? pos->secondary_owner : pos->owner;
++		route = *dcp_tb_slot(pos, dpin);
+ 		if (route && route->tunnel && route->tunnel_dpin == dpin &&
+ 		    route->tunnel_generation == generation) {
+ 			dcp = route->dcp;
+@@ -4274,8 +4332,7 @@ static void dcp_typec_port_bind_connector(struct apple_dcp_typec_port *port,
+ 		if (WARN_ON(!route))
+ 			return;
+ 		route->connector = connector;
+-		owner = route == port->owner || route == port->secondary_owner ?
+-			route : NULL;
++		owner = dcp_typec_port_owner_is(port, route) ? route : NULL;
+ 	} else if (secondary) {
+ 		port->secondary_connector = connector;
+ 		owner = port->secondary_owner;
+@@ -4331,30 +4388,23 @@ static void dcp_typec_route_unregister(void *data)
+ 		port->preferred_route = NULL;
+ 	if (port->split_dcp == route->dcp)
+ 		dcp_tb_split_teardown_locked(port, true);
+-	if (port->owner == route) {
++	for (unsigned int i = 0; i < ARRAY_SIZE(port->slots); i++) {
+ 		struct apple_dcp *dcp = route->dcp;
+ 
++		if (port->slots[i] != route)
++			continue;
+ 		if (route->tunnel)
+ 			dcp_tb_binding_retire(dcp, route);
+ 		if (port->hpd || dcp->typec_cable_connected)
+ 			dcp_dptx_disconnect_oob(to_platform_device(dcp->dev), 0);
+-		port->hpd = false;
++		/* The primary stream's going drops the port's HPD, as before. */
++		if (!i)
++			port->hpd = false;
+ 		if (dcp_typec_route_deactivate(route) && dcp_is_external_h17p(dcp))
+ 			return;
+-		port->owner = NULL;
++		port->slots[i] = NULL;
+ 	}
+-	if (port->secondary_owner == route) {
+-		struct apple_dcp *dcp = route->dcp;
+-
+-		if (route->tunnel)
+-			dcp_tb_binding_retire(dcp, route);
+-		if (port->hpd || dcp->typec_cable_connected)
+-			dcp_dptx_disconnect_oob(to_platform_device(dcp->dev), 0);
+-		if (dcp_typec_route_deactivate(route) && dcp_is_external_h17p(dcp))
+-			return;
+-		port->secondary_owner = NULL;
+-	}
+-	port->hpd = !!(port->owner || port->secondary_owner);
++	port->hpd = dcp_typec_port_owned(port);
+ 	list_del(&route->port_link);
+ 	if (route->dual_stream)
+ 		atomic_dec(&dcp_dual_stream_routes);
+-- 
+2.56.0
+

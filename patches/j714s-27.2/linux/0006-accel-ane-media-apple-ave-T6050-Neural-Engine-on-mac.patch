@@ -1,7 +1,7 @@
-From 49eb4e5a9116db2bedc402e930dd2b370b555b6b Mon Sep 17 00:00:00 2001
+From ad52f01aa474337e52d9471a72f5f15c7f756f36 Mon Sep 17 00:00:00 2001
 From: TripleU <182648541+TripleU613@users.noreply.github.com>
 Date: Thu, 12 Nov 2026 23:52:29 -0500
-Subject: [PATCH 06/19] accel/ane, media: apple: ave: T6050 Neural Engine on
+Subject: [PATCH 06/23] accel/ane, media: apple: ave: T6050 Neural Engine on
  macOS 27.3; AVE builds by TEXT CRC
 
 The T6050 ANE driver admits one preloaded firmware build, the macOS 27.0
@@ -23,20 +23,20 @@ integration/aurora a34d26c2 (after #1747).
 
 Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
 ---
- drivers/accel/ane/ane_fw_cold.c               | 69 +++++++++++++++----
+ drivers/accel/ane/ane_fw_cold.c               | 64 ++++++++++++++-----
  drivers/accel/ane/ane_fw_cold.h               |  3 +
- drivers/accel/ane/ane_fw_platform.c           | 29 ++++++++
- drivers/accel/ane/ane_fw_platform.h           | 63 ++++++++++++++++-
+ drivers/accel/ane/ane_fw_platform.c           | 29 +++++++++
+ drivers/accel/ane/ane_fw_platform.h           | 63 +++++++++++++++++-
  drivers/accel/ane/ane_fw_platform_test.c      | 35 ++++++++++
  drivers/media/platform/apple/ave/ave-fw.c     | 23 ++++---
  drivers/media/platform/apple/ave/ave-layout.c | 21 +++++-
  drivers/media/platform/apple/ave/ave-layout.h |  1 +
  drivers/media/platform/apple/ave/ave-sess.c   |  2 +
  drivers/media/platform/apple/ave/ave.h        |  6 +-
- 10 files changed, 221 insertions(+), 31 deletions(-)
+ 10 files changed, 215 insertions(+), 32 deletions(-)
 
 diff --git a/drivers/accel/ane/ane_fw_cold.c b/drivers/accel/ane/ane_fw_cold.c
-index 6f447afa769e..bd62013b2ead 100644
+index 2dc8d2239b89..1612cf973253 100644
 --- a/drivers/accel/ane/ane_fw_cold.c
 +++ b/drivers/accel/ane/ane_fw_cold.c
 @@ -74,6 +74,8 @@ struct ane_fw_backend {
@@ -132,45 +132,42 @@ index 6f447afa769e..bd62013b2ead 100644
  	unsigned int i;
  
  	if (chosen)
-@@ -2142,13 +2156,16 @@ static bool ane_fw_handoff_present(struct platform_device *pdev,
- 			       !strcmp(name, i ? "firmware-data" : "firmware-text") &&
- 			       !ane_fw_preload_range(np, i, &h.phys[i], &h.size[i]);
- 	}
--	if (h.regions_ok && ane_fw_preload_ranges_valid(soc, h.phys, h.size, h.dva)) {
-+	if (h.regions_ok)
-+		pin = ane_fw_preload_text_pin(soc, h.phys, h.size, h.dva);
-+	if (pin) {
+@@ -2149,11 +2163,12 @@ static bool ane_fw_handoff_present(struct platform_device *pdev,
+ 	if (h.regions_ok) {
  		void *text = memremap(h.phys[0], h.size[0], MEMREMAP_WB);
  
++		pin = ane_fw_preload_text_pin(soc, h.phys, h.size, h.dva);
 +		h.build = ane_fw_preload_build(soc, h.phys, h.size, h.dva);
  		if (text) {
 -			sha256(text, h.size[0], digest);
 +			sha256(text, h.size[0], h.text_digest);
  			memunmap(text);
--			h.text_ok = !memcmp(digest, soc->text_pin, sizeof(digest));
-+			h.text_ok = !memcmp(h.text_digest, pin, sizeof(h.text_digest));
+-			h.text_ok = ane_fw_preload_ranges_valid(soc, h.phys, h.size, h.dva) &&
+-				    !memcmp(digest, soc->text_pin, sizeof(digest));
++			h.text_ok = pin && !memcmp(h.text_digest, pin, sizeof(h.text_digest));
  		}
  	}
  	*hp = h;
-@@ -2157,10 +2174,14 @@ static bool ane_fw_handoff_present(struct platform_device *pdev,
+@@ -2162,15 +2177,14 @@ static bool ane_fw_handoff_present(struct platform_device *pdev,
  	dev_info(&pdev->dev, "H17 ANE: no loader hand-off (%s); leaving the engine alone\n",
  		 !h.marker || strcmp(h.marker, ANE_FW_COLD_BOOT_EVIDENCE) ? "raw-boot marker" :
  		 !h.preloaded || !h.regions_ok ? "preload reservations" :
 -		 !h.text_ok ? "firmware TEXT pin" : "preload layout");
--	if (h.regions_ok && !h.text_ok)
 +		 !pin ? "preload layout" : !h.text_ok ? "firmware TEXT pin" : "preload layout");
-+	if (h.regions_ok && !pin)
-+		dev_info(&pdev->dev,
-+			 "H17 ANE: no admitted build has TEXT %#llx@%#llx DATA %#llx@%#llx\n",
-+			 h.size[0], h.dva[0], h.size[1], h.dva[1]);
-+	else if (h.regions_ok && !h.text_ok)
+ 	if (h.regions_ok && !h.text_ok) {
  		dev_info(&pdev->dev, "H17 ANE: preloaded TEXT sha256 %*phN\n",
 -			 (int)sizeof(digest), digest);
 +			 (int)sizeof(h.text_digest), h.text_digest);
+ 		dev_info(&pdev->dev,
+ 			 "H17 ANE: preload TEXT %#llx+%#llx @%#llx, DATA %#llx+%#llx @%#llx (%s)\n",
+ 			 h.phys[0], h.size[0], h.dva[0], h.phys[1], h.size[1], h.dva[1],
+-			 ane_fw_preload_ranges_valid(soc, h.phys, h.size, h.dva) ?
+-			 "layout as expected" : "layout differs");
++			 pin ? "layout as expected" : "no admitted build has this layout");
+ 	}
  	return false;
  }
- 
-@@ -2169,6 +2190,15 @@ static bool ane_fw_handoff_present(struct platform_device *pdev,
+@@ -2180,6 +2194,15 @@ static bool ane_fw_handoff_present(struct platform_device *pdev,
   * on every boot with a loader hand-off. A failure stops at that stage; after
   * acquisition it quarantines, as from the stage file.
   */
@@ -186,7 +183,7 @@ index 6f447afa769e..bd62013b2ead 100644
  /* The staged bring-up at boot, for SoCs without macos_sleep. */
  static void ane_fw_start_staged(struct ane_fw_backend *b)
  {
-@@ -2177,6 +2207,12 @@ static void ane_fw_start_staged(struct ane_fw_backend *b)
+@@ -2188,6 +2211,12 @@ static void ane_fw_start_staged(struct ane_fw_backend *b)
  	ssize_t ret;
  
  	for (i = 0; i < ARRAY_SIZE(steps); i++) {
@@ -199,7 +196,7 @@ index 6f447afa769e..bd62013b2ead 100644
  		flags = lock_system_sleep();
  		ret = ane_fw_stage_action(&b->pdev->dev, steps[i], strlen(steps[i]));
  		unlock_system_sleep(flags);
-@@ -2354,7 +2390,10 @@ int ane_fw_staged_init(struct platform_device *pdev, const struct ane_fw_platfor
+@@ -2365,7 +2394,10 @@ int ane_fw_staged_init(struct platform_device *pdev, const struct ane_fw_platfor
  		ane_backend = NULL;
  		goto fail;
  	}
@@ -226,10 +223,10 @@ index a9bea3958790..d3497f50ec53 100644
  	bool crash_kernel;
  };
 diff --git a/drivers/accel/ane/ane_fw_platform.c b/drivers/accel/ane/ane_fw_platform.c
-index 5639f340d0a6..c17656c17e47 100644
+index 411b1732e41a..3cd75deb62ef 100644
 --- a/drivers/accel/ane/ane_fw_platform.c
 +++ b/drivers/accel/ane/ane_fw_platform.c
-@@ -49,6 +49,33 @@ static const u8 ane_t6050_text_pin_27_0[] = {
+@@ -50,6 +50,33 @@ static const u8 ane_t6050_text_pin_27_0[] = {
  	0xd1, 0xa2, 0x20, 0xd0, 0xee, 0x43, 0x8b, 0x8f,
  };
  
@@ -263,7 +260,7 @@ index 5639f340d0a6..c17656c17e47 100644
  const struct ane_fw_platform ane_h16_platform = {
  	.h16_profiles = ane_h16_profiles,
  	.h16_profile_count = ARRAY_SIZE(ane_h16_profiles),
-@@ -175,6 +202,8 @@ const struct ane_fw_platform ane_t6050_platform = {
+@@ -176,6 +203,8 @@ const struct ane_fw_platform ane_t6050_platform = {
  	.dart_revision = 0x204,
  	.dapf_count = 5,
  	.text_pin = ane_t6050_text_pin_27_0,
@@ -273,7 +270,7 @@ index 5639f340d0a6..c17656c17e47 100644
  
  /*
 diff --git a/drivers/accel/ane/ane_fw_platform.h b/drivers/accel/ane/ane_fw_platform.h
-index e4afe348b30c..a2b11206ee52 100644
+index dd5e3278c423..1c1d662bf253 100644
 --- a/drivers/accel/ane/ane_fw_platform.h
 +++ b/drivers/accel/ane/ane_fw_platform.h
 @@ -24,6 +24,20 @@ enum ane_fw_irq_role {

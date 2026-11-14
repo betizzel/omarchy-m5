@@ -1,7 +1,7 @@
-From f2b9857d6ada04da0ba1b2e86aa7da5cd678d0c6 Mon Sep 17 00:00:00 2001
+From be1cafb3463bd030b33ab894b049442a599f6590 Mon Sep 17 00:00:00 2001
 From: Rolando Trevino <rolotrealanis@gmail.com>
 Date: Thu, 12 Nov 2026 10:56:02 -0500
-Subject: [PATCH 01/19] drm/asahi: M5: InitData for the macOS 27.2 and 27.3
+Subject: [PATCH 01/23] drm/asahi: M5: InitData for the macOS 27.2 and 27.3
  firmware (#1173)
 
 aurora-silicon/linux #1173 (Rolando Trevino, rolotrealanis98; head
@@ -1179,7 +1179,7 @@ index e4de37f63957..007f34df0cc3 100644
      const MAXIMUM_POWER_F32: u32 = 0x48a8_95c0;
      for offset in [M5_POLICY_MAXIMUM_POWER, 0xad0, 0x44a4, 0x44a8, 0x44ac, 0x45e4] {
 diff --git a/drivers/gpu/drm/asahi/g17/fw/variant.rs b/drivers/gpu/drm/asahi/g17/fw/variant.rs
-index d90522f0cc61..6f4ca6d1fbd8 100644
+index d5d37e8e0669..934518353160 100644
 --- a/drivers/gpu/drm/asahi/g17/fw/variant.rs
 +++ b/drivers/gpu/drm/asahi/g17/fw/variant.rs
 @@ -36,6 +36,22 @@ pub(crate) enum InitGraph {
@@ -1205,7 +1205,7 @@ index d90522f0cc61..6f4ca6d1fbd8 100644
  #[derive(Copy, Clone, Debug, PartialEq, Eq)]
  pub(crate) enum QueueRegistration {
      Firmware,
-@@ -91,6 +107,8 @@ pub(crate) struct Variant {
+@@ -94,6 +110,8 @@ pub(crate) struct Variant {
      /// work. The bare-metal M5 firmware powers the cores for work by its own policy: under a
      /// hold, the M5 Ultra's core-power witness reads unpowered until the hold is released.
      pub(crate) registration_power_hold: bool,
@@ -1214,7 +1214,7 @@ index d90522f0cc61..6f4ca6d1fbd8 100644
  }
  
  /// A firmware build a SoC supports, identified by its loaded TEXT.
-@@ -142,6 +160,7 @@ pub(crate) enum Firmware {
+@@ -146,6 +164,7 @@ pub(crate) enum Firmware {
      split_firmware_area: false,
      m5_commands: false,
      registration_power_hold: true,
@@ -1222,7 +1222,7 @@ index d90522f0cc61..6f4ca6d1fbd8 100644
  };
  
  /// The M4 Pro firmware (25G83, `mBoot-18000.161.10`).
-@@ -178,6 +197,7 @@ pub(crate) enum Firmware {
+@@ -184,6 +203,7 @@ pub(crate) enum Firmware {
      split_firmware_area: false,
      m5_commands: false,
      registration_power_hold: true,
@@ -1230,8 +1230,8 @@ index d90522f0cc61..6f4ca6d1fbd8 100644
  };
  
  /// The 26A428 firmware of the M5 GPUs, which runs the M5 protocol (the M5 graph, queues and
-@@ -186,9 +206,23 @@ pub(crate) enum Firmware {
-     m5_commands: true,
+@@ -194,9 +214,23 @@ pub(crate) enum Firmware {
+     traversal_exclusion: false,
      render_ray_query: false,
      registration_power_hold: false,
 +    m5_layouts: Some(M5Layouts::V26A428),
@@ -1477,10 +1477,10 @@ index 5c3200fefce1..d1e26e0b44e6 100644
              let offset = shared.main_config[index];
              m::encode_main_config_for_profile(profile, role, &addresses, &instance,
 diff --git a/drivers/gpu/drm/asahi/g17/mod.rs b/drivers/gpu/drm/asahi/g17/mod.rs
-index e9be649be8b3..cd2651823097 100644
+index 9445b88c3dfc..2c77f1757f61 100644
 --- a/drivers/gpu/drm/asahi/g17/mod.rs
 +++ b/drivers/gpu/drm/asahi/g17/mod.rs
-@@ -1637,6 +1637,16 @@ pub(crate) fn new(
+@@ -1641,6 +1641,16 @@ pub(crate) fn new(
          }
          let m5 = cfg.profile.is_m5();
          if m5 {
@@ -1497,7 +1497,7 @@ index e9be649be8b3..cd2651823097 100644
              let board = cfg.m5.ok_or(EINVAL)?;
              J813_FORMS.store(board.j813_forms(), core::sync::atomic::Ordering::Relaxed);
              // Hold the J813's GFX power domain for the session, as the G15 and G16 paths do
-@@ -2128,7 +2138,7 @@ fn boot_m5(
+@@ -2134,7 +2144,7 @@ fn boot_m5(
              .inspect_err(at("root adoption"))?;
          session
              .init
@@ -1625,10 +1625,10 @@ index 949bd81d00ed..9e8b1392d94f 100644
 -- 
 2.56.0
 
-From b3f69b6776af65481c95996e8e8ca367dc63fbe0 Mon Sep 17 00:00:00 2001
+From 4dd9cfab112465e0014c0adb715283e74a4290ac Mon Sep 17 00:00:00 2001
 From: Rolando Trevino <rolotrealanis@gmail.com>
 Date: Sat, 7 Nov 2026 15:41:37 -0500
-Subject: [PATCH 02/19] drm/apple: Name the firmware 27 adaptive sync parameter
+Subject: [PATCH 02/23] drm/apple: Name the firmware 27 adaptive sync parameter
 
 The firmware 27 template instance sends adaptive sync as a bare 15,
 where every other instance sends IOMFBPARAM_ADAPTIVE_SYNC (14). The DCP
@@ -1671,7 +1671,7 @@ index 33d6c489c7b4..29f3e1912d6f 100644
  
  #define IOMFB_MESSAGE_TYPE	GENMASK_ULL( 3,  0)
 diff --git a/drivers/gpu/drm/apple/iomfb_template.c b/drivers/gpu/drm/apple/iomfb_template.c
-index 758ddef0cf56..b768962ce502 100644
+index 7763b7c03b53..1817b65d4768 100644
 --- a/drivers/gpu/drm/apple/iomfb_template.c
 +++ b/drivers/gpu/drm/apple/iomfb_template.c
 @@ -2443,7 +2443,7 @@ static void dcp_on_set_parameter(struct apple_dcp *dcp, void *out, void *cookie)
@@ -1695,10 +1695,10 @@ index 758ddef0cf56..b768962ce502 100644
 -- 
 2.56.0
 
-From 8fbaa996484387a33a8ad3fd0d6cddc14d9323d6 Mon Sep 17 00:00:00 2001
+From fcfa2736b497107021944bfd3eaf1d97a4375ebe Mon Sep 17 00:00:00 2001
 From: Rolando Trevino <rolotrealanis@gmail.com>
 Date: Sat, 7 Nov 2026 18:21:40 -0500
-Subject: [PATCH 03/19] drm/apple: Refuse panel brightness once the display
+Subject: [PATCH 03/23] drm/apple: Refuse panel brightness once the display
  processor crashed
 
 A panel that presents its level in the swap gets a new level only with
@@ -1718,7 +1718,7 @@ Signed-off-by: Rolando Trevino <rolotrealanis@gmail.com>
  1 file changed, 6 insertions(+)
 
 diff --git a/drivers/gpu/drm/apple/dcp_backlight.c b/drivers/gpu/drm/apple/dcp_backlight.c
-index 00f29157241f..46c162f20121 100644
+index f2e55c9a9418..80b9a52f57c5 100644
 --- a/drivers/gpu/drm/apple/dcp_backlight.c
 +++ b/drivers/gpu/drm/apple/dcp_backlight.c
 @@ -246,6 +246,9 @@ static int dcp_get_brightness(struct backlight_device *bd)
@@ -1731,7 +1731,7 @@ index 00f29157241f..46c162f20121 100644
  
  	if (dcp_backlight_active(dcp) || dcp_backlight_desktop(dcp)) {
  		/*
-@@ -772,6 +775,9 @@ static int dcp_set_brightness(struct backlight_device *bd)
+@@ -786,6 +789,9 @@ static int dcp_set_brightness(struct backlight_device *bd)
  
  	if (READ_ONCE(dcp->quiescing))
  		return -ENODEV;
@@ -1744,10 +1744,10 @@ index 00f29157241f..46c162f20121 100644
 -- 
 2.56.0
 
-From 9aae0d8558fd391110bdbab0320616acf817954a Mon Sep 17 00:00:00 2001
+From abf0cf23647152d5df1e33f29abb05b31f3edfe1 Mon Sep 17 00:00:00 2001
 From: Rolando Trevino <rolotrealanis@gmail.com>
 Date: Thu, 12 Nov 2026 08:13:48 -0500
-Subject: [PATCH 04/19] drm/apple: firmware 27.3: the full IOMFB method table
+Subject: [PATCH 04/23] drm/apple: firmware 27.3: the full IOMFB method table
  and the 27.3 swap record (J716s daily)
 
 Private to the J716s daily: the IDs beyond the 20 traced ones and the 27.3 swap layout were
@@ -1766,7 +1766,7 @@ Claude-Session: https://claude.ai/code/session_01BV6NpkesyT31Ta49VjQELY
  5 files changed, 154 insertions(+), 42 deletions(-)
 
 diff --git a/drivers/gpu/drm/apple/dcp-internal.h b/drivers/gpu/drm/apple/dcp-internal.h
-index 84006276fcc1..55b70204bf34 100644
+index b71eff588bdd..2fe421fe3652 100644
 --- a/drivers/gpu/drm/apple/dcp-internal.h
 +++ b/drivers/gpu/drm/apple/dcp-internal.h
 @@ -568,6 +568,8 @@ struct apple_dcp {
@@ -1812,7 +1812,7 @@ index bd4e50ad1fe6..325691adfea4 100644
  	if (READ_ONCE(peer->crashed))
  		dcp_peer_swap_error(owner, "peer publication", -EIO);
 diff --git a/drivers/gpu/drm/apple/iomfb_template.c b/drivers/gpu/drm/apple/iomfb_template.c
-index b768962ce502..483a442072c6 100644
+index 1817b65d4768..35271bc7c6dc 100644
 --- a/drivers/gpu/drm/apple/iomfb_template.c
 +++ b/drivers/gpu/drm/apple/iomfb_template.c
 @@ -423,6 +423,11 @@ static void dcp_swap_submit(struct apple_dcp *dcp, bool oob,
@@ -2055,10 +2055,10 @@ index 28063a45d6a6..8a5271105ffd 100644
 -- 
 2.56.0
 
-From 959908cbbd5da0ed76efe07544e34205d7dea81e Mon Sep 17 00:00:00 2001
+From 256a65af207648d684489c9c3a6c36bd75b6fbcd Mon Sep 17 00:00:00 2001
 From: Jens Axboe <axboe@kernel.dk>
 Date: Wed, 11 Nov 2026 12:00:39 -0700
-Subject: [PATCH 05/19] drm/asahi: t6050: identify the 27.2 (26B8125) G17S
+Subject: [PATCH 05/23] drm/asahi: t6050: identify the 27.2 (26B8125) G17S
  firmware of the K114/K116
 
 Applies on top of aurora-silicon/linux PR #1173.
@@ -2137,10 +2137,10 @@ index 9e8b1392d94f..6b7ebe1852da 100644
 -- 
 2.56.0
 
-From 49eb4e5a9116db2bedc402e930dd2b370b555b6b Mon Sep 17 00:00:00 2001
+From ad52f01aa474337e52d9471a72f5f15c7f756f36 Mon Sep 17 00:00:00 2001
 From: TripleU <182648541+TripleU613@users.noreply.github.com>
 Date: Thu, 12 Nov 2026 23:52:29 -0500
-Subject: [PATCH 06/19] accel/ane, media: apple: ave: T6050 Neural Engine on
+Subject: [PATCH 06/23] accel/ane, media: apple: ave: T6050 Neural Engine on
  macOS 27.3; AVE builds by TEXT CRC
 
 The T6050 ANE driver admits one preloaded firmware build, the macOS 27.0
@@ -2162,20 +2162,20 @@ integration/aurora a34d26c2 (after #1747).
 
 Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
 ---
- drivers/accel/ane/ane_fw_cold.c               | 69 +++++++++++++++----
+ drivers/accel/ane/ane_fw_cold.c               | 64 ++++++++++++++-----
  drivers/accel/ane/ane_fw_cold.h               |  3 +
- drivers/accel/ane/ane_fw_platform.c           | 29 ++++++++
- drivers/accel/ane/ane_fw_platform.h           | 63 ++++++++++++++++-
+ drivers/accel/ane/ane_fw_platform.c           | 29 +++++++++
+ drivers/accel/ane/ane_fw_platform.h           | 63 +++++++++++++++++-
  drivers/accel/ane/ane_fw_platform_test.c      | 35 ++++++++++
  drivers/media/platform/apple/ave/ave-fw.c     | 23 ++++---
  drivers/media/platform/apple/ave/ave-layout.c | 21 +++++-
  drivers/media/platform/apple/ave/ave-layout.h |  1 +
  drivers/media/platform/apple/ave/ave-sess.c   |  2 +
  drivers/media/platform/apple/ave/ave.h        |  6 +-
- 10 files changed, 221 insertions(+), 31 deletions(-)
+ 10 files changed, 215 insertions(+), 32 deletions(-)
 
 diff --git a/drivers/accel/ane/ane_fw_cold.c b/drivers/accel/ane/ane_fw_cold.c
-index 6f447afa769e..bd62013b2ead 100644
+index 2dc8d2239b89..1612cf973253 100644
 --- a/drivers/accel/ane/ane_fw_cold.c
 +++ b/drivers/accel/ane/ane_fw_cold.c
 @@ -74,6 +74,8 @@ struct ane_fw_backend {
@@ -2271,45 +2271,42 @@ index 6f447afa769e..bd62013b2ead 100644
  	unsigned int i;
  
  	if (chosen)
-@@ -2142,13 +2156,16 @@ static bool ane_fw_handoff_present(struct platform_device *pdev,
- 			       !strcmp(name, i ? "firmware-data" : "firmware-text") &&
- 			       !ane_fw_preload_range(np, i, &h.phys[i], &h.size[i]);
- 	}
--	if (h.regions_ok && ane_fw_preload_ranges_valid(soc, h.phys, h.size, h.dva)) {
-+	if (h.regions_ok)
-+		pin = ane_fw_preload_text_pin(soc, h.phys, h.size, h.dva);
-+	if (pin) {
+@@ -2149,11 +2163,12 @@ static bool ane_fw_handoff_present(struct platform_device *pdev,
+ 	if (h.regions_ok) {
  		void *text = memremap(h.phys[0], h.size[0], MEMREMAP_WB);
  
++		pin = ane_fw_preload_text_pin(soc, h.phys, h.size, h.dva);
 +		h.build = ane_fw_preload_build(soc, h.phys, h.size, h.dva);
  		if (text) {
 -			sha256(text, h.size[0], digest);
 +			sha256(text, h.size[0], h.text_digest);
  			memunmap(text);
--			h.text_ok = !memcmp(digest, soc->text_pin, sizeof(digest));
-+			h.text_ok = !memcmp(h.text_digest, pin, sizeof(h.text_digest));
+-			h.text_ok = ane_fw_preload_ranges_valid(soc, h.phys, h.size, h.dva) &&
+-				    !memcmp(digest, soc->text_pin, sizeof(digest));
++			h.text_ok = pin && !memcmp(h.text_digest, pin, sizeof(h.text_digest));
  		}
  	}
  	*hp = h;
-@@ -2157,10 +2174,14 @@ static bool ane_fw_handoff_present(struct platform_device *pdev,
+@@ -2162,15 +2177,14 @@ static bool ane_fw_handoff_present(struct platform_device *pdev,
  	dev_info(&pdev->dev, "H17 ANE: no loader hand-off (%s); leaving the engine alone\n",
  		 !h.marker || strcmp(h.marker, ANE_FW_COLD_BOOT_EVIDENCE) ? "raw-boot marker" :
  		 !h.preloaded || !h.regions_ok ? "preload reservations" :
 -		 !h.text_ok ? "firmware TEXT pin" : "preload layout");
--	if (h.regions_ok && !h.text_ok)
 +		 !pin ? "preload layout" : !h.text_ok ? "firmware TEXT pin" : "preload layout");
-+	if (h.regions_ok && !pin)
-+		dev_info(&pdev->dev,
-+			 "H17 ANE: no admitted build has TEXT %#llx@%#llx DATA %#llx@%#llx\n",
-+			 h.size[0], h.dva[0], h.size[1], h.dva[1]);
-+	else if (h.regions_ok && !h.text_ok)
+ 	if (h.regions_ok && !h.text_ok) {
  		dev_info(&pdev->dev, "H17 ANE: preloaded TEXT sha256 %*phN\n",
 -			 (int)sizeof(digest), digest);
 +			 (int)sizeof(h.text_digest), h.text_digest);
+ 		dev_info(&pdev->dev,
+ 			 "H17 ANE: preload TEXT %#llx+%#llx @%#llx, DATA %#llx+%#llx @%#llx (%s)\n",
+ 			 h.phys[0], h.size[0], h.dva[0], h.phys[1], h.size[1], h.dva[1],
+-			 ane_fw_preload_ranges_valid(soc, h.phys, h.size, h.dva) ?
+-			 "layout as expected" : "layout differs");
++			 pin ? "layout as expected" : "no admitted build has this layout");
+ 	}
  	return false;
  }
- 
-@@ -2169,6 +2190,15 @@ static bool ane_fw_handoff_present(struct platform_device *pdev,
+@@ -2180,6 +2194,15 @@ static bool ane_fw_handoff_present(struct platform_device *pdev,
   * on every boot with a loader hand-off. A failure stops at that stage; after
   * acquisition it quarantines, as from the stage file.
   */
@@ -2325,7 +2322,7 @@ index 6f447afa769e..bd62013b2ead 100644
  /* The staged bring-up at boot, for SoCs without macos_sleep. */
  static void ane_fw_start_staged(struct ane_fw_backend *b)
  {
-@@ -2177,6 +2207,12 @@ static void ane_fw_start_staged(struct ane_fw_backend *b)
+@@ -2188,6 +2211,12 @@ static void ane_fw_start_staged(struct ane_fw_backend *b)
  	ssize_t ret;
  
  	for (i = 0; i < ARRAY_SIZE(steps); i++) {
@@ -2338,7 +2335,7 @@ index 6f447afa769e..bd62013b2ead 100644
  		flags = lock_system_sleep();
  		ret = ane_fw_stage_action(&b->pdev->dev, steps[i], strlen(steps[i]));
  		unlock_system_sleep(flags);
-@@ -2354,7 +2390,10 @@ int ane_fw_staged_init(struct platform_device *pdev, const struct ane_fw_platfor
+@@ -2365,7 +2394,10 @@ int ane_fw_staged_init(struct platform_device *pdev, const struct ane_fw_platfor
  		ane_backend = NULL;
  		goto fail;
  	}
@@ -2365,10 +2362,10 @@ index a9bea3958790..d3497f50ec53 100644
  	bool crash_kernel;
  };
 diff --git a/drivers/accel/ane/ane_fw_platform.c b/drivers/accel/ane/ane_fw_platform.c
-index 5639f340d0a6..c17656c17e47 100644
+index 411b1732e41a..3cd75deb62ef 100644
 --- a/drivers/accel/ane/ane_fw_platform.c
 +++ b/drivers/accel/ane/ane_fw_platform.c
-@@ -49,6 +49,33 @@ static const u8 ane_t6050_text_pin_27_0[] = {
+@@ -50,6 +50,33 @@ static const u8 ane_t6050_text_pin_27_0[] = {
  	0xd1, 0xa2, 0x20, 0xd0, 0xee, 0x43, 0x8b, 0x8f,
  };
  
@@ -2402,7 +2399,7 @@ index 5639f340d0a6..c17656c17e47 100644
  const struct ane_fw_platform ane_h16_platform = {
  	.h16_profiles = ane_h16_profiles,
  	.h16_profile_count = ARRAY_SIZE(ane_h16_profiles),
-@@ -175,6 +202,8 @@ const struct ane_fw_platform ane_t6050_platform = {
+@@ -176,6 +203,8 @@ const struct ane_fw_platform ane_t6050_platform = {
  	.dart_revision = 0x204,
  	.dapf_count = 5,
  	.text_pin = ane_t6050_text_pin_27_0,
@@ -2412,7 +2409,7 @@ index 5639f340d0a6..c17656c17e47 100644
  
  /*
 diff --git a/drivers/accel/ane/ane_fw_platform.h b/drivers/accel/ane/ane_fw_platform.h
-index e4afe348b30c..a2b11206ee52 100644
+index dd5e3278c423..1c1d662bf253 100644
 --- a/drivers/accel/ane/ane_fw_platform.h
 +++ b/drivers/accel/ane/ane_fw_platform.h
 @@ -24,6 +24,20 @@ enum ane_fw_irq_role {
@@ -2705,10 +2702,10 @@ index cf158479c996..4e2550ff472c 100644
 -- 
 2.56.0
 
-From ab8576ab5a9cd7df0f1bea133499e008dba14a04 Mon Sep 17 00:00:00 2001
+From 25ecd0ede9a92b20f06d6ed16dc41bf4e7283d14 Mon Sep 17 00:00:00 2001
 From: Eduard Moldovan <edimoldovan@gmail.com>
 Date: Sun, 8 Nov 2026 12:56:36 +0100
-Subject: [PATCH 07/19] media: apple: isp: Tune the J714c IMX958 with setfile
+Subject: [PATCH 07/23] media: apple: isp: Tune the J714c IMX958 with setfile
  2226_02
 
 macOS's appleh16camerad carries three setfiles naming sensor 0x958:
@@ -2763,10 +2760,10 @@ index e3c39232e727..f388c9aef3e7 100644
  			"ch %d: unsupported sensor. Please file a bug report with hardware info & dmesg trace.\n",
  			ch);
 diff --git a/drivers/media/platform/apple/isp/isp-drv.c b/drivers/media/platform/apple/isp/isp-drv.c
-index f46adc37bad3..035f6ad49d43 100644
+index f0410cea88b5..4e39dd5886d7 100644
 --- a/drivers/media/platform/apple/isp/isp-drv.c
 +++ b/drivers/media/platform/apple/isp/isp-drv.c
-@@ -1422,6 +1422,8 @@ static const struct apple_isp_hw apple_isp_hw_t6050 = {
+@@ -1432,6 +1432,8 @@ static const struct apple_isp_hw apple_isp_hw_t6050 = {
  	.fw_restore = true,
  	.deferred_start = true,
  	.setfile_stride_fixup = true,
@@ -2800,10 +2797,10 @@ index 3551018baf17..79a4445d1c4f 100644
 -- 
 2.56.0
 
-From 0e860e54d44531a0b50896445467ad9251b3cc96 Mon Sep 17 00:00:00 2001
+From aed7f16262146b3075cdbb9ba77a44b4c743fd22 Mon Sep 17 00:00:00 2001
 From: Eduard Moldovan <edimoldovan@gmail.com>
 Date: Sun, 8 Nov 2026 14:11:59 +0100
-Subject: [PATCH 08/19] media: apple: isp: Compute the T6050 setfile's noise
+Subject: [PATCH 08/23] media: apple: isp: Compute the T6050 setfile's noise
  reduction radial gains
 
 The IMX958 setfile 2226_02 carries its noise reduction radial gains
@@ -2956,10 +2953,10 @@ index f388c9aef3e7..fff6dd35cfad 100644
  	err = isp_cmd_ch_set_file_load(isp, ch, isp->data_surf->iova,
  				       setfile->size);
 diff --git a/drivers/media/platform/apple/isp/isp-drv.c b/drivers/media/platform/apple/isp/isp-drv.c
-index 035f6ad49d43..c0e6b3601941 100644
+index 4e39dd5886d7..25ce24e376cb 100644
 --- a/drivers/media/platform/apple/isp/isp-drv.c
 +++ b/drivers/media/platform/apple/isp/isp-drv.c
-@@ -1424,6 +1424,7 @@ static const struct apple_isp_hw apple_isp_hw_t6050 = {
+@@ -1434,6 +1434,7 @@ static const struct apple_isp_hw apple_isp_hw_t6050 = {
  	.setfile_stride_fixup = true,
  	/* The J714c's IMX958 (build revision 2) is tuned by 2226_02 */
  	.imx958_2226 = true,
@@ -2983,10 +2980,10 @@ index 79a4445d1c4f..6b7e6b5f9a70 100644
 -- 
 2.56.0
 
-From e80b7857f5b6c102b128f5465bab8c6dc425b587 Mon Sep 17 00:00:00 2001
+From 977011c94d911a57e1639e7f444df175a4b5c235 Mon Sep 17 00:00:00 2001
 From: Eduard Moldovan <edimoldovan@gmail.com>
 Date: Sun, 8 Nov 2026 14:13:01 +0100
-Subject: [PATCH 09/19] media: apple: isp: Set the J714c lens shading target
+Subject: [PATCH 09/23] media: apple: isp: Set the J714c lens shading target
  and scene metering
 
 macOS's appleh16camerad sets the IMX958's lens shading ideal percent to
@@ -3095,10 +3092,10 @@ index ab98f3447d6f..6511b625c58f 100644
  							u32 chan, u32 freq);
  
 diff --git a/drivers/media/platform/apple/isp/isp-drv.c b/drivers/media/platform/apple/isp/isp-drv.c
-index c0e6b3601941..fffb99c7c66f 100644
+index 25ce24e376cb..0153f1da8263 100644
 --- a/drivers/media/platform/apple/isp/isp-drv.c
 +++ b/drivers/media/platform/apple/isp/isp-drv.c
-@@ -1425,6 +1425,9 @@ static const struct apple_isp_hw apple_isp_hw_t6050 = {
+@@ -1435,6 +1435,9 @@ static const struct apple_isp_hw apple_isp_hw_t6050 = {
  	/* The J714c's IMX958 (build revision 2) is tuned by 2226_02 */
  	.imx958_2226 = true,
  	.setfile_radial_gain = true,
@@ -3126,10 +3123,10 @@ index 6b7e6b5f9a70..c13914ef62e9 100644
 -- 
 2.56.0
 
-From c7ee45853a8622a872177774fce22e95ca5acfc7 Mon Sep 17 00:00:00 2001
+From 01abf42cb1c54a8223d03f541b96909db238f7cb Mon Sep 17 00:00:00 2001
 From: TripleU <182648541+TripleU613@users.noreply.github.com>
 Date: Fri, 13 Nov 2026 11:16:29 -0500
-Subject: [PATCH 10/19] arm64: dts: apple: t6050-j714s: Also offer 2560x1440
+Subject: [PATCH 10/23] arm64: dts: apple: t6050-j714s: Also offer 2560x1440
  from sensor config 6
 
 DjDeveloperr's J714s presets (#1835) crop and scale sensor config 6 to
@@ -3177,10 +3174,10 @@ index f9d5789c9855..4cea8adb301b 100644
 -- 
 2.56.0
 
-From 304a9cc371a82890b8582cc02c8adc45cebef23f Mon Sep 17 00:00:00 2001
+From a9e5791e1adcc6f393c32194fc8f3e3b633aefcd Mon Sep 17 00:00:00 2001
 From: Eduard Moldovan <edimoldovan@gmail.com>
 Date: Sun, 8 Nov 2026 12:56:35 +0100
-Subject: [PATCH 11/19] media: apple: isp: Drive the J714c camera light from
+Subject: [PATCH 11/23] media: apple: isp: Drive the J714c camera light from
  the driver
 
 On the J714c the camera light belongs to the exclave indicator
@@ -3324,7 +3321,7 @@ index 51c2f2ec6c07..b81efea0cb33 100644
  
  #endif /* __ISP_CAM_H__ */
 diff --git a/drivers/media/platform/apple/isp/isp-drv.c b/drivers/media/platform/apple/isp/isp-drv.c
-index fffb99c7c66f..b9f27e4b5ff8 100644
+index 0153f1da8263..f9cd871c88a1 100644
 --- a/drivers/media/platform/apple/isp/isp-drv.c
 +++ b/drivers/media/platform/apple/isp/isp-drv.c
 @@ -811,6 +811,25 @@ static int apple_isp_probe(struct platform_device *pdev)
@@ -3353,7 +3350,7 @@ index fffb99c7c66f..b9f27e4b5ff8 100644
  	isp->irq = platform_get_irq(pdev, 0);
  	if (isp->irq < 0) {
  		err = isp->irq;
-@@ -1428,6 +1447,8 @@ static const struct apple_isp_hw apple_isp_hw_t6050 = {
+@@ -1438,6 +1457,8 @@ static const struct apple_isp_hw apple_isp_hw_t6050 = {
  	/* As macOS's appleh16camerad sets them for the J714c's IMX958 */
  	.lsc_ideal_percent = 84,
  	.ae_fd_scene_metering = true,
@@ -3406,10 +3403,10 @@ index 09b691228650..3c39a1d5fc9d 100644
 -- 
 2.56.0
 
-From 965efeced80a29d829308c7f6619eed5ad4d7f91 Mon Sep 17 00:00:00 2001
+From 8a0c5f34cc11245308c7565fbbe9598030f393f9 Mon Sep 17 00:00:00 2001
 From: Eduard Moldovan <edimoldovan@gmail.com>
 Date: Sun, 8 Nov 2026 12:56:36 +0100
-Subject: [PATCH 12/19] media: apple: isp: Turn the J714c camera light off
+Subject: [PATCH 12/23] media: apple: isp: Turn the J714c camera light off
  after a firmware halt
 
 A firmware that dies mid-start can leave the sensor powered, and a
@@ -3488,7 +3485,7 @@ index b81efea0cb33..8cdcd17e2088 100644
  
  #endif /* __ISP_CAM_H__ */
 diff --git a/drivers/media/platform/apple/isp/isp-drv.c b/drivers/media/platform/apple/isp/isp-drv.c
-index b9f27e4b5ff8..1e2c6d80f488 100644
+index f9cd871c88a1..c7f75541b01d 100644
 --- a/drivers/media/platform/apple/isp/isp-drv.c
 +++ b/drivers/media/platform/apple/isp/isp-drv.c
 @@ -828,6 +828,7 @@ static int apple_isp_probe(struct platform_device *pdev)
@@ -3516,10 +3513,10 @@ index 3c39a1d5fc9d..a35961de0f15 100644
 -- 
 2.56.0
 
-From dadec94d4c034ccb462b6ff4aa0cc1782dc3f44e Mon Sep 17 00:00:00 2001
+From 818d74db010733b93cae5e832818692ed00f153c Mon Sep 17 00:00:00 2001
 From: TripleU <182648541+TripleU613@users.noreply.github.com>
 Date: Thu, 12 Nov 2026 05:03:13 -0500
-Subject: [PATCH 13/19] arm64: dts: apple: t6050-j714s: Describe the camera
+Subject: [PATCH 13/23] arm64: dts: apple: t6050-j714s: Describe the camera
  light
 
 edimoldovan's camera light driver (omacom/linux-aurora #422, 5a3e9d8a5f0b
@@ -3570,10 +3567,10 @@ index 4cea8adb301b..d0b713627078 100644
 -- 
 2.56.0
 
-From 8bec4fe55760f9872bb79aa4dd3eacbbcc9ec03d Mon Sep 17 00:00:00 2001
+From 6ac705ddc854435980df9ef84d238789b9c04067 Mon Sep 17 00:00:00 2001
 From: Rolando Trevino <rolotrealanis@gmail.com>
 Date: Thu, 12 Nov 2026 12:29:34 -0500
-Subject: [PATCH 14/19] drm/apple: Offer VRR on the firmware 27 panel and apply
+Subject: [PATCH 14/23] drm/apple: Offer VRR on the firmware 27 panel and apply
  VRR_ENABLED (J716s daily)
 
 The T6050 ProMotion panel reports its 120 Hz timing with both
@@ -3616,7 +3613,7 @@ Claude-Session: https://claude.ai/code/session_01BV6NpmcwB5iJuY9huL52C5
  4 files changed, 91 insertions(+), 7 deletions(-)
 
 diff --git a/drivers/gpu/drm/apple/dcp-internal.h b/drivers/gpu/drm/apple/dcp-internal.h
-index 55b70204bf34..63daa46d8b2d 100644
+index 2fe421fe3652..a3ffcfc8b0b6 100644
 --- a/drivers/gpu/drm/apple/dcp-internal.h
 +++ b/drivers/gpu/drm/apple/dcp-internal.h
 @@ -662,6 +662,8 @@ struct apple_dcp {
@@ -3628,7 +3625,7 @@ index 55b70204bf34..63daa46d8b2d 100644
  	/*
  	 * The mode set asks for a PQ signal; output_pq: the one set carries it;
  	 * output_edr: a panel shows the PQ content as EDR, edr_sent: swaps
-@@ -1150,6 +1152,14 @@ static inline bool dcp_vrr_live(struct apple_dcp *dcp)
+@@ -1151,6 +1153,14 @@ static inline bool dcp_vrr_live(struct apple_dcp *dcp)
  	       dcp_has_panel(dcp);
  }
  
@@ -3644,10 +3641,10 @@ index 55b70204bf34..63daa46d8b2d 100644
   * Does @dcp's firmware speak the 14.7 AFK, DPTX and DPAV endpoint protocol,
   * whichever IOMFB path drives it? DCP_FIRMWARE_V_14_7 is the native DCPLink
 diff --git a/drivers/gpu/drm/apple/dcp.c b/drivers/gpu/drm/apple/dcp.c
-index a5e8060eafca..862d08e9aa6d 100644
+index 3b474f1565f3..15e25aa9b8df 100644
 --- a/drivers/gpu/drm/apple/dcp.c
 +++ b/drivers/gpu/drm/apple/dcp.c
-@@ -1549,6 +1549,12 @@ VISIBLE_IF_KUNIT void dcp_swap_watchdog(struct work_struct *work)
+@@ -1563,6 +1563,12 @@ VISIBLE_IF_KUNIT void dcp_swap_watchdog(struct work_struct *work)
  		WRITE_ONCE(dcp->vrr_enabled, false);
  		dev_warn(dcp->dev, "adaptive swap timed out, restoring fixed refresh\n");
  	}
@@ -3660,7 +3657,7 @@ index a5e8060eafca..862d08e9aa6d 100644
  	dev_warn(dcp->dev, "swap not completed, retraining the display\n");
  	dcp_mode_invalidate(&dcp->mode_state);
  	dcp_drm_crtc_vblank(dcp->crtc);
-@@ -1559,7 +1565,8 @@ VISIBLE_IF_KUNIT void dcp_swap_watchdog(struct work_struct *work)
+@@ -1573,7 +1579,8 @@ VISIBLE_IF_KUNIT void dcp_swap_watchdog(struct work_struct *work)
  
  void dcp_swap_watchdog_arm(struct apple_dcp *dcp)
  {
@@ -3779,7 +3776,7 @@ index 301fdec5508b..b730134ba175 100644
  		iomfb_queue_atomic(dcp, crtc, commit);
  		return;
 diff --git a/drivers/gpu/drm/apple/iomfb_template.c b/drivers/gpu/drm/apple/iomfb_template.c
-index 483a442072c6..e799f589acef 100644
+index 35271bc7c6dc..5803ca0f0c7f 100644
 --- a/drivers/gpu/drm/apple/iomfb_template.c
 +++ b/drivers/gpu/drm/apple/iomfb_template.c
 @@ -4044,6 +4044,7 @@ int DCP_FW_NAME(iomfb_modeset)(struct apple_dcp *dcp,
@@ -3830,10 +3827,10 @@ index 483a442072c6..e799f589acef 100644
 -- 
 2.56.0
 
-From ee95410d44c95db17156111152a66f89b5554419 Mon Sep 17 00:00:00 2001
+From c1163ac73cf2e7b341affcb14ca8f6535a61e64c Mon Sep 17 00:00:00 2001
 From: TripleU <182648541+TripleU613@users.noreply.github.com>
 Date: Thu, 12 Nov 2026 23:54:15 -0500
-Subject: [PATCH 15/19] accel/ane, media: apple: ave: T6050 Neural Engine and
+Subject: [PATCH 15/23] accel/ane, media: apple: ave: T6050 Neural Engine and
  encoder on macOS 27.2
 
 The J714s 27.2 stub (UniversalMac_27.2_26B123, J714s identity) preloads
@@ -3868,10 +3865,10 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
  6 files changed, 48 insertions(+), 3 deletions(-)
 
 diff --git a/drivers/accel/ane/ane_fw_platform.c b/drivers/accel/ane/ane_fw_platform.c
-index c17656c17e47..7320942f260a 100644
+index 3cd75deb62ef..4f4a033f79b2 100644
 --- a/drivers/accel/ane/ane_fw_platform.c
 +++ b/drivers/accel/ane/ane_fw_platform.c
-@@ -57,6 +57,15 @@ static const u8 ane_t6050_text_pin_27_3[] = {
+@@ -58,6 +58,15 @@ static const u8 ane_t6050_text_pin_27_3[] = {
  	0xc7, 0x19, 0x10, 0xac, 0x66, 0xdc, 0x60, 0x66,
  };
  
@@ -3887,7 +3884,7 @@ index c17656c17e47..7320942f260a 100644
  /*
   * T6050 builds, by their ADT ane0 segment-ranges. 27.3 moved 0x2c000 bytes
   * from DATA into TEXT; the firmware span (heap tail, pool, IPC) is unchanged.
-@@ -68,6 +77,16 @@ static const struct ane_fw_preload_build ane_t6050_builds[] = {
+@@ -69,6 +78,16 @@ static const struct ane_fw_preload_build ane_t6050_builds[] = {
  		.size = { 0xc0000, 0x2ac000 },
  		.text_pin = ane_t6050_text_pin_27_0,
  	},
@@ -3905,7 +3902,7 @@ index c17656c17e47..7320942f260a 100644
  		.name = "27.3",
  		.dva = { 0x10000000000, 0x100000ec000 },
 diff --git a/drivers/accel/ane/ane_fw_platform.h b/drivers/accel/ane/ane_fw_platform.h
-index a2b11206ee52..68d4cd02baad 100644
+index 1c1d662bf253..0335337f4853 100644
 --- a/drivers/accel/ane/ane_fw_platform.h
 +++ b/drivers/accel/ane/ane_fw_platform.h
 @@ -28,7 +28,8 @@ enum ane_fw_irq_role {
@@ -4007,10 +4004,10 @@ index 4e2550ff472c..d74b8ba579ab 100644
 -- 
 2.56.0
 
-From 8cbc97c23090e8f46faeb5c2d1228d9500fb590d Mon Sep 17 00:00:00 2001
+From 58aeec15a41d0f3c0c5235e37d22e76ceb394db6 Mon Sep 17 00:00:00 2001
 From: TripleU <182648541+TripleU613@users.noreply.github.com>
 Date: Fri, 13 Nov 2026 13:06:46 -0500
-Subject: [PATCH 16/19] accel/ane: T6050: pin the macOS 27.2 (26B123) ANE TEXT
+Subject: [PATCH 16/23] accel/ane: T6050: pin the macOS 27.2 (26B123) ANE TEXT
 
 Read from the first J714s 27.2 boot: H17 ANE: preloaded TEXT sha256 b15dd8fb3367a6d5a77935a62b4c6c9d6a6e166cd11c1b2a886c65f114d7c40e.
 
@@ -4020,10 +4017,10 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
  1 file changed, 10 insertions(+), 6 deletions(-)
 
 diff --git a/drivers/accel/ane/ane_fw_platform.c b/drivers/accel/ane/ane_fw_platform.c
-index 7320942f260a..5dda5883d335 100644
+index 4f4a033f79b2..ea0a81891b6c 100644
 --- a/drivers/accel/ane/ane_fw_platform.c
 +++ b/drivers/accel/ane/ane_fw_platform.c
-@@ -58,13 +58,17 @@ static const u8 ane_t6050_text_pin_27_3[] = {
+@@ -59,13 +59,17 @@ static const u8 ane_t6050_text_pin_27_3[] = {
  };
  
  /*
@@ -4050,10 +4047,10 @@ index 7320942f260a..5dda5883d335 100644
 -- 
 2.56.0
 
-From cd63f1f33015621a60b0a60677d2a6f63705582f Mon Sep 17 00:00:00 2001
+From 8f8834c3f27832ba229bd9ef58fa4540c7e36eb7 Mon Sep 17 00:00:00 2001
 From: FatBoy721 <203330788+FatBoy721@users.noreply.github.com>
 Date: Fri, 13 Nov 2026 13:30:00 -0500
-Subject: [PATCH 17/19] arm64: dts: apple: t6050-j714s: Describe the HDMI port
+Subject: [PATCH 17/23] arm64: dts: apple: t6050-j714s: Describe the HDMI port
 
 The J714s HDMI port: dcpext3 -> the atc3 display crossbar -> ATC3 as a fixed
 four-lane DP PHY (the J714sAP ADT has no usb-drd3) -> the on-board DP-to-HDMI
@@ -4207,10 +4204,10 @@ index d0b713627078..7166e951ac3d 100644
 -- 
 2.56.0
 
-From d57954fb8f8773925a2e9b14c1a0070a128f03cf Mon Sep 17 00:00:00 2001
+From ed2bf75af510185670b33fec822829fcfa9066af Mon Sep 17 00:00:00 2001
 From: FatBoy721 <203330788+FatBoy721@users.noreply.github.com>
 Date: Fri, 13 Nov 2026 17:15:00 -0500
-Subject: [PATCH 18/19] drm/apple: T6050 HDMI: complete flips locally while the
+Subject: [PATCH 18/23] drm/apple: T6050 HDMI: complete flips locally while the
  output connects
 
 A monitor that wakes from standby when the HDMI link comes up drops HPD about
@@ -4260,7 +4257,7 @@ index 1e057d87c782..7c158398c812 100644
  	dcp_hdmi_update_locked(dcp);
  	/* The GPIO edge detector is off throughout an oneshot handler. */
 diff --git a/drivers/gpu/drm/apple/dcp-internal.h b/drivers/gpu/drm/apple/dcp-internal.h
-index 63daa46d8b2d..939b52fe2f58 100644
+index a3ffcfc8b0b6..393b0c6d2a70 100644
 --- a/drivers/gpu/drm/apple/dcp-internal.h
 +++ b/drivers/gpu/drm/apple/dcp-internal.h
 @@ -999,6 +999,9 @@ struct apple_dcp {
@@ -4282,10 +4279,10 @@ index 63daa46d8b2d..939b52fe2f58 100644
  void dcp_announce_work(struct work_struct *work);
  void dcp_external_crtc_released(struct apple_dcp *dcp);
 diff --git a/drivers/gpu/drm/apple/dcp.c b/drivers/gpu/drm/apple/dcp.c
-index 862d08e9aa6d..c3d633d81ef8 100644
+index 15e25aa9b8df..fa771f5d7d99 100644
 --- a/drivers/gpu/drm/apple/dcp.c
 +++ b/drivers/gpu/drm/apple/dcp.c
-@@ -4424,6 +4424,8 @@ static int dcp_enable_dp2hdmi_hpd(struct apple_dcp *dcp)
+@@ -4438,6 +4438,8 @@ static int dcp_enable_dp2hdmi_hpd(struct apple_dcp *dcp)
  		bool connected = gpiod_get_value_cansleep(dcp->hdmi_hpd);
  		dev_info(dcp->dev, "%s: DP2HDMI HPD connected:%d\n", __func__, connected);
  
@@ -4294,7 +4291,7 @@ index 862d08e9aa6d..c3d633d81ef8 100644
  		if (connected && !READ_ONCE(dcp->hdmi_yielded))
  			dcp_dptx_connect(dcp, 0);
  		else if (!connected)
-@@ -6694,6 +6696,9 @@ static int dcp_platform_probe_pipe(struct platform_device *pdev)
+@@ -6708,6 +6710,9 @@ static int dcp_platform_probe_pipe(struct platform_device *pdev)
  		ret = dcp_hdmi_init(dcp);
  		if (ret)
  			return ret;
@@ -4368,7 +4365,7 @@ index b730134ba175..888402c4400f 100644
  		iomfb_v26_6_flush(dcp, crtc, commit);
  		return;
 diff --git a/drivers/gpu/drm/apple/iomfb_template.c b/drivers/gpu/drm/apple/iomfb_template.c
-index e799f589acef..3cd830a24130 100644
+index 5803ca0f0c7f..13d86066b1f3 100644
 --- a/drivers/gpu/drm/apple/iomfb_template.c
 +++ b/drivers/gpu/drm/apple/iomfb_template.c
 @@ -2473,6 +2473,7 @@ void DCP_FW_NAME(iomfb_poweron)(struct apple_dcp *dcp)
@@ -4382,10 +4379,10 @@ index e799f589acef..3cd830a24130 100644
 -- 
 2.56.0
 
-From 24fd61764936708eb05be624a41b1e391a0ac9d2 Mon Sep 17 00:00:00 2001
+From a474ff83d3ed2cdf022703afdcc018593fc85c55 Mon Sep 17 00:00:00 2001
 From: FatBoy721 <203330788+FatBoy721@users.noreply.github.com>
 Date: Fri, 13 Nov 2026 17:15:00 -0500
-Subject: [PATCH 19/19] drm/apple: forward HDMI converter service requests on
+Subject: [PATCH 19/23] drm/apple: forward HDMI converter service requests on
  T6050
 
 The J714s HDMI port is the same design as the T6030 one: dcpext drives an
@@ -4431,6 +4428,1079 @@ index 0603de2a0e22..3ac28f24a7af 100644
  		return 0;
  
  	hdmi = devm_kzalloc(dcp->dev, sizeof(*hdmi), GFP_KERNEL);
+-- 
+2.56.0
+
+From ac5b0b0b9a9d075daa033c68397a150b16a1267a Mon Sep 17 00:00:00 2001
+From: Isaac Duarte <31712685+Isaac-Duarte@users.noreply.github.com>
+Date: Sat, 14 Nov 2026 10:40:33 -0700
+Subject: [PATCH 20/23] drm/apple: dcp-fabric: give T6050 DP IN 2 and 3 their
+ own tunnel slots
+
+A port's Thunderbolt DP tunnels are kept in two owner slots, primary and
+secondary, and dcp_fabric_dpin_slot() maps DP IN n and n + 2 onto the same
+one. That models the dual-stream DCPs, but on T6050 every pipeline drives a
+single DP IN (fixed CRTCs), and the host router has four DP IN adapters. A
+dock with three displays gets DP IN 0, 1 and 2; the third lands in DP IN 0's
+occupied slot and is refused before any free pipeline is considered:
+
+  apple-dcp 2b2e00000.dcp: port already routed, not taking DP tunnel dpin2
+  thunderbolt-apple-acio 381ac0000.acio: dpin2: DP tunnel setup failed: -98
+
+Widen the core port's owner array to one slot per DP IN, and let
+dcp_fabric_tunnel_owner() pick a DP IN's slot: its stream slot as before,
+or, with fixed CRTCs, the DP IN's own. dcp_fabric_tunnel_slot() takes the
+same choice, so DP IN 2 and 3 are admitted by the one set of rules. The
+driver's port keeps owner, secondary_owner and the new dpin_owner[] as views
+of one slots[] array in the core's order, and every owner-slot lookup goes
+through dcp_tb_slot() (attach, release, request finish, DP events). The
+fabric snapshot, the port's HPD, connector binding and route unregistration
+cover all four slots, and the Type-C mux path counts a tunnel in any slot
+as holding the port, so a DP alt mode state is not applied to a port whose
+DP IN 0 tunnel went first while DP IN 2's is still up.
+
+dcp_tb_candidate() still takes the stream of DP IN 2/3 from its parity; it
+only feeds the dual-stream pairing order, which fixed-CRTC machines do not
+run.
+
+The slot change follows the SoC (apple,t6050), so J716c gets it too; other
+SoCs keep the two-slot mapping.
+
+Tested on J714s (M5 Pro) with a Thunderbolt 5 dock (Ugreen 10-in-1) and
+three 1080p displays, together with the J714s device tree change that gives
+dcpext1 a route to the right port: DP IN 0, 1 and 2 go to dcpext0, dcpext1
+and dcpext2, and all three displays light up, as they do on macOS. The
+firmware accepts the DPTX DFP port of DP IN 2.
+
+Signed-off-by: Isaac Duarte <31712685+Isaac-Duarte@users.noreply.github.com>
+---
+ drivers/gpu/drm/apple/dcp-fabric-core.c |  13 ++-
+ drivers/gpu/drm/apple/dcp-fabric-core.h |  26 ++++-
+ drivers/gpu/drm/apple/dcp-fabric-test.c |  54 ++++++++-
+ drivers/gpu/drm/apple/dcp-fabric.c      | 144 ++++++++++++++++--------
+ 4 files changed, 179 insertions(+), 58 deletions(-)
+
+diff --git a/drivers/gpu/drm/apple/dcp-fabric-core.c b/drivers/gpu/drm/apple/dcp-fabric-core.c
+index 6a7fab89c190..8b87a129eae9 100644
+--- a/drivers/gpu/drm/apple/dcp-fabric-core.c
++++ b/drivers/gpu/drm/apple/dcp-fabric-core.c
+@@ -288,11 +288,18 @@ void dcp_fabric_plan(struct dcp_fabric_pipeline *pipelines,
+ }
+ EXPORT_SYMBOL_GPL(dcp_fabric_plan);
+ 
+-/* 1 means an already handed, matching stream; zero admits allocation. */
++/*
++ * 1 means an already handed, matching stream; zero admits allocation.
++ * @per_dpin: DP IN 2 and 3 have owner slots of their own.
++ */
+ int dcp_fabric_tunnel_slot(const struct dcp_fabric_port *port,
+-			   unsigned int dpin)
++			   unsigned int dpin, bool per_dpin)
+ {
+-	const struct dcp_fabric_route *slot = port->owner[dcp_fabric_dpin_slot(dpin)];
++	const struct dcp_fabric_route *slot;
++
++	if (dpin >= DCP_FABRIC_DPIN_MAX)
++		return -EINVAL;
++	slot = port->owner[dcp_fabric_tunnel_owner(dpin, per_dpin)];
+ 
+ 	if (slot)
+ 		return slot->tunnel && slot->dpin == dpin ? 1 : -EADDRINUSE;
+diff --git a/drivers/gpu/drm/apple/dcp-fabric-core.h b/drivers/gpu/drm/apple/dcp-fabric-core.h
+index 602e7b2efb7f..a775649ff934 100644
+--- a/drivers/gpu/drm/apple/dcp-fabric-core.h
++++ b/drivers/gpu/drm/apple/dcp-fabric-core.h
+@@ -8,8 +8,10 @@
+ /*
+  * A Thunderbolt DP tunnel enters through one of up to four DP IN adapters of
+  * the port's host router, each behind a crossbar output of its own. A port
+- * carries at most two streams, primary and secondary: DP IN n and n + 2 share
+- * a stream slot.
++ * carries two streams, primary and secondary: DP IN n and n + 2 share a
++ * stream slot. Where every pipeline drives one DP IN of its own (T6050, fixed
++ * CRTCs), DP IN 2 and 3 have owner slots of their own as well; see
++ * dcp_fabric_tunnel_owner().
+  */
+ #define DCP_FABRIC_DPIN_MAX	4
+ 
+@@ -18,6 +20,16 @@ static inline unsigned int dcp_fabric_dpin_slot(unsigned int dpin)
+ 	return dpin & 1;
+ }
+ 
++/*
++ * The owner slot (dcp_fabric_port.owner[]) of DP IN @dpin: its stream slot,
++ * or the DP IN itself when @per_dpin, each pipeline taking one DP IN.
++ */
++static inline unsigned int dcp_fabric_tunnel_owner(unsigned int dpin,
++						   bool per_dpin)
++{
++	return per_dpin ? dpin : dcp_fabric_dpin_slot(dpin);
++}
++
+ enum dcp_fabric_presence_state {
+ 	DCP_FABRIC_ABSENT,
+ 	DCP_FABRIC_SETTLING,
+@@ -65,7 +77,13 @@ struct dcp_fabric_port {
+ 	unsigned long key;
+ 	struct dcp_fabric_port *next;
+ 	struct dcp_fabric_route *routes;
+-	struct dcp_fabric_route *owner[2];
++	/*
++	 * Indexed by dcp_fabric_tunnel_owner(): [0] the primary stream (direct
++	 * DP, DP IN 0, and DP IN 2 unless per-DP IN), [1] the secondary (DP
++	 * IN 1, and 3 unless per-DP IN), [2] and [3] DP IN 2 and 3 with per-DP
++	 * IN slots.
++	 */
++	struct dcp_fabric_route *owner[DCP_FABRIC_DPIN_MAX];
+ 	struct dcp_fabric_route *preferred;
+ 	u32 candidate_crtcs[2];
+ 	bool wanted;
+@@ -196,7 +214,7 @@ void dcp_fabric_plan(struct dcp_fabric_pipeline *pipelines,
+ 		     const struct dcp_fabric_port *ports,
+ 		     const struct dcp_fabric_port *arriving, unsigned int dpin);
+ int dcp_fabric_tunnel_slot(const struct dcp_fabric_port *port,
+-			   unsigned int dpin);
++			   unsigned int dpin, bool per_dpin);
+ struct dcp_fabric_route *
+ dcp_fabric_tunnel_candidate(const struct dcp_fabric_port *port,
+ 			    const struct dcp_fabric_policy *policy,
+diff --git a/drivers/gpu/drm/apple/dcp-fabric-test.c b/drivers/gpu/drm/apple/dcp-fabric-test.c
+index ef6381b15907..fed2534f6584 100644
+--- a/drivers/gpu/drm/apple/dcp-fabric-test.c
++++ b/drivers/gpu/drm/apple/dcp-fabric-test.c
+@@ -69,7 +69,7 @@ static int fabric_tunnel(struct fabric_fixture *f, unsigned int p,
+ 	struct dcp_fabric_route *route;
+ 	int error;
+ 
+-	error = dcp_fabric_tunnel_slot(&f->port[p], dpin);
++	error = dcp_fabric_tunnel_slot(&f->port[p], dpin, false);
+ 	if (error)
+ 		return error > 0 ? 0 : error;
+ 	route = dcp_fabric_tunnel_candidate(&f->port[p], &f->policy, NULL,
+@@ -370,14 +370,14 @@ static void fabric_scenario_test(struct kunit *test)
+ 	case 17:
+ 		KUNIT_ASSERT_EQ(test, fabric_tunnel(&f, 0, 0), 0);
+ 		f.route[0][1].dpin = 1;
+-		KUNIT_EXPECT_EQ(test, dcp_fabric_tunnel_slot(&f.port[0], 0),
++		KUNIT_EXPECT_EQ(test, dcp_fabric_tunnel_slot(&f.port[0], 0, false),
+ 				-EADDRINUSE);
+ 		fabric_init(&f, false);
+ 		KUNIT_ASSERT_EQ(test, fabric_direct(&f, 0), 0);
+-		KUNIT_EXPECT_EQ(test, dcp_fabric_tunnel_slot(&f.port[0], 1),
++		KUNIT_EXPECT_EQ(test, dcp_fabric_tunnel_slot(&f.port[0], 1, false),
+ 				-EBUSY);
+ 		/* Preserve the original occupied-primary errno in this extraction. */
+-		KUNIT_EXPECT_EQ(test, dcp_fabric_tunnel_slot(&f.port[0], 0),
++		KUNIT_EXPECT_EQ(test, dcp_fabric_tunnel_slot(&f.port[0], 0, false),
+ 				-EADDRINUSE);
+ 		break;
+ 	case 18:
+@@ -2063,6 +2063,51 @@ static void fabric_t6030_plan_test(struct kunit *test)
+ 	KUNIT_EXPECT_PTR_EQ(test, f.plan[0].target[1], NULL);
+ }
+ 
++/* T6050: each pipeline takes one DP IN, so DP IN 2 and 3 own slots of their own. */
++static void fabric_per_dpin_slot_test(struct kunit *test)
++{
++	struct dcp_fabric_pipeline pipeline[3] = {};
++	struct dcp_fabric_route route[3] = {};
++	struct dcp_fabric_port port = {};
++	unsigned int i;
++
++	KUNIT_EXPECT_EQ(test, dcp_fabric_tunnel_owner(0, false), 0);
++	KUNIT_EXPECT_EQ(test, dcp_fabric_tunnel_owner(2, false), 0);
++	KUNIT_EXPECT_EQ(test, dcp_fabric_tunnel_owner(3, false), 1);
++	KUNIT_EXPECT_EQ(test, dcp_fabric_tunnel_owner(1, true), 1);
++	KUNIT_EXPECT_EQ(test, dcp_fabric_tunnel_owner(2, true), 2);
++	KUNIT_EXPECT_EQ(test, dcp_fabric_tunnel_owner(3, true), 3);
++
++	for (i = 0; i < 3; i++) {
++		route[i].pipeline = &pipeline[i];
++		route[i].tunnel = true;
++		route[i].dpin = i;
++	}
++
++	/* A dock's three displays: DP IN 0, 1 and 2 each get a slot. */
++	for (i = 0; i < 3; i++) {
++		KUNIT_EXPECT_EQ(test, dcp_fabric_tunnel_slot(&port, i, true), 0);
++		port.owner[dcp_fabric_tunnel_owner(i, true)] = &route[i];
++	}
++	KUNIT_EXPECT_PTR_EQ(test, port.owner[2], &route[2]);
++	/* the handed stream repeats; DP IN 3 is still free */
++	KUNIT_EXPECT_EQ(test, dcp_fabric_tunnel_slot(&port, 2, true), 1);
++	KUNIT_EXPECT_EQ(test, dcp_fabric_tunnel_slot(&port, 3, true), 0);
++	KUNIT_EXPECT_EQ(test, dcp_fabric_tunnel_slot(&port, DCP_FABRIC_DPIN_MAX, true),
++			-EINVAL);
++
++	/* Elsewhere DP IN 2 shares DP IN 0's occupied slot. */
++	port.owner[2] = NULL;
++	KUNIT_EXPECT_EQ(test, dcp_fabric_tunnel_slot(&port, 2, false), -EADDRINUSE);
++
++	/* A direct DP-alt display holds the port against every DP IN. */
++	memset(&port, 0, sizeof(port));
++	route[0].tunnel = false;
++	port.owner[0] = &route[0];
++	KUNIT_EXPECT_EQ(test, dcp_fabric_tunnel_slot(&port, 2, true), -EBUSY);
++	KUNIT_EXPECT_EQ(test, dcp_fabric_tunnel_slot(&port, 3, true), -EBUSY);
++}
++
+ static void fabric_t6030_follow_test(struct kunit *test)
+ {
+ 	struct fabric_fixture f;
+@@ -2387,6 +2432,7 @@ static struct kunit_case fabric_tests[] = {
+ 	KUNIT_CASE(fabric_t6030_clock_header_parity_test),
+ 	KUNIT_CASE(fabric_t6030_plan_test),
+ 	KUNIT_CASE(fabric_t6030_follow_test),
++	KUNIT_CASE(fabric_per_dpin_slot_test),
+ 	KUNIT_CASE(fabric_reclaim_transaction_test),
+ 	KUNIT_CASE_PARAM(fabric_shared_wiring_test, fabric_wiring_gen_params),
+ 	KUNIT_CASE(fabric_binding_cookie_test),
+diff --git a/drivers/gpu/drm/apple/dcp-fabric.c b/drivers/gpu/drm/apple/dcp-fabric.c
+index 7c158398c812..6d50b8dffcf0 100644
+--- a/drivers/gpu/drm/apple/dcp-fabric.c
++++ b/drivers/gpu/drm/apple/dcp-fabric.c
+@@ -96,8 +96,21 @@ struct apple_dcp_typec_port {
+ 	struct list_head link;
+ 	struct list_head routes;
+ 	struct device_node *connector_np;
+-	struct apple_dcp_typec_route *owner;
+-	struct apple_dcp_typec_route *secondary_owner;
++	/* The owner slots, as core.owner[] (see dcp_fabric_tunnel_owner()). */
++	union {
++		struct {
++			struct apple_dcp_typec_route *owner;
++			struct apple_dcp_typec_route *secondary_owner;
++			/*
++			 * T6050 (fixed CRTCs): each pipeline drives one DP IN,
++			 * so DP IN 2 and 3 get slots of their own instead of
++			 * sharing DP IN 0/1's (see dcp_tb_slot()). Always NULL
++			 * elsewhere.
++			 */
++			struct apple_dcp_typec_route *dpin_owner[2];
++		};
++		struct apple_dcp_typec_route *slots[DCP_FABRIC_DPIN_MAX];
++	};
+ 	/* Keep a port on its last DCP while that pipeline remains free. */
+ 	struct apple_dcp_typec_route *preferred_route;
+ 	/* DRM connector for this physical port, driven by whichever DCP owns it */
+@@ -361,6 +374,52 @@ bool dcp_typec_fixed_crtcs(void)
+ 	return of_machine_is_compatible("apple,t6050");
+ }
+ 
++static_assert(offsetof(struct apple_dcp_typec_port, dpin_owner[1]) ==
++	      offsetof(struct apple_dcp_typec_port, slots[DCP_FABRIC_DPIN_MAX - 1]));
++
++/*
++ * The owner slot of a Thunderbolt DP IN. Elsewhere a port carries two
++ * streams and DP IN n and n + 2 share a slot (dcp_fabric_dpin_slot()). With
++ * fixed CRTCs every pipeline takes one DP IN of its own, so DP IN 2 and 3 get
++ * separate slots and a third or fourth dock display can claim a free pipeline.
++ */
++static struct apple_dcp_typec_route **
++dcp_tb_slot(struct apple_dcp_typec_port *port, unsigned int dpin)
++{
++	bool per_dpin = dpin < DCP_FABRIC_DPIN_MAX && dcp_typec_fixed_crtcs();
++
++	return &port->slots[dcp_fabric_tunnel_owner(dpin, per_dpin)];
++}
++
++static bool dcp_typec_port_owned(const struct apple_dcp_typec_port *port)
++{
++	for (unsigned int i = 0; i < ARRAY_SIZE(port->slots); i++)
++		if (port->slots[i])
++			return true;
++	return false;
++}
++
++static bool dcp_typec_port_owner_is(const struct apple_dcp_typec_port *port,
++				    const struct apple_dcp_typec_route *route)
++{
++	for (unsigned int i = 0; i < ARRAY_SIZE(port->slots); i++)
++		if (port->slots[i] == route)
++			return true;
++	return false;
++}
++
++/*
++ * Does a Thunderbolt DP tunnel hold any of @port's slots? Its teardown is
++ * its own path's, whichever DP IN went first.
++ */
++static bool dcp_typec_port_tunneled(const struct apple_dcp_typec_port *port)
++{
++	for (unsigned int i = 0; i < ARRAY_SIZE(port->slots); i++)
++		if (port->slots[i] && port->slots[i]->tunnel)
++			return true;
++	return false;
++}
++
+ static struct apple_connector *
+ dcp_typec_route_connector(struct apple_dcp_typec_route *route, bool tunnel)
+ {
+@@ -1316,9 +1375,9 @@ static void dcp_fabric_snapshot_port(struct apple_dcp_typec_port *port,
+ 	struct dcp_fabric_route **tail = &port->core.routes;
+ 
+ 	lockdep_assert_held(&dcp_typec_fabric_lock);
+-	port->core.owner[0] = port->owner ? &port->owner->core : NULL;
+-	port->core.owner[1] =
+-		port->secondary_owner ? &port->secondary_owner->core : NULL;
++	for (unsigned int i = 0; i < ARRAY_SIZE(port->slots); i++)
++		port->core.owner[i] =
++			port->slots[i] ? &port->slots[i]->core : NULL;
+ 	port->core.preferred =
+ 		port->preferred_route ? &port->preferred_route->core : NULL;
+ 	port->core.wanted = port->dp_wanted && !port->typec_yielded;
+@@ -1939,7 +1998,7 @@ static int dcp_typec_route_set(struct typec_mux_dev *mux,
+ 		}
+ 
+ 		/* a Thunderbolt/USB4 DP tunnel is torn down by its own path */
+-		if (port->owner && port->owner->tunnel) {
++		if (dcp_typec_port_tunneled(port)) {
+ 			port->applied_valid = true;
+ 			return 0;
+ 		}
+@@ -1973,7 +2032,7 @@ static int dcp_typec_route_set(struct typec_mux_dev *mux,
+ 	 * way): don't act on or remember this state; the tunnel teardown drops
+ 	 * what was recorded so the next update is applied.
+ 	 */
+-	if (port->owner && port->owner->tunnel) {
++	if (dcp_typec_port_tunneled(port)) {
+ 		port->applied_valid = false;
+ 		return 0;
+ 	}
+@@ -2720,6 +2779,12 @@ static int dcp_tb_candidate(void *data)
+ 	struct apple_dcp_typec_route *best, *planned = NULL;
+ 	struct mux_control *ctl;
+ 	unsigned int dpin = ctx->dpin;
++	/*
++	 * The stream picks the pairing order's connector and CRTC mask. Only
++	 * the dual-stream policy reads them, which fixed-CRTC machines, the
++	 * ones with per-DP IN owner slots, never run (see
++	 * dcp_typec_ordered_dual_stream()).
++	 */
+ 	unsigned int stream = dcp_fabric_dpin_slot(dpin);
+ 	bool ordered;
+ 	int ret;
+@@ -3116,8 +3181,7 @@ static int dcp_tb_split_locked(struct apple_dcp_typec_port *port,
+ static int dcp_tb_release_locked(struct apple_dcp_typec_port *port,
+ 				 unsigned int dpin)
+ {
+-	struct apple_dcp_typec_route **slot = dcp_fabric_dpin_slot(dpin) ?
+-		&port->secondary_owner : &port->owner;
++	struct apple_dcp_typec_route **slot = dcp_tb_slot(port, dpin);
+ 	struct apple_dcp *dcp;
+ 	int ret;
+ 
+@@ -3158,7 +3222,7 @@ static int dcp_tb_release_locked(struct apple_dcp_typec_port *port,
+ 		return ret;
+ 	}
+ 	*slot = NULL;
+-	port->hpd = !!(port->owner || port->secondary_owner);
++	port->hpd = dcp_typec_port_owned(port);
+ 	/* re-apply the next Type-C mux state in full */
+ 	port->applied_valid = false;
+ 	if (dcp->hdmi_hpd && dcp->active &&
+@@ -3178,7 +3242,7 @@ static int dcp_tb_dispatch_request(void *data, const struct dcp_fabric_port *fou
+ 	unsigned int dpin = ctx->dpin;
+ 	int ret;
+ 
+-	slot = dcp_fabric_dpin_slot(dpin) ? &port->secondary_owner : &port->owner;
++	slot = dcp_tb_slot(port, dpin);
+ 
+ 	if (dpin == 1 && (tiled_split || port->split_dcp)) {
+ 		ret = dcp_tb_split_locked(port, ctx);
+@@ -3215,24 +3279,19 @@ static int dcp_tb_dispatch_request(void *data, const struct dcp_fabric_port *fou
+ 		return dcp_tb_release_locked(port, dpin);
+ 
+ 	{
+-		struct dcp_fabric_port state = {
+-			.owner[0] = port->owner ? &port->owner->core : NULL,
+-			.owner[1] = port->secondary_owner ?
+-					    &port->secondary_owner->core :
+-					    NULL,
+-		};
++		struct dcp_fabric_port state = {};
+ 
+-		if (port->owner) {
+-			port->owner->core.tunnel = port->owner->tunnel;
+-			port->owner->core.dpin = port->owner->tunnel_dpin;
++		for (unsigned int i = 0; i < ARRAY_SIZE(port->slots); i++) {
++			struct apple_dcp_typec_route *owner = port->slots[i];
++
++			if (!owner)
++				continue;
++			owner->core.tunnel = owner->tunnel;
++			owner->core.dpin = owner->tunnel_dpin;
++			state.owner[i] = &owner->core;
+ 		}
+-		if (port->secondary_owner) {
+-			port->secondary_owner->core.tunnel =
+-				port->secondary_owner->tunnel;
+-			port->secondary_owner->core.dpin =
+-				port->secondary_owner->tunnel_dpin;
+-		}
+-		ret = dcp_fabric_tunnel_slot(&state, dpin);
++		ret = dcp_fabric_tunnel_slot(&state, dpin,
++					     dcp_typec_fixed_crtcs());
+ 		if (ret > 0)
+ 			return 0;
+ 		if (ret) {
+@@ -3262,8 +3321,7 @@ static int dcp_tb_dispatch_request(void *data, const struct dcp_fabric_port *fou
+ static void dcp_tb_finish_request(struct apple_dcp_typec_port *port,
+ 				  const struct dcp_tb_attach_context *request)
+ {
+-	struct apple_dcp_typec_route *route = dcp_fabric_dpin_slot(request->dpin) ?
+-		port->secondary_owner : port->owner;
++	struct apple_dcp_typec_route *route = *dcp_tb_slot(port, request->dpin);
+ 	struct apple_dcp *dcp;
+ 	bool matching;
+ 
+@@ -3417,7 +3475,7 @@ int apple_dcp_tb_dp_event(struct device_node *connector_np, unsigned int dpin,
+ 
+ 		if (pos->connector_np != connector_np)
+ 			continue;
+-		route = dcp_fabric_dpin_slot(dpin) ? pos->secondary_owner : pos->owner;
++		route = *dcp_tb_slot(pos, dpin);
+ 		if (route && route->tunnel && route->tunnel_dpin == dpin &&
+ 		    route->tunnel_generation == generation) {
+ 			dcp = route->dcp;
+@@ -4274,8 +4332,7 @@ static void dcp_typec_port_bind_connector(struct apple_dcp_typec_port *port,
+ 		if (WARN_ON(!route))
+ 			return;
+ 		route->connector = connector;
+-		owner = route == port->owner || route == port->secondary_owner ?
+-			route : NULL;
++		owner = dcp_typec_port_owner_is(port, route) ? route : NULL;
+ 	} else if (secondary) {
+ 		port->secondary_connector = connector;
+ 		owner = port->secondary_owner;
+@@ -4331,30 +4388,23 @@ static void dcp_typec_route_unregister(void *data)
+ 		port->preferred_route = NULL;
+ 	if (port->split_dcp == route->dcp)
+ 		dcp_tb_split_teardown_locked(port, true);
+-	if (port->owner == route) {
++	for (unsigned int i = 0; i < ARRAY_SIZE(port->slots); i++) {
+ 		struct apple_dcp *dcp = route->dcp;
+ 
++		if (port->slots[i] != route)
++			continue;
+ 		if (route->tunnel)
+ 			dcp_tb_binding_retire(dcp, route);
+ 		if (port->hpd || dcp->typec_cable_connected)
+ 			dcp_dptx_disconnect_oob(to_platform_device(dcp->dev), 0);
+-		port->hpd = false;
++		/* The primary stream's going drops the port's HPD, as before. */
++		if (!i)
++			port->hpd = false;
+ 		if (dcp_typec_route_deactivate(route) && dcp_is_external_h17p(dcp))
+ 			return;
+-		port->owner = NULL;
++		port->slots[i] = NULL;
+ 	}
+-	if (port->secondary_owner == route) {
+-		struct apple_dcp *dcp = route->dcp;
+-
+-		if (route->tunnel)
+-			dcp_tb_binding_retire(dcp, route);
+-		if (port->hpd || dcp->typec_cable_connected)
+-			dcp_dptx_disconnect_oob(to_platform_device(dcp->dev), 0);
+-		if (dcp_typec_route_deactivate(route) && dcp_is_external_h17p(dcp))
+-			return;
+-		port->secondary_owner = NULL;
+-	}
+-	port->hpd = !!(port->owner || port->secondary_owner);
++	port->hpd = dcp_typec_port_owned(port);
+ 	list_del(&route->port_link);
+ 	if (route->dual_stream)
+ 		atomic_dec(&dcp_dual_stream_routes);
+-- 
+2.56.0
+
+From 5ec50d8f5e9d6776105b17d31a6d1c589538964e Mon Sep 17 00:00:00 2001
+From: Isaac Duarte <31712685+Isaac-Duarte@users.noreply.github.com>
+Date: Sat, 14 Nov 2026 10:56:38 -0700
+Subject: [PATCH 21/23] dt-bindings: display: apple: allow tunnel-only Type-C
+ routes
+
+A DCP route that carries USB4 DP tunnels only is not a Type-C mode-switch:
+the Type-C class caps a connector's mode-switch providers
+(TYPEC_MUX_MAX_DEVS), and a tunnel finds its port through the route's
+endpoint. Add an apple,tunnel-only flag to the route node and require
+mode-switch only on routes without it, in both apple,dcp and the common
+apple,dcp-typec-routes schema.
+
+The common schema also lacked the typecN-dpin2 and typecN-dpin3 crossbar
+names T6050 device trees already use for the host router's third and fourth
+DP IN adapters; allow them, up to the 21 controls apple,dcp allows.
+
+Signed-off-by: Isaac Duarte <31712685+Isaac-Duarte@users.noreply.github.com>
+---
+ .../display/apple,dcp-typec-routes.yaml       | 32 ++++++++++++++++---
+ .../bindings/display/apple,dcp.yaml           | 13 +++++++-
+ 2 files changed, 40 insertions(+), 5 deletions(-)
+
+diff --git a/Documentation/devicetree/bindings/display/apple,dcp-typec-routes.yaml b/Documentation/devicetree/bindings/display/apple,dcp-typec-routes.yaml
+index 7b2e28ac3dca..9bd123527b2c 100644
+--- a/Documentation/devicetree/bindings/display/apple,dcp-typec-routes.yaml
++++ b/Documentation/devicetree/bindings/display/apple,dcp-typec-routes.yaml
+@@ -24,7 +24,9 @@ description: |
+   mux cells 0, 1 and 2 describe the DP PHY, DP IN 0 and DP IN 1 outputs,
+   respectively. The per-port prefix distinguishes multiple ATCs on one DCP.
+   Dual-stream wiring requires these two named controls and two port@3
+-  endpoints. It does not describe SoC handshake or retry policy.
++  endpoints. It does not describe SoC handshake or retry policy. T6050 host
++  routers have four DP IN adapters; their crossbars add typecN-dpin2 and
++  typecN-dpin3 (cells 3 and 4).
+ 
+   Legacy typecN-usb4 names describe cell 1 on old j414/j416 DTBs. With two
+   port@3 endpoints they retain the existing dual-stream wiring; cell 2 is
+@@ -56,12 +58,12 @@ properties:
+ 
+   mux-controls:
+     minItems: 1
+-    maxItems: 13
++    maxItems: 21
+     description: Fixed, DP Alt Mode and wired DP IN crossbar output controls.
+ 
+   mux-control-names:
+     minItems: 1
+-    maxItems: 13
++    maxItems: 21
+     items:
+       anyOf:
+         - enum:
+@@ -72,12 +74,20 @@ properties:
+             - typec3
+             - typec0-dpin0
+             - typec0-dpin1
++            - typec0-dpin2
++            - typec0-dpin3
+             - typec1-dpin0
+             - typec1-dpin1
++            - typec1-dpin2
++            - typec1-dpin3
+             - typec2-dpin0
+             - typec2-dpin1
++            - typec2-dpin2
++            - typec2-dpin3
+             - typec3-dpin0
+             - typec3-dpin1
++            - typec3-dpin2
++            - typec3-dpin3
+         - enum: [typec0-usb4, typec1-usb4, typec2-usb4, typec3-usb4]
+           deprecated: true
+ 
+@@ -113,12 +123,26 @@ properties:
+               - maximum: 3
+           mode-switch:
+             type: boolean
++          apple,tunnel-only:
++            type: boolean
++            description: |
++              The route carries USB4 DP tunnels only and is never given a DP
++              Alt Mode display. It is not a Type-C mode-switch, so a port
++              whose connector already has as many mode-switch providers as
++              the Type-C class allows can still offer another tunnel
++              pipeline.
+           port:
+             $ref: /schemas/graph.yaml#/properties/port
+         required:
+           - reg
+-          - mode-switch
+           - port
++        if:
++          not:
++            required:
++              - apple,tunnel-only
++        then:
++          required:
++            - mode-switch
+     required:
+       - '#address-cells'
+       - '#size-cells'
+diff --git a/Documentation/devicetree/bindings/display/apple,dcp.yaml b/Documentation/devicetree/bindings/display/apple,dcp.yaml
+index d0bc33404c24..97da243b79c4 100644
+--- a/Documentation/devicetree/bindings/display/apple,dcp.yaml
++++ b/Documentation/devicetree/bindings/display/apple,dcp.yaml
+@@ -426,12 +426,23 @@ properties:
+             maxItems: 1
+           mode-switch:
+             type: boolean
++          apple,tunnel-only:
++            type: boolean
++            description:
++              The route carries USB4 DP tunnels only, never a DP Alt Mode
++              display. It is not a Type-C mode-switch.
+           port:
+             $ref: /schemas/graph.yaml#/properties/port
+         required:
+           - reg
+-          - mode-switch
+           - port
++        if:
++          not:
++            required:
++              - apple,tunnel-only
++        then:
++          required:
++            - mode-switch
+         additionalProperties: false
+     required:
+       - '#address-cells'
+-- 
+2.56.0
+
+From bb2b2870f240439798ad52a795b65e43972ed610 Mon Sep 17 00:00:00 2001
+From: Isaac Duarte <31712685+Isaac-Duarte@users.noreply.github.com>
+Date: Sat, 14 Nov 2026 10:56:38 -0700
+Subject: [PATCH 22/23] drm/apple: dcp-fabric: support tunnel-only Type-C
+ routes
+
+A route marked apple,tunnel-only exists to give USB4 DP tunnels another
+pipeline. It is in its port's route list like any other, so a DP alt mode
+display on that port could be given it, through a path never tested on it,
+and take the pipeline the tunnel was meant to have.
+
+Mark such routes in the fabric core, and pass them over for a direct
+stream: when picking a free route, including the port's last one, in the
+dual-stream pairing plan, when a route follows its CRTC (as the moved
+stream or as the holder swapped away), and where the driver moves a DP alt
+mode display to another pipeline (dcp_typec_move_starved_locked(),
+dcp_typec_move_off_hybrid_locked() and dcp_typec_hdmi_reclaim()). Tunnels
+choose them as before. The pairing plan takes a port's stream for a
+tunnel when a tunnel holds any of its owner slots, not only the first.
+
+On T6050 every port/pipeline pair gets a DRM connector, in pipeline
+order. A new tunnel-only route would come before the pairs of later
+pipelines and renumber their connectors (DP-3 becoming DP-4), which breaks
+compositor configurations keyed on connector names. Create the tunnel-only
+pairs in a second pass, after all the others, so the existing connectors
+keep their names and the new ones come last.
+
+Signed-off-by: Isaac Duarte <31712685+Isaac-Duarte@users.noreply.github.com>
+---
+ drivers/gpu/drm/apple/apple_drv.c       | 20 +++++--
+ drivers/gpu/drm/apple/dcp-fabric-core.c | 26 +++++++--
+ drivers/gpu/drm/apple/dcp-fabric-core.h |  2 +
+ drivers/gpu/drm/apple/dcp-fabric-test.c | 72 +++++++++++++++++++++++++
+ drivers/gpu/drm/apple/dcp-fabric.c      | 26 +++++++++
+ drivers/gpu/drm/apple/dcp-fabric.h      |  1 +
+ 6 files changed, 138 insertions(+), 9 deletions(-)
+
+diff --git a/drivers/gpu/drm/apple/apple_drv.c b/drivers/gpu/drm/apple/apple_drv.c
+index 9959f24170e9..bd57a279537c 100644
+--- a/drivers/gpu/drm/apple/apple_drv.c
++++ b/drivers/gpu/drm/apple/apple_drv.c
+@@ -1234,22 +1234,28 @@ static int apple_probe_per_dcp(struct device *dev,
+  * connector per port for a dock's second DP tunnel, preserving primary
+  * connector names. T6050 instead exposes one connector per port/pipeline
+  * pair: tunnel allocation chooses which connector is connected, without
+- * changing any encoder's advertised CRTC mask after registration.
++ * changing any encoder's advertised CRTC mask after registration. Pairs
++ * whose route carries DP tunnels only come last, so adding such a route
++ * does not renumber the connectors that existed before it.
+  */
+ static int apple_probe_typec_ports(struct drm_device *drm,
+ 				   struct platform_device **dcp,
+ 				   u32 *crtc_mask, int num_dcp)
+ {
+-	unsigned int idx, nr_ports = dcp_typec_nr_ports();
++	unsigned int n, nr_ports = dcp_typec_nr_ports();
+ 	bool fixed = dcp_typec_fixed_crtcs();
+ 	unsigned int slots = fixed ? num_dcp : (dcp_typec_dual_stream() ? 2 : 1);
++	/* T6050 creates its tunnel-only port/pipeline pairs in a second pass. */
++	unsigned int passes = fixed ? 2 : 1;
+ 	int i, ret;
+ 
+ 	/* Keep the existing physical-port connector numbers stable. On the
+ 	 * M2 Pro/Max laptops, append one more connector per port for a second
+ 	 * USB4 DP tunnel.
+ 	 */
+-	for (idx = 0; idx < nr_ports * slots; idx++) {
++	for (n = 0; n < passes * nr_ports * slots; n++) {
++		unsigned int pass = n / (nr_ports * slots);
++		unsigned int idx = n % (nr_ports * slots);
+ 		struct apple_connector *connector;
+ 		struct apple_encoder *enc;
+ 		struct platform_device *pipeline = fixed ? dcp[idx / nr_ports] : NULL;
+@@ -1259,14 +1265,18 @@ static int apple_probe_typec_ports(struct drm_device *drm,
+ 
+ 		/* Only a failed T8122 dcpext could drive it: no connector. */
+ 		if (dcp_typec_port_unusable(port_idx)) {
+-			drm_warn(drm, "Type-C port %u: its display pipeline is unusable\n",
+-				 port_idx);
++			if (!pass)
++				drm_warn(drm, "Type-C port %u: its display pipeline is unusable\n",
++					 port_idx);
+ 			continue;
+ 		}
+ 
+ 		if (fixed) {
+ 			if (!dcp_typec_port_has_candidate(port_idx, pipeline))
+ 				continue;
++			/* T6050: tunnel-only pairs in the second pass */
++			if (dcp_typec_port_tunnel_only(port_idx, pipeline) != pass)
++				continue;
+ 			mask = crtc_mask[idx / nr_ports];
+ 			if (!mask)
+ 				continue;
+diff --git a/drivers/gpu/drm/apple/dcp-fabric-core.c b/drivers/gpu/drm/apple/dcp-fabric-core.c
+index 8b87a129eae9..74328af75a7b 100644
+--- a/drivers/gpu/drm/apple/dcp-fabric-core.c
++++ b/drivers/gpu/drm/apple/dcp-fabric-core.c
+@@ -186,7 +186,8 @@ dcp_fabric_free_route(const struct dcp_fabric_port *port,
+ 	for (route = port->routes; route; route = route->next) {
+ 		unsigned int score;
+ 
+-		if (!dcp_fabric_available(route->pipeline, policy))
++		if (route->tunnel_only ||
++		    !dcp_fabric_available(route->pipeline, policy))
+ 			continue;
+ 		score = dcp_fabric_score(route->pipeline, policy);
+ 		if (score < best_score) {
+@@ -194,7 +195,8 @@ dcp_fabric_free_route(const struct dcp_fabric_port *port,
+ 			best_score = score;
+ 		}
+ 	}
+-	if (!last || !dcp_fabric_available(last->pipeline, policy))
++	if (!last || last->tunnel_only ||
++	    !dcp_fabric_available(last->pipeline, policy))
+ 		return best;
+ 	if (!policy->dual_stream && best &&
+ 	    best_score < dcp_fabric_score(last->pipeline, policy))
+@@ -215,6 +217,17 @@ dcp_fabric_port_route(const struct dcp_fabric_port *port,
+ 	return NULL;
+ }
+ 
++/* Does a DP tunnel hold any of @port's owner slots? */
++static bool dcp_fabric_port_tunneled(const struct dcp_fabric_port *port)
++{
++	unsigned int i;
++
++	for (i = 0; i < DCP_FABRIC_DPIN_MAX; i++)
++		if (port->owner[i] && port->owner[i]->tunnel)
++			return true;
++	return false;
++}
++
+ static void dcp_fabric_plan_pipeline(struct dcp_fabric_pipeline *pipeline,
+ 				     const struct dcp_fabric_port *ports,
+ 				     const struct dcp_fabric_port *arriving,
+@@ -242,10 +255,11 @@ static void dcp_fabric_plan_pipeline(struct dcp_fabric_pipeline *pipeline,
+ 			      BIT(pipeline->crtc_index)))
+ 				continue;
+ 			route = dcp_fabric_port_route(port, pipeline);
+-			tunnel = stream || (port->owner[0] && port->owner[0]->tunnel) ||
++			tunnel = stream || dcp_fabric_port_tunneled(port) ||
+ 				 (port == arriving && dpin == 0);
+ 			if (!route || (tunnel &&
+-				       (route->tunnel_clock_blocked & BIT(stream))))
++				       (route->tunnel_clock_blocked & BIT(stream))) ||
++			    (!tunnel && route->tunnel_only))
+ 				continue;
+ 			port->plan->target[stream] = route;
+ 			return;
+@@ -398,6 +412,10 @@ dcp_fabric_follow(const struct dcp_fabric_route *from,
+ 		(holder->dpin >= DCP_FABRIC_DPIN_MAX ||
+ 		 (holder_back->tunnel_clock_blocked & BIT(holder->dpin)))))
+ 		return DCP_FABRIC_FOLLOW_REFUSE;
++	/* A direct stream never moves onto a tunnel-only route. */
++	if ((!from->tunnel && to->tunnel_only) ||
++	    (holder && !holder->tunnel && holder_back && holder_back->tunnel_only))
++		return DCP_FABRIC_FOLLOW_REFUSE;
+ 	pipeline = to->pipeline;
+ 	if (!pipeline->bound || pipeline->fixed_busy || pipeline->terminal ||
+ 	    !pipeline->services_ready)
+diff --git a/drivers/gpu/drm/apple/dcp-fabric-core.h b/drivers/gpu/drm/apple/dcp-fabric-core.h
+index a775649ff934..8ee2f535dfe6 100644
+--- a/drivers/gpu/drm/apple/dcp-fabric-core.h
++++ b/drivers/gpu/drm/apple/dcp-fabric-core.h
+@@ -65,6 +65,8 @@ struct dcp_fabric_route {
+ 	unsigned int dpin;
+ 	/* DP IN adapters this source cannot clock; direct DP is unaffected. */
+ 	u8 tunnel_clock_blocked;
++	/* Carries DP tunnels only, never a direct DP-alt stream. */
++	bool tunnel_only;
+ };
+ 
+ struct dcp_fabric_plan {
+diff --git a/drivers/gpu/drm/apple/dcp-fabric-test.c b/drivers/gpu/drm/apple/dcp-fabric-test.c
+index fed2534f6584..542852e4409c 100644
+--- a/drivers/gpu/drm/apple/dcp-fabric-test.c
++++ b/drivers/gpu/drm/apple/dcp-fabric-test.c
+@@ -2108,6 +2108,77 @@ static void fabric_per_dpin_slot_test(struct kunit *test)
+ 	KUNIT_EXPECT_EQ(test, dcp_fabric_tunnel_slot(&port, 3, true), -EBUSY);
+ }
+ 
++/* A tunnel-only route never takes a direct DP-alt stream. */
++static void fabric_tunnel_only_test(struct kunit *test)
++{
++	struct fabric_fixture f;
++	int error;
++
++	/* Pipeline 1 would win: the hybrid pipeline 0 is kept for HDMI. */
++	fabric_init(&f, false);
++	f.route[0][1].tunnel_only = true;
++	KUNIT_EXPECT_PTR_EQ(test, dcp_fabric_free_route(&f.port[0], &f.policy),
++			    &f.route[0][0]);
++	/* not even as the port's last route */
++	f.port[0].preferred = &f.route[0][1];
++	KUNIT_EXPECT_PTR_EQ(test, dcp_fabric_free_route(&f.port[0], &f.policy),
++			    &f.route[0][0]);
++	/* It still carries a tunnel. */
++	KUNIT_EXPECT_PTR_EQ(test,
++			    dcp_fabric_tunnel_candidate(&f.port[0], &f.policy, NULL,
++							false, 0, true, &error),
++			    &f.route[0][1]);
++	f.route[0][0].tunnel_only = true;
++	KUNIT_EXPECT_PTR_EQ(test, dcp_fabric_free_route(&f.port[0], &f.policy),
++			    NULL);
++
++	/* The pairing plan passes it over for a direct stream only. */
++	fabric_init(&f, true);
++	f.route[0][0].tunnel_only = true;
++	f.port[0].wanted = true;
++	f.port[0].hpd = true;
++	dcp_fabric_plan(f.pipeline, f.port, NULL, 0);
++	KUNIT_EXPECT_PTR_EQ(test, f.plan[0].target[0], &f.route[0][1]);
++	f.port[0].wanted = false;
++	dcp_fabric_plan(f.pipeline, f.port, &f.port[0], 0);
++	KUNIT_EXPECT_PTR_EQ(test, f.plan[0].target[0], &f.route[0][0]);
++
++	/* A tunnel in a per-DP IN slot makes the port's stream a tunnel. */
++	fabric_init(&f, true);
++	f.route[0][0].tunnel_only = true;
++	f.port[0].wanted = true;
++	f.port[0].hpd = true;
++	f.route[1][1].tunnel = true;
++	f.port[0].owner[2] = &f.route[1][1];
++	dcp_fabric_plan(f.pipeline, f.port, NULL, 0);
++	KUNIT_EXPECT_PTR_EQ(test, f.plan[0].target[0], &f.route[0][0]);
++
++	/* A direct stream does not follow its CRTC onto it; a tunnel does. */
++	fabric_init(&f, false);
++	f.route[0][1].tunnel_only = true;
++	KUNIT_EXPECT_EQ(test, dcp_fabric_follow(&f.route[0][0], &f.route[0][1],
++						NULL, NULL, false, &f.policy),
++			DCP_FABRIC_FOLLOW_REFUSE);
++	f.route[0][0].tunnel = true;
++	KUNIT_EXPECT_EQ(test, dcp_fabric_follow(&f.route[0][0], &f.route[0][1],
++						NULL, NULL, false, &f.policy),
++			DCP_FABRIC_FOLLOW_MOVE);
++	/* nor is a direct holder swapped onto one */
++	f.route[1][0].tunnel_only = true;
++	f.pipeline[1].owned = true;
++	f.route[0][0].tunnel_only = false;
++	f.route[0][1].tunnel_only = false;
++	KUNIT_EXPECT_EQ(test, dcp_fabric_follow(&f.route[0][0], &f.route[0][1],
++						&f.route[1][1], &f.route[1][0], true,
++						&f.policy),
++			DCP_FABRIC_FOLLOW_REFUSE);
++	f.route[1][0].tunnel_only = false;
++	KUNIT_EXPECT_EQ(test, dcp_fabric_follow(&f.route[0][0], &f.route[0][1],
++						&f.route[1][1], &f.route[1][0], true,
++						&f.policy),
++			DCP_FABRIC_FOLLOW_SWAP);
++}
++
+ static void fabric_t6030_follow_test(struct kunit *test)
+ {
+ 	struct fabric_fixture f;
+@@ -2433,6 +2504,7 @@ static struct kunit_case fabric_tests[] = {
+ 	KUNIT_CASE(fabric_t6030_plan_test),
+ 	KUNIT_CASE(fabric_t6030_follow_test),
+ 	KUNIT_CASE(fabric_per_dpin_slot_test),
++	KUNIT_CASE(fabric_tunnel_only_test),
+ 	KUNIT_CASE(fabric_reclaim_transaction_test),
+ 	KUNIT_CASE_PARAM(fabric_shared_wiring_test, fabric_wiring_gen_params),
+ 	KUNIT_CASE(fabric_binding_cookie_test),
+diff --git a/drivers/gpu/drm/apple/dcp-fabric.c b/drivers/gpu/drm/apple/dcp-fabric.c
+index 6d50b8dffcf0..d5164ecd5ff5 100644
+--- a/drivers/gpu/drm/apple/dcp-fabric.c
++++ b/drivers/gpu/drm/apple/dcp-fabric.c
+@@ -1091,6 +1091,7 @@ static bool dcp_typec_move_starved_locked(void)
+ 			continue;
+ 		list_for_each_entry(route, &port->routes, port_link) {
+ 			if (route != owner && route->dcp->fixed_phy &&
++			    !route->core.tunnel_only &&
+ 			    dcp_typec_route_available(route)) {
+ 				to = route;
+ 				break;
+@@ -1138,6 +1139,7 @@ static bool dcp_typec_move_off_hybrid_locked(struct apple_dcp_typec_port *port,
+ 		return false;
+ 	list_for_each_entry(route, &port->routes, port_link) {
+ 		if (route != owner && !route->dcp->fixed_phy && route->dcp->crtc &&
++		    !route->core.tunnel_only &&
+ 		    dcp_typec_route_available(route)) {
+ 			to = route;
+ 			break;
+@@ -4292,6 +4294,25 @@ bool dcp_typec_port_has_candidate(unsigned int idx, struct platform_device *pdev
+ 	return false;
+ }
+ 
++/* Is @pdev's route to port @idx for DP tunnels only (apple,tunnel-only)? */
++bool dcp_typec_port_tunnel_only(unsigned int idx, struct platform_device *pdev)
++{
++	struct apple_dcp_typec_port *port;
++	struct apple_dcp_typec_route *route;
++
++	guard(mutex)(&dcp_typec_fabric_lock);
++
++	port = dcp_typec_port_by_index(idx);
++	if (!port)
++		return false;
++
++	list_for_each_entry(route, &port->routes, port_link)
++		if (route->dcp->dev == &pdev->dev)
++			return route->core.tunnel_only;
++
++	return false;
++}
++
+ /*
+  * Is every pipeline that can drive port @idx unusable (a failed T8122
+  * dcpext, or a T8132 dcpext, whose DRM outputs are its own, see
+@@ -4553,6 +4574,10 @@ static int dcp_register_typec_routes_present(void *data)
+ 			return dev_err_probe(dev, ret, "%pOF: missing crossbar state\n",
+ 					     route_np);
+ 
++		/* A route for USB4 DP tunnels only is never given a DP-alt stream. */
++		route->core.tunnel_only =
++			of_property_read_bool(route_np, "apple,tunnel-only");
++
+ 		ret = of_property_read_u32_index(dev->of_node, "apple,typec-dptx-phys",
+ 						 route_index, &route->dptx_phy);
+ 		if (ret)
+@@ -4990,6 +5015,7 @@ static bool dcp_typec_hdmi_reclaim(struct apple_dcp *dcp)
+ 		return false;
+ 	list_for_each_entry(route, &port->routes, port_link) {
+ 		if (route == owner || !route->dcp->crtc ||
++		    (!owner->tunnel && route->core.tunnel_only) ||
+ 		    !dcp_typec_route_available(route) ||
+ 		    (owner->tunnel && !dcp_typec_tunnel_ctl(route, owner->tunnel_dpin)) ||
+ 		    (port->split_dcp == dcp && !dcp_follow_split_fits(route)))
+diff --git a/drivers/gpu/drm/apple/dcp-fabric.h b/drivers/gpu/drm/apple/dcp-fabric.h
+index edca8065bd21..98f9d893c568 100644
+--- a/drivers/gpu/drm/apple/dcp-fabric.h
++++ b/drivers/gpu/drm/apple/dcp-fabric.h
+@@ -76,6 +76,7 @@ bool dcp_has_typec_routes(struct platform_device *pdev);
+ unsigned int dcp_typec_nr_ports(void);
+ struct device_node *dcp_typec_port_of_node(unsigned int idx);
+ bool dcp_typec_port_has_candidate(unsigned int idx, struct platform_device *pdev);
++bool dcp_typec_port_tunnel_only(unsigned int idx, struct platform_device *pdev);
+ bool dcp_typec_port_unusable(unsigned int idx);
+ void dcp_typec_port_set_connector(unsigned int idx, bool secondary,
+ 				  struct apple_connector *connector,
+-- 
+2.56.0
+
+From 8e0a7d1d8639ee97c400557016e37556982444da Mon Sep 17 00:00:00 2001
+From: Isaac Duarte <31712685+Isaac-Duarte@users.noreply.github.com>
+Date: Sat, 14 Nov 2026 10:40:33 -0700
+Subject: [PATCH 23/23] arm64: dts: apple: t6050-j714s: route dcpext1 to the
+ right port's DP tunnels
+
+The J714s describes routes for dcpext0 and dcpext2 only, keeping dcpext1
+and dcpext3 as peers for modes wider than one pipeline. A Thunderbolt dock
+on the right port can carry up to four DP tunnels, so a third display has
+no pipeline to go to on Linux, while macOS drives three.
+
+Give dcpext1 a route to the right port's DP IN crossbar outputs. Its
+crossbar source, 2 (dispext1 port 0), follows the 2 * dispext pattern of
+dcpext0 (0) and dcpext2 (4) and matches dcpext1 on T6040; it is confirmed
+by a display driven through it. The route has no mode-switch: hpm2 already
+has TYPEC_MUX_MAX_DEVS (3) mode-switch providers, and tunnels find their
+port through the endpoint rather than the Type-C mux. It is marked
+apple,tunnel-only, so DP alt mode displays stay on dcpext0 and dcpext2.
+
+A routed DCP is no longer a merged-mode peer (dcp-peer-v27), so dcpext0 and
+dcpext2 now share dcpext3 as their peer: one display wider than one
+pipeline at a time instead of two.
+
+Needs "drm/apple: dcp-fabric: give T6050 DP IN 2 and 3 their own tunnel
+slots" for the third tunnel to be routed, and "drm/apple: dcp-fabric:
+support tunnel-only Type-C routes" for apple,tunnel-only.
+
+Signed-off-by: Isaac Duarte <31712685+Isaac-Duarte@users.noreply.github.com>
+---
+ .../boot/dts/apple/t6050-j714s-display.dtsi   | 52 +++++++++++++++++--
+ 1 file changed, 47 insertions(+), 5 deletions(-)
+
+diff --git a/arch/arm64/boot/dts/apple/t6050-j714s-display.dtsi b/arch/arm64/boot/dts/apple/t6050-j714s-display.dtsi
+index f14c7ab163e3..003b229e2640 100644
+--- a/arch/arm64/boot/dts/apple/t6050-j714s-display.dtsi
++++ b/arch/arm64/boot/dts/apple/t6050-j714s-display.dtsi
+@@ -1,17 +1,54 @@
+ // SPDX-License-Identifier: GPL-2.0+ OR MIT
+ /*
+  * J714s external displays: DisplayPort alt mode on the left-front and right ports and USB4
+- * DisplayPort tunnels on the right port. dcpext0 and dcpext2 drive the routes; dcpext1 and
+- * dcpext3 are their pairs for modes that need two pipelines. The left-back port (ATC0) is the
+- * debug port and is not described. Addresses and interrupts are from the J714sAP ADT. The boot
+- * loader hands each engine over: it enables the engine, its mailbox and DARTs, publishes its
+- * bandwidth scratch and adds its display DART to the display subsystem.
++ * DisplayPort tunnels on the right port. dcpext0 and dcpext2 drive the DP alt mode and tunnel
++ * routes, dcpext1 a third tunnel on the right port only; dcpext3 is the pair for modes that
++ * need two pipelines. The left-back port (ATC0) is the debug port and is not described.
++ * Addresses and interrupts are from the J714sAP ADT. The boot loader hands each engine over: it
++ * enables the engine, its mailbox and DARTs, publishes its bandwidth scratch and adds its
++ * display DART to the display subsystem.
+  */
+ 
+ &dcpext1 {
+ 	apple,dcp-index = <2>;
+ 	apple,connector-type = "USB-C";
+ 	apple,dptx-die = <0>;
++	/*
++	 * A third pipeline for USB4 DP tunnels on the right port, so a dock can
++	 * drive three displays as on macOS. Routing dcpext1 stops it being a
++	 * merged-mode peer; dcpext0, dcpext1 and dcpext2 then pair with dcpext3,
++	 * so only one display wider than one pipeline runs at a time.
++	 * Crossbar source 2 (dispext1 port 0) follows the 2 * dispext pattern of
++	 * dcpext0 (0) and dcpext2 (4), and the T6040 dcpext1 (2).
++	 * No mode-switch: hpm2 already has TYPEC_MUX_MAX_DEVS (3) mode-switch
++	 * providers; tunnels find the port through the endpoint, not the mux.
++	 * apple,tunnel-only keeps DP alt mode displays off it: only tunnels
++	 * have been driven through it.
++	 */
++	apple,typec-dptx-phys = <2>;
++	apple,typec-mux-indices = <2>;
++	phys = <&atc2_phy 6>;
++	phy-names = "typec0";
++	mux-controls = <&atc2_xbar 0>, <&atc2_xbar 1>, <&atc2_xbar 2>, <&atc2_xbar 3>,
++		       <&atc2_xbar 4>;
++	mux-control-names = "typec0", "typec0-dpin0", "typec0-dpin1", "typec0-dpin2",
++			    "typec0-dpin3";
++
++	typec-routes {
++		#address-cells = <1>;
++		#size-cells = <0>;
++
++		route@0 {
++			reg = <0>;
++			apple,tunnel-only;
++
++			port {
++				dcpext1_right: endpoint {
++					remote-endpoint = <&hpm2_dp2>;
++				};
++			};
++		};
++	};
+ };
+ 
+ &dcpext2 {
+@@ -111,6 +148,11 @@ hpm2_dp1: endpoint@1 {
+ 					reg = <1>;
+ 					remote-endpoint = <&dcpext2_right>;
+ 				};
++
++				hpm2_dp2: endpoint@2 {
++					reg = <2>;
++					remote-endpoint = <&dcpext1_right>;
++				};
+ 			};
+ 		};
+ 	};
 -- 
 2.56.0
 

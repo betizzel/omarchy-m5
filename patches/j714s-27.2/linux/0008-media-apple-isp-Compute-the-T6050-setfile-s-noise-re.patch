@@ -1,7 +1,7 @@
-From 0e860e54d44531a0b50896445467ad9251b3cc96 Mon Sep 17 00:00:00 2001
+From aed7f16262146b3075cdbb9ba77a44b4c743fd22 Mon Sep 17 00:00:00 2001
 From: Eduard Moldovan <edimoldovan@gmail.com>
 Date: Sun, 8 Nov 2026 14:11:59 +0100
-Subject: [PATCH 08/19] media: apple: isp: Compute the T6050 setfile's noise
+Subject: [PATCH 08/23] media: apple: isp: Compute the T6050 setfile's noise
  reduction radial gains
 
 The IMX958 setfile 2226_02 carries its noise reduction radial gains
@@ -154,10 +154,10 @@ index f388c9aef3e7..fff6dd35cfad 100644
  	err = isp_cmd_ch_set_file_load(isp, ch, isp->data_surf->iova,
  				       setfile->size);
 diff --git a/drivers/media/platform/apple/isp/isp-drv.c b/drivers/media/platform/apple/isp/isp-drv.c
-index 035f6ad49d43..c0e6b3601941 100644
+index 4e39dd5886d7..25ce24e376cb 100644
 --- a/drivers/media/platform/apple/isp/isp-drv.c
 +++ b/drivers/media/platform/apple/isp/isp-drv.c
-@@ -1424,6 +1424,7 @@ static const struct apple_isp_hw apple_isp_hw_t6050 = {
+@@ -1434,6 +1434,7 @@ static const struct apple_isp_hw apple_isp_hw_t6050 = {
  	.setfile_stride_fixup = true,
  	/* The J714c's IMX958 (build revision 2) is tuned by 2226_02 */
  	.imx958_2226 = true,

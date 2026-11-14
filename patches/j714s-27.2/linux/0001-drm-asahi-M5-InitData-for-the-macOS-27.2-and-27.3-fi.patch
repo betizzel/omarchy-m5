@@ -1,7 +1,7 @@
-From f2b9857d6ada04da0ba1b2e86aa7da5cd678d0c6 Mon Sep 17 00:00:00 2001
+From be1cafb3463bd030b33ab894b049442a599f6590 Mon Sep 17 00:00:00 2001
 From: Rolando Trevino <rolotrealanis@gmail.com>
 Date: Thu, 12 Nov 2026 10:56:02 -0500
-Subject: [PATCH 01/19] drm/asahi: M5: InitData for the macOS 27.2 and 27.3
+Subject: [PATCH 01/23] drm/asahi: M5: InitData for the macOS 27.2 and 27.3
  firmware (#1173)
 
 aurora-silicon/linux #1173 (Rolando Trevino, rolotrealanis98; head
@@ -1179,7 +1179,7 @@ index e4de37f63957..007f34df0cc3 100644
      const MAXIMUM_POWER_F32: u32 = 0x48a8_95c0;
      for offset in [M5_POLICY_MAXIMUM_POWER, 0xad0, 0x44a4, 0x44a8, 0x44ac, 0x45e4] {
 diff --git a/drivers/gpu/drm/asahi/g17/fw/variant.rs b/drivers/gpu/drm/asahi/g17/fw/variant.rs
-index d90522f0cc61..6f4ca6d1fbd8 100644
+index d5d37e8e0669..934518353160 100644
 --- a/drivers/gpu/drm/asahi/g17/fw/variant.rs
 +++ b/drivers/gpu/drm/asahi/g17/fw/variant.rs
 @@ -36,6 +36,22 @@ pub(crate) enum InitGraph {
@@ -1205,7 +1205,7 @@ index d90522f0cc61..6f4ca6d1fbd8 100644
  #[derive(Copy, Clone, Debug, PartialEq, Eq)]
  pub(crate) enum QueueRegistration {
      Firmware,
-@@ -91,6 +107,8 @@ pub(crate) struct Variant {
+@@ -94,6 +110,8 @@ pub(crate) struct Variant {
      /// work. The bare-metal M5 firmware powers the cores for work by its own policy: under a
      /// hold, the M5 Ultra's core-power witness reads unpowered until the hold is released.
      pub(crate) registration_power_hold: bool,
@@ -1214,7 +1214,7 @@ index d90522f0cc61..6f4ca6d1fbd8 100644
  }
  
  /// A firmware build a SoC supports, identified by its loaded TEXT.
-@@ -142,6 +160,7 @@ pub(crate) enum Firmware {
+@@ -146,6 +164,7 @@ pub(crate) enum Firmware {
      split_firmware_area: false,
      m5_commands: false,
      registration_power_hold: true,
@@ -1222,7 +1222,7 @@ index d90522f0cc61..6f4ca6d1fbd8 100644
  };
  
  /// The M4 Pro firmware (25G83, `mBoot-18000.161.10`).
-@@ -178,6 +197,7 @@ pub(crate) enum Firmware {
+@@ -184,6 +203,7 @@ pub(crate) enum Firmware {
      split_firmware_area: false,
      m5_commands: false,
      registration_power_hold: true,
@@ -1230,8 +1230,8 @@ index d90522f0cc61..6f4ca6d1fbd8 100644
  };
  
  /// The 26A428 firmware of the M5 GPUs, which runs the M5 protocol (the M5 graph, queues and
-@@ -186,9 +206,23 @@ pub(crate) enum Firmware {
-     m5_commands: true,
+@@ -194,9 +214,23 @@ pub(crate) enum Firmware {
+     traversal_exclusion: false,
      render_ray_query: false,
      registration_power_hold: false,
 +    m5_layouts: Some(M5Layouts::V26A428),
@@ -1477,10 +1477,10 @@ index 5c3200fefce1..d1e26e0b44e6 100644
              let offset = shared.main_config[index];
              m::encode_main_config_for_profile(profile, role, &addresses, &instance,
 diff --git a/drivers/gpu/drm/asahi/g17/mod.rs b/drivers/gpu/drm/asahi/g17/mod.rs
-index e9be649be8b3..cd2651823097 100644
+index 9445b88c3dfc..2c77f1757f61 100644
 --- a/drivers/gpu/drm/asahi/g17/mod.rs
 +++ b/drivers/gpu/drm/asahi/g17/mod.rs
-@@ -1637,6 +1637,16 @@ pub(crate) fn new(
+@@ -1641,6 +1641,16 @@ pub(crate) fn new(
          }
          let m5 = cfg.profile.is_m5();
          if m5 {
@@ -1497,7 +1497,7 @@ index e9be649be8b3..cd2651823097 100644
              let board = cfg.m5.ok_or(EINVAL)?;
              J813_FORMS.store(board.j813_forms(), core::sync::atomic::Ordering::Relaxed);
              // Hold the J813's GFX power domain for the session, as the G15 and G16 paths do
-@@ -2128,7 +2138,7 @@ fn boot_m5(
+@@ -2134,7 +2144,7 @@ fn boot_m5(
              .inspect_err(at("root adoption"))?;
          session
              .init

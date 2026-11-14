@@ -7,7 +7,15 @@ boot object with no `__TEXT_BOOT_EXEC` (`kcbz` 0, so iBoot does not start SPTM),
 `kmutil configure-boot --compress` after `bputil -nc`; Linux runs at EL2 on every CPU inside the
 128 MiB code-execute window, as aurora-silicon targets 27.2 (`docs/move-to-27.2.md`).
 
-Status (2026-11-14): kernel v272-5 is **built but has not been booted or installed**. It re-pins
+Status (2026-11-14, later): kernel v272-6 is **built, not booted** (not installed, not in any
+release). It replaces v272-5, which was never installed. It re-pins the kernel to upstream
+`a5ebec5fd092` (Ryan Murray's revert of the GPU deferred BO cleanup drain, the H17 ANE work, DCP
+fixes) and adds Isaac-Duarte's #1921 (a third dock display on the right port) as 0020-0023.
+**Decide before installing:** with 0017's HDMI on dcpext3 and #1921's route on dcpext1, no
+external output has a merged-mode peer left (see "HDMI and #1921" below). See the v272-6 notes
+under "Packages".
+
+Status (2026-11-14): kernel v272-5 was **built but has not been booted or installed** (superseded by v272-6). It re-pins
 the kernel to upstream `a31b32f72efd`, drops 0019 (upstream now carries #1645) and replaces
 FatBoy721's HDMI v1 hold with his v2 plus his IRQ_HPD forwarder. See the v272-5 notes under "Packages" below.
 
@@ -28,8 +36,20 @@ Recipes: [`installer/recipes/linux-aurora-j714s`](../../installer/recipes/linux-
 [`installer/recipes/m1n1-aurora-j714s`](../../installer/recipes/m1n1-aurora-j714s)
 (`aura-j714s-27.2.patch` is `aura/*.patch` concatenated).
 
-## Bases (kernel re-pinned 2026-11-14 for v272-5; Aura as of release 2)
+## Bases (kernel re-pinned 2026-11-14 for v272-6; Aura as of release 2)
 
+- **Kernel (v272-6):** aurora-silicon/linux `integration/aurora` at `a5ebec5fd092` (2026-11-14,
+  after #1926), 52 commits past `a31b32f72efd`. New there and so in v272-6: Ryan Murray's revert
+  of "drm/asahi: drain deferred BO cleanup after immediate GEM close" (018c588abf87; v272-5 still
+  had the reverted change); the H17 ANE work: an H17 task stream that opens with 1 (37796b7b114b,
+  Joshua Warren), programs from Apple's zin_ane_compiler 10.205 (aff6fcc1120b, Nick) and the
+  T8142 (M5) ANE (79e1e9f88449, b0f0900a9af0, f3dc931ecad9 and DT, Nick); DCP fixes by Ryan
+  Murray (no warning for a brightness change pending while the panel is off, 629e81bc2dd6; the
+  slot of a re-announced singleton compact service, 31db2f51a049) and `update_notify_clients` as
+  client flags (#1891, 9cc4c9d79ea0); G17 GPU scheduling work (shared UAT execution context per
+  VM, compute input ordering, watchdog reason; Diljit Singh); Thomas Glanzmann's macaudio fixed speaker ceiling
+  (8360c9788f29: no machine sets it, so nothing changes on the J714s); T8132/T8142/T6041 DT work
+  that does not touch the J714s. No Kconfig file changes.
 - **Kernel (v272-5):** aurora-silicon/linux `integration/aurora` at `a31b32f72efd` (2026-11-14,
   after #1866), 190 commits past `a34d26c2`. New there and so in v272-5: Jens Axboe's AOP endpoints
   (#1645, commit 367e36d02939, was our 0019); DjDeveloperr's T6050 GPU mailboxes by interrupt
@@ -82,6 +102,10 @@ Release 1 was built on linux `572eb88e8642` and Aura `2232ae7a` (git history of 
 | 0017 | **J714s HDMI port** (DT): dcpext3 → the atc3 display crossbar → ATC3 as a fixed four-lane DP PHY → the on-board DP-to-HDMI converter; frees AOP pin 14 (HPD) from `t6050-max-atc2.dtsi`'s reserved range, atc3_dpxbar power domains. Tested on his J714s on 27.3 (HP E240c, 1920x1080@60: cold plug, hotplug, replug); not tried on 27.2. His `0010-linux-t6050-j714s-hdmi-dt.patch` at 267c7ea3cb gives a tree identical to this one | FatBoy721 (FatBoy721/omarchy-m5 898d8ad6cb), ported unchanged |
 | 0018 | **HDMI v2 hold** (v272-5, replaces v1): while a T6050 fixed HDMI output connects (sink at boot, power-on, HPD edge) complete its flips locally for 8 s, so a present the DCP swallows during the monitor's wake HPD cycle can't time out the IOMFB queue and leave the DCP crashed. Per-DCP state, only `apple,t6050-dcpext` with an HDMI HPD GPIO; `appledrm.hdmi_hold_presents=0` turns it off. Tested on his J714s on 27.3 | FatBoy721 (`j714s-hdmi-upstream273` 267c7ea3cb, his 0012 v2), applied unchanged |
 | 0019 | **HDMI IRQ_HPD** (v272-5, new): `dcp-hdmi.c`'s converter IRQ_HPD forwarder enabled for `apple,t6050-dcpext` as macOS does on the J714s (T6030 only before). Booted on his J714s on 27.3, no visible change on its own | FatBoy721 (267c7ea3cb, his 0013), applied unchanged |
+| 0020 | **Dock displays** (v272-6, new): dcp-fabric gives T6050 DP IN 2 and 3 their own tunnel slots, so a Thunderbolt dock's third and fourth DP tunnels can be routed | Isaac-Duarte (aurora-silicon/linux #1921, 27f9349ab5f0), applied unchanged |
+| 0021 | dt-bindings: `apple,tunnel-only` Type-C routes (no `mode-switch` needed) | Isaac-Duarte (#1921, 723d72539a93), unchanged |
+| 0022 | dcp-fabric: tunnel-only routes (DP alt mode never lands on them, the pairing plan and `dcp_fabric_follow()` respect them, KUnit cases); their connectors are created in a second pass so DP-1..DP-4 keep their names and the new one is DP-5 | Isaac-Duarte (#1921, 7e34917fd867), unchanged |
+| 0023 | J714s DT: dcpext1 gets a tunnel-only route to the right port's DP IN crossbar outputs (crossbar source 2) and hpm2 `endpoint@2`, so a dock on the right port can drive three displays as on macOS | Isaac-Duarte (#1921, head 4c6a7b451f34), unchanged |
 
 Dropped in v272-5: the old 0019 (AOP endpoints, Jens Axboe's #1645, ported by sithglan) is
 upstream as 367e36d02939 (our patch reverse-applies cleanly on `a31b32f7`); the old 0018 (HDMI v1 hold) is replaced
@@ -93,6 +117,32 @@ row in `ave_known_text_crc[]`. Upstream's 120 Hz-only gate (`dcp_mode_settable()
 VRR do not fight: VRR fills only `min_vrr`, the panel timing's `drm_mode_vrefresh()` stays 120,
 and the VRR switch reselects that same mode.
 
+v272-6: nothing dropped (none of 0001-0019 is upstream; #1173 and #1650 are still open). Rebased
+with `git am -3`; `git range-diff` shows 0002-0005 and 0007-0019 unchanged. 0001 has only a
+context change (upstream's new `traversal_exclusion` field in `variant.rs`; our 26B123/26C5035r
+variants inherit it from `V26A428_M5`). 0006 conflicted with upstream's T8142 ANE work in
+`ane_fw_handoff_present()` (`ane_fw_cold.c`) and was merged by hand, keeping both: upstream now
+hashes the handed-off TEXT even when the layout is not this SoC's and prints the digest and the
+layout; 0006 picks the TEXT pin per admitted build. The merge hashes whenever the reservations
+are present, admits only a build's pin, and folds 0006's "no admitted build has TEXT ..." line
+into upstream's layout line ("layout as expected" / "no admitted build has this layout").
+Isaac-Duarte's #1921 (0020-0023) applies without conflict on top: none of its files changes
+between its base `7c71d6df6563` and `a5ebec5fd092`.
+
+**HDMI and #1921 (the decision to take before installing).** `t6050-j714s-display.dtsi` is
+touched by 0023 (dcpext1's route, hpm2 `endpoint@2`); 0017 adds its own
+`t6050-j714s-hdmi.dtsi` (dcpext3, atc3) and does not touch the same nodes, so the two apply and
+compile together. They interact at run time: a merged-mode peer (the second pipeline for a mode
+wider than one engine, such as 3840x2160@240) must have no Type-C routes and no fixed PHY
+(`dcp-peer-v27.inc`), and dcpext0 may pair with dcpext1/2/3, dcpext1 with dcpext2/3, dcpext2
+with dcpext3 only. With 0017 dcpext3 is the HDMI engine (fixed PHY); with 0023 dcpext1 is
+routed. So in v272-6 **no external output has a peer**: such modes fall back to single-engine
+modes ("no eligible idle peer"). In v272-5 dcpext0 still had dcpext1; upstream with #1921 alone
+keeps dcpext3 for all three. The comments in both DT patches ("dcpext0/dcpext1 keep theirs",
+"pair with dcpext3") are each true only without the other. 27.2 runs the firmware 27 interface
+(`DCP_FIRMWARE_V_27_0`), so this applies on our stub. Choices: keep both (HDMI plus a third dock
+display, no high-refresh merged modes), drop 0020-0023, or drop 0017-0019.
+
 Camera presets: #1835 (DjDeveloperr, merged) gives seven sizes on config 6 (1920x1080, 640x480,
 1280x720, 1760x1328, 1328x1760, 1552x1552, 1080x1920). Our release-1 presets (edimoldovan's
 J714c ones: 1920x1080 and 2560x1440 on config 6, 1280x720 on config 7) were not a subset of
@@ -100,6 +150,10 @@ them, so #1835's replace them and 0010 adds back the one size it lacks, 2560x144
 form. On T6050 the driver uses `apple,input-size` only to bound the crop (the P010 matching that
 compares it with the firmware's config is T6040-only), so both forms stream the same crop. All
 eight sizes are untested on the 27.2 ISP firmware.
+
+v272-6: `patch -Np1` of `linux-j714s-27.2.patch` on the `a5ebec5f` GitHub tarball (sha256
+`6789feab...e8341ed`) gives the tree that was built, identical to ush `~/m5-build/up272-6/src`
+(branch `up-2726`: the series as 23 commits on `a5ebec5fd092`). Config: unchanged.
 
 v272-5: `patch -Np1` of `linux-j714s-27.2.patch` on the `a31b32f7` GitHub tarball (sha256
 `14030d01...5c1d193b`) gives the tree that was built, identical to ush `~/m5-build/up272-5/src`
@@ -171,7 +225,23 @@ goes on.
 
 ## Packages, release 2 (built 2026-11-13 on ush)
 
-**v272-5 (built 2026-11-14, not in any release): built, NOT booted, NOT installed.** Full cross
+**v272-6 (built 2026-11-14, not in any release): built, NOT booted, NOT installed.** It
+replaces v272-5, which was never installed. Full cross build on ush as for v272-5, in
+`~/m5-build/pkg272-2/linux-aurora-j714s-v272-6` (log `build-v272-6.log`); `check()` 35 tests OK.
+The compiler warning set equals v272-5's (35 lines, all in files the series does not touch; no
+device tree warning for the J714s). Modules carry vermagic `7.3.0-17.v272-6-ARCH`; the file list
+equals v272-5's. `t6050-j714s.dtb` has the HDMI nodes and #1921's `apple,tunnel-only` route with
+hpm2 `endpoint@2`; `appledrm.ko` has `apple,tunnel-only` and the `hdmi_hold_presents` parameter.
+To check on the first boot, beyond v272-5's list: the GPU without the reverted BO cleanup drain,
+the ANE on 27.2 (the merged hand-off check in 0006), and with a dock on the right port a third
+display on DP-5 (dcpext1); and that a mode wider than one pipeline now falls back (no peer, see
+"HDMI and #1921").
+
+| Package | sha256 | Bytes |
+| --- | --- | --- |
+| `linux-aurora-7.3.0.aurora17.v272-6-aarch64.pkg.tar.zst` (`7.3.0-17.v272-6-ARCH`) | `f75b8ba0f297f02a42ae7f841fb38ac45bfe7337a4c1c9da22356382dbe8f390` | 44219527 |
+
+**v272-5 (built 2026-11-14, never installed, superseded by v272-6): built, NOT booted, NOT installed.** Full cross
 build on ush (`OMARCHY_CROSS_KERNEL=1`, `makepkg --config ../makepkg-aarch64.conf -d -f`) of this
 commit's recipe in `~/m5-build/pkg272-2/linux-aurora-j714s-v272-5` (log `build-v272-5.log`);
 `check()` 35 tests OK; no C compiler warning in a file the series touches, and the Rust
@@ -240,5 +310,5 @@ this file's git history and on ush in `~/m5-build/pkg272/out/`.
 
 ## Queued for the next kernel
 
-Nothing queued. FatBoy721's HDMI v2 (0012 v2 and 0013 on `j714s-hdmi-upstream273`, 267c7ea3cb)
-went into v272-5 as 0018 and 0019.
+Nothing queued. #1921 is in v272-6 at its head 4c6a7b451f34 while still open; re-take it when it
+merges (drop 0020-0023 then) or if its head moves.

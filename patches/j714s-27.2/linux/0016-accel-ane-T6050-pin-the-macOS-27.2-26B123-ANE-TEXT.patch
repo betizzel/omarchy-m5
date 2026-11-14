@@ -1,7 +1,7 @@
-From 8cbc97c23090e8f46faeb5c2d1228d9500fb590d Mon Sep 17 00:00:00 2001
+From 58aeec15a41d0f3c0c5235e37d22e76ceb394db6 Mon Sep 17 00:00:00 2001
 From: TripleU <182648541+TripleU613@users.noreply.github.com>
 Date: Fri, 13 Nov 2026 13:06:46 -0500
-Subject: [PATCH 16/19] accel/ane: T6050: pin the macOS 27.2 (26B123) ANE TEXT
+Subject: [PATCH 16/23] accel/ane: T6050: pin the macOS 27.2 (26B123) ANE TEXT
 
 Read from the first J714s 27.2 boot: H17 ANE: preloaded TEXT sha256 b15dd8fb3367a6d5a77935a62b4c6c9d6a6e166cd11c1b2a886c65f114d7c40e.
 
@@ -11,10 +11,10 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
  1 file changed, 10 insertions(+), 6 deletions(-)
 
 diff --git a/drivers/accel/ane/ane_fw_platform.c b/drivers/accel/ane/ane_fw_platform.c
-index 7320942f260a..5dda5883d335 100644
+index 4f4a033f79b2..ea0a81891b6c 100644
 --- a/drivers/accel/ane/ane_fw_platform.c
 +++ b/drivers/accel/ane/ane_fw_platform.c
-@@ -58,13 +58,17 @@ static const u8 ane_t6050_text_pin_27_3[] = {
+@@ -59,13 +59,17 @@ static const u8 ane_t6050_text_pin_27_3[] = {
  };
  
  /*
