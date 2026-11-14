@@ -102,7 +102,7 @@ compares it with the firmware's config is T6040-only), so both forms stream the 
 eight sizes are untested on the 27.2 ISP firmware.
 
 v272-5: `patch -Np1` of `linux-j714s-27.2.patch` on the `a31b32f7` GitHub tarball (sha256
-`14030d01...1c1d193b`) gives the tree that was built, identical to ush `~/m5-build/up272-5/src`
+`14030d01...5c1d193b`) gives the tree that was built, identical to ush `~/m5-build/up272-5/src`
 (branch `up-2725`: the series as 19 commits on `a31b32f72efd`). Config: unchanged.
 
 v272-2 to v272-4: `patch -Np1` of that release's `linux-j714s-27.2.patch` on the `a34d26c2` GitHub tarball (sha256
@@ -174,7 +174,8 @@ goes on.
 **v272-5 (built 2026-11-14, not in any release): built, NOT booted, NOT installed.** Full cross
 build on ush (`OMARCHY_CROSS_KERNEL=1`, `makepkg --config ../makepkg-aarch64.conf -d -f`) of this
 commit's recipe in `~/m5-build/pkg272-2/linux-aurora-j714s-v272-5` (log `build-v272-5.log`);
-`check()` 35 tests OK; no compiler warning in a file the series touches. Modules carry vermagic
+`check()` 35 tests OK; no C compiler warning in a file the series touches, and the Rust
+`dead_code` warnings are v272-3's set plus two in upstream files (`mmu/context.rs`, `pgtable.rs`). Modules carry vermagic
 `7.3.0-17.v272-5-ARCH`; the file list equals v272-4's; `t6050-j714s.dtb` has the HDMI nodes and
 `appledrm.ko` the `hdmi_hold_presents` parameter. To check on the first boot, beyond the list
 below: the internal panel at 3024x1964@120 (upstream now lists only 120 Hz modes there), the GPU
