@@ -1,0 +1,24 @@
+# Automatic panel brightness from the ambient light sensor, by Joshua Warren (joshuaswarren).
+# Source: joshuaswarren/omarchy-mac-pkgs, branch w7H/brightness-auto (omacom/omarchy-mac-pkgs PR #144, open),
+# file omarchy-mac/bin/omarchy-brightness-auto, MIT. Packaged as-is for the J714s until the PR merges into omarchy-mac;
+# then this package goes away (it conflicts with nothing today: omarchy-mac does not ship the file yet).
+# Off by default: `omarchy brightness auto on` turns it on. Needs wluma 5 (our repo carries an aarch64 build).
+pkgname=omarchy-brightness-auto
+pkgver=0.1.20261118
+pkgrel=1
+pkgdesc='Automatic panel brightness from the ambient light sensor (wluma, sensor only), off by default'
+arch=(any)
+url='https://github.com/omacom/omarchy-mac-pkgs/pull/144'
+license=(MIT)
+depends=(bash 'wluma>=5.0')
+_commit=2d2ecbc1608371ec2b29636b555639f164703c42
+_raw=https://raw.githubusercontent.com/joshuaswarren/omarchy-mac-pkgs/$_commit
+source=("omarchy-brightness-auto-$_commit::$_raw/omarchy-mac/bin/omarchy-brightness-auto"
+        "LICENSE-$_commit::$_raw/LICENSE")
+sha256sums=('f5c816b1138e0c45e82c1deea76402eeba2513602bb1a825ee0fb5b322f70eeb'
+            '717ba1949502290f8e47688ae2e323acd06c8ca47aec9f7596b15f678c1af4a2')
+
+package() {
+  install -Dm755 "omarchy-brightness-auto-$_commit" "$pkgdir/usr/bin/omarchy-brightness-auto"
+  install -Dm644 "LICENSE-$_commit" "$pkgdir/usr/share/licenses/$pkgname/LICENSE"
+}

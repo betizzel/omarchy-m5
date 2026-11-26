@@ -26,3 +26,12 @@ Build natively on an aarch64 Arch Linux ARM host (clang 23, rustup) with
 refuses). m1n1's pinned commit is no longer on an omacom/m1n1 branch: fetch it
 into the source mirror first
 (`git --git-dir=m1n1 fetch origin 02785a35e046901d5686ab9059b2c08b6256752a`).
+
+## Repo-only packages (release 11)
+
+Not in the installer image; they reach installed Macs through the `[omarchy-m5]` pacman repo.
+
+| Package | Version | Source |
+| --- | --- | --- |
+| `omarchy-brightness-auto` | `0.1.20261118-1` (any) | joshuaswarren's `omarchy-brightness-auto` (omacom/omarchy-mac-pkgs #144, commit `2d2ecbc1`, MIT), unchanged. Off by default: `omarchy brightness auto on`. Goes away once omarchy-mac ships it. |
+| `wluma` | `5.0.4-1` (aarch64) | The AUR package unchanged (ISC), built in the alarm-builder image with `--nocheck`, recompressed to `.zst`. |
