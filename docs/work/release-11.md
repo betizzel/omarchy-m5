@@ -49,3 +49,7 @@ Release when 1-4 pass: sign both packages into `repo-aarch64`, then README, docs
   from 450 to 93 of 1000 (the seeded curve). `off` stopped the unit; brightness set back by hand; no failed units.
   Only the dark direction was seen (the room stayed at 2 lux). Signed into `repo-aarch64`; the Mac lists both from
   the published database.
+- 2026-11-26, v272-21 checks without a boot: the package has the same 1754 modules as v272-20 and one
+  `t6050-j714s.dtb`; that tree still has the HDMI and macaudio nodes, and against v272-20 it only gains three
+  `apple,bw-scratch` properties on dcpext1-3 (upstream's shared dcpext properties). Staged on the Mac as
+  `/root/linux-aurora-7.3.0.aurora17.v272-21-aarch64.pkg.tar.zst` (sha256 matches), not installed.
