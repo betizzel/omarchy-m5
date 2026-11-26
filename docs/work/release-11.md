@@ -53,3 +53,12 @@ Release when 1-4 pass: sign both packages into `repo-aarch64`, then README, docs
   `t6050-j714s.dtb`; that tree still has the HDMI and macaudio nodes, and against v272-20 it only gains three
   `apple,bw-scratch` properties on dcpext1-3 (upstream's shared dcpext properties). Staged on the Mac as
   `/root/linux-aurora-7.3.0.aurora17.v272-21-aarch64.pkg.tar.zst` (sha256 matches), not installed.
+
+## Watching (not in release 11)
+
+- aurora-silicon/aura main `d833bf40` (2026-11-26) has T6050 changes since our m1n1 pin: funkzy's AOP handoff (#474)
+  and boot framebuffer / `bw-scratch` offset checks (#492); the single-die MCC handoff (#493) was reverted. Boot
+  loader changes, not run on a J714s here: candidates for the next m1n1-aurora, tested on their own boot.
+- Open upstream for the J714s: aurora-silicon/linux #2007 (PMIC RTC alarm), #2277 (jack codec on every T6050 board),
+  aura #506 (PMP values on aliasless nodes).
+- #12: andyholst offered a second J714s for testing (asked to install release 10 and file a test report).
