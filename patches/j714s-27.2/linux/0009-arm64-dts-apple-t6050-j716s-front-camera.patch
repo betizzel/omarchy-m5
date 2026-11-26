@@ -1,4 +1,4 @@
-From 4a4cb2c6f87d4a4abf3c2768a9d3d1f217a93aff Mon Sep 17 00:00:00 2001
+From 20775c50a773f57257594769cac83c3f1c962677 Mon Sep 17 00:00:00 2001
 From: Julian Arango <95070226+ja-818@users.noreply.github.com>
 Date: Sun, 22 Nov 2026 21:46:25 -0500
 Subject: [PATCH 09/11] arm64: dts: apple: t6050-j716s: front camera

@@ -1,4 +1,4 @@
-From ed60e4b0689a2ebf0df20727ba1483c1f5cc7e9c Mon Sep 17 00:00:00 2001
+From c5c24c71649c1024b188f2d77ad8cc294ccb647f Mon Sep 17 00:00:00 2001
 From: Rolando Trevino <rolotrealanis@gmail.com>
 Date: Sat, 7 Nov 2026 15:41:37 -0500
 Subject: [PATCH 01/11] drm/apple: Name the firmware 27 adaptive sync parameter
@@ -44,10 +44,10 @@ index 0b2c04b7c612..1a85f2f2d1c9 100644
  
  #define IOMFB_MESSAGE_TYPE	GENMASK_ULL( 3,  0)
 diff --git a/drivers/gpu/drm/apple/iomfb_template.c b/drivers/gpu/drm/apple/iomfb_template.c
-index 7fa70dc175ff..3c97a8d6cd16 100644
+index f2e561361205..0a488cb9566d 100644
 --- a/drivers/gpu/drm/apple/iomfb_template.c
 +++ b/drivers/gpu/drm/apple/iomfb_template.c
-@@ -2549,7 +2549,7 @@ static void dcp_on_set_parameter(struct apple_dcp *dcp, void *out, void *cookie)
+@@ -2572,7 +2572,7 @@ static void dcp_on_set_parameter(struct apple_dcp *dcp, void *out, void *cookie)
  	struct dcp_set_parameter_dcp param = {
  		.param =
  #if (DCP_FW_H17(DCP_FW_VER) && DCP_FW_VER >= DCP_FW_VERSION(27, 0, 0))
@@ -56,7 +56,7 @@ index 7fa70dc175ff..3c97a8d6cd16 100644
  #else
  		IOMFBPARAM_ADAPTIVE_SYNC,
  #endif
-@@ -4223,7 +4223,7 @@ static void dcp_set_adaptive_sync(struct apple_dcp *dcp, u32 min_vrr,
+@@ -4263,7 +4263,7 @@ static void dcp_set_adaptive_sync(struct apple_dcp *dcp, u32 min_vrr,
  	struct dcp_set_parameter_dcp param = {
  		.param =
  #if (DCP_FW_H17(DCP_FW_VER) && DCP_FW_VER >= DCP_FW_VERSION(27, 0, 0))
@@ -68,7 +68,7 @@ index 7fa70dc175ff..3c97a8d6cd16 100644
 -- 
 2.56.1
 
-From 34bf0746db02d49144fce22b217d3d39b5c078d3 Mon Sep 17 00:00:00 2001
+From ffa30f8efba98953b0ab0779c556a3be61675c94 Mon Sep 17 00:00:00 2001
 From: Rolando Trevino <rolotrealanis@gmail.com>
 Date: Sat, 7 Nov 2026 18:21:40 -0500
 Subject: [PATCH 02/11] drm/apple: Refuse panel brightness once the display
@@ -117,7 +117,7 @@ index 1019180517be..5746c318e54c 100644
 -- 
 2.56.1
 
-From f4726917648804dce2a9256e2a0c6cbcadad37b0 Mon Sep 17 00:00:00 2001
+From 06db7fd1a26957fc51d71f146b5a8b3a75de9aea Mon Sep 17 00:00:00 2001
 From: Rolando Trevino <rolotrealanis@gmail.com>
 Date: Thu, 12 Nov 2026 08:13:48 -0500
 Subject: [PATCH 03/11] drm/apple: firmware 27.3: the full IOMFB method table
@@ -139,10 +139,10 @@ Claude-Session: https://claude.ai/code/session_01BV6NpkesyT31Ta49VjQELY
  5 files changed, 154 insertions(+), 42 deletions(-)
 
 diff --git a/drivers/gpu/drm/apple/dcp-internal.h b/drivers/gpu/drm/apple/dcp-internal.h
-index 6444bdb8d9c2..927eae975810 100644
+index d75849d99f2e..fc208a587a39 100644
 --- a/drivers/gpu/drm/apple/dcp-internal.h
 +++ b/drivers/gpu/drm/apple/dcp-internal.h
-@@ -763,6 +763,8 @@ struct apple_dcp {
+@@ -773,6 +773,8 @@ struct apple_dcp {
  	bool v27_a407;
  	struct dcp_swap_submit_req_v27_a407 present_v27_a407;
  	struct dcp_swap_submit_req_v27_a407 peer_present_v27_a407;
@@ -185,7 +185,7 @@ index eb5e11c6868e..1433b0176170 100644
  	if (READ_ONCE(peer->crashed))
  		dcp_peer_swap_error(owner, "peer publication", -EIO);
 diff --git a/drivers/gpu/drm/apple/iomfb_template.c b/drivers/gpu/drm/apple/iomfb_template.c
-index 3c97a8d6cd16..ea8519b767ce 100644
+index 0a488cb9566d..909510ffe500 100644
 --- a/drivers/gpu/drm/apple/iomfb_template.c
 +++ b/drivers/gpu/drm/apple/iomfb_template.c
 @@ -424,6 +424,11 @@ static void dcp_swap_submit(struct apple_dcp *dcp, bool oob,
@@ -430,7 +430,7 @@ index d6978e36a49d..1e89e744aa2e 100644
 -- 
 2.56.1
 
-From 6729b58c77deec9dc03d97a96ff6dfaad6b53737 Mon Sep 17 00:00:00 2001
+From fa27aaae0ebf3b327e4f7fd2614198c4209226ec Mon Sep 17 00:00:00 2001
 From: TripleU <182648541+TripleU613@users.noreply.github.com>
 Date: Tue, 24 Nov 2026 14:34:19 -0500
 Subject: [PATCH 04/11] media: apple: ave: T6050: admit the macOS 27.2 (26B123)
@@ -454,10 +454,10 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
  4 files changed, 25 insertions(+)
 
 diff --git a/drivers/media/platform/apple/ave/ave-drv.c b/drivers/media/platform/apple/ave/ave-drv.c
-index a5897fe998f6..6f102c4b5dcc 100644
+index bd3568d34dea..fd8b1ed76428 100644
 --- a/drivers/media/platform/apple/ave/ave-drv.c
 +++ b/drivers/media/platform/apple/ave/ave-drv.c
-@@ -219,6 +219,12 @@ static const struct ave_fw_build ave_t6050_builds[] = {
+@@ -229,6 +229,12 @@ static const struct ave_fw_build ave_t6050_builds[] = {
  	 * layout (ave_layout_for_crc()).
  	 */
  	{ "26C5035", 0x158000, 0x134000, AVE_FW_TEXT_CRC_T6050_26C5035 },
@@ -469,9 +469,9 @@ index a5897fe998f6..6f102c4b5dcc 100644
 +	{ "26B123", 0x158000, 0x134000, AVE_FW_TEXT_CRC_T6050_26B123 },
  };
  
- static const struct ave_variant ave_t6050 = {
+ const struct ave_variant ave_t6050 = {
 diff --git a/drivers/media/platform/apple/ave/ave-fw.c b/drivers/media/platform/apple/ave/ave-fw.c
-index 49f1da033411..e6cda771c3ed 100644
+index 952267204071..c7ecb2645f0e 100644
 --- a/drivers/media/platform/apple/ave/ave-fw.c
 +++ b/drivers/media/platform/apple/ave/ave-fw.c
 @@ -47,6 +47,7 @@ static const u32 ave_known_text_crc[] = {
@@ -483,10 +483,10 @@ index 49f1da033411..e6cda771c3ed 100644
  	0x25bfd039, /* encoder firmware 6070.11.1 / T8112 */
  };
 diff --git a/drivers/media/platform/apple/ave/ave-layout.c b/drivers/media/platform/apple/ave/ave-layout.c
-index 377406027f9a..d664c9fbd8e1 100644
+index b05103511532..3f57419e6ad6 100644
 --- a/drivers/media/platform/apple/ave/ave-layout.c
 +++ b/drivers/media/platform/apple/ave/ave-layout.c
-@@ -969,6 +969,11 @@ const struct ave_fw_layout ave_layout_6070_11_1 = {
+@@ -981,6 +981,11 @@ const struct ave_fw_layout ave_layout_6070_11_1 = {
  	},
  };
  
@@ -498,7 +498,7 @@ index 377406027f9a..d664c9fbd8e1 100644
  const struct ave_fw_layout *ave_layout_for_crc(u32 crc)
  {
  	/*
-@@ -994,6 +999,13 @@ const struct ave_fw_layout *ave_layout_for_crc(u32 crc)
+@@ -1006,6 +1011,13 @@ const struct ave_fw_layout *ave_layout_for_crc(u32 crc)
  	 */
  	if (crc == AVE_FW_TEXT_CRC_T6050_26C5035)
  		return &ave_layout_26a428;
@@ -513,7 +513,7 @@ index 377406027f9a..d664c9fbd8e1 100644
  	    crc == AVE_FW_TEXT_CRC_T8122_26B123 ||
  	    crc == AVE_FW_TEXT_CRC_T8112_26B123)
 diff --git a/drivers/media/platform/apple/ave/ave.h b/drivers/media/platform/apple/ave/ave.h
-index a0bda7749166..9595ddea2271 100644
+index 331c86638139..e3007e2c874f 100644
 --- a/drivers/media/platform/apple/ave/ave.h
 +++ b/drivers/media/platform/apple/ave/ave.h
 @@ -176,6 +176,12 @@ enum ave_opcode {
@@ -532,7 +532,7 @@ index a0bda7749166..9595ddea2271 100644
 -- 
 2.56.1
 
-From 7f00ed9d933a5e92d9f1214321403a66d551e334 Mon Sep 17 00:00:00 2001
+From e7f492106339b295bd2fd28b95137dd79238928d Mon Sep 17 00:00:00 2001
 From: FatBoy721 <203330788+FatBoy721@users.noreply.github.com>
 Date: Fri, 13 Nov 2026 13:30:00 -0500
 Subject: [PATCH 05/11] arm64: dts: apple: t6050-j714s: Describe the HDMI port
@@ -689,7 +689,7 @@ index 3ed3baaf05fd..25e35a61b4a4 100644
 -- 
 2.56.1
 
-From 4a2ec044c04b336f78bff1c6aca44c08a9d8d02d Mon Sep 17 00:00:00 2001
+From 8000e40b0169942e19ed7c1996fef0f0067326fa Mon Sep 17 00:00:00 2001
 From: FatBoy721 <203330788+FatBoy721@users.noreply.github.com>
 Date: Fri, 13 Nov 2026 17:15:00 -0500
 Subject: [PATCH 06/11] drm/apple: T6050 HDMI: complete flips locally while the
@@ -730,10 +730,10 @@ Signed-off-by: FatBoy721 <203330788+FatBoy721@users.noreply.github.com>
  5 files changed, 56 insertions(+)
 
 diff --git a/drivers/gpu/drm/apple/dcp-fabric.c b/drivers/gpu/drm/apple/dcp-fabric.c
-index 148dd101094d..d045aae1a4da 100644
+index b07f3d0043ad..9f5e8fc2a2ad 100644
 --- a/drivers/gpu/drm/apple/dcp-fabric.c
 +++ b/drivers/gpu/drm/apple/dcp-fabric.c
-@@ -5822,6 +5822,7 @@ irqreturn_t dcp_dp2hdmi_hpd(int irq, void *data)
+@@ -5853,6 +5853,7 @@ irqreturn_t dcp_dp2hdmi_hpd(int irq, void *data)
  	if (dcp->fw_compat == DCP_FIRMWARE_V_26_6_DESKTOP)
  		return dcp_desktop_dp2hdmi_hpd(dcp);
  
@@ -742,10 +742,10 @@ index 148dd101094d..d045aae1a4da 100644
  	dcp_hdmi_update_locked(dcp);
  	/* The GPIO edge detector is off throughout an oneshot handler. */
 diff --git a/drivers/gpu/drm/apple/dcp-internal.h b/drivers/gpu/drm/apple/dcp-internal.h
-index 927eae975810..25b3419e7725 100644
+index fc208a587a39..2ea8cb673621 100644
 --- a/drivers/gpu/drm/apple/dcp-internal.h
 +++ b/drivers/gpu/drm/apple/dcp-internal.h
-@@ -1266,6 +1266,9 @@ struct apple_dcp {
+@@ -1280,6 +1280,9 @@ struct apple_dcp {
  	struct delayed_work hdmi_recheck_wq;
  	/* T6030 HDMI converter service requests, see dcp-hdmi.c */
  	struct dcp_hdmi *hdmi;
@@ -755,7 +755,7 @@ index 927eae975810..25b3419e7725 100644
  
  	/*
  	 * Interrupts of a Thunderbolt DP tunnel's DP IN adapter, to pass to
-@@ -1371,6 +1374,7 @@ void iomfb_queue_crc_h17p(struct apple_dcp *dcp, u32 swap_id);
+@@ -1385,6 +1388,7 @@ void iomfb_queue_crc_h17p(struct apple_dcp *dcp, u32 swap_id);
  void dcp_drm_crtc_page_flip(struct apple_dcp *dcp, ktime_t now);
  void dcp_handle_hotplug_actions(struct apple_dcp *dcp, unsigned int action);
  bool dcp_external_hotplug(struct apple_dcp *dcp, bool connected);
@@ -764,10 +764,10 @@ index 927eae975810..25b3419e7725 100644
  void dcp_announce_work(struct work_struct *work);
  void dcp_external_crtc_released(struct apple_dcp *dcp);
 diff --git a/drivers/gpu/drm/apple/dcp.c b/drivers/gpu/drm/apple/dcp.c
-index a8610b695c82..8a91c9c80090 100644
+index 4a696e8dc1b7..638021c4bb6b 100644
 --- a/drivers/gpu/drm/apple/dcp.c
 +++ b/drivers/gpu/drm/apple/dcp.c
-@@ -5185,6 +5185,8 @@ static int dcp_enable_dp2hdmi_hpd(struct apple_dcp *dcp)
+@@ -5190,6 +5190,8 @@ static int dcp_enable_dp2hdmi_hpd(struct apple_dcp *dcp)
  		bool connected = gpiod_get_value_cansleep(dcp->hdmi_hpd);
  		dev_info(dcp->dev, "%s: DP2HDMI HPD connected:%d\n", __func__, connected);
  
@@ -776,7 +776,7 @@ index a8610b695c82..8a91c9c80090 100644
  		if (connected && !READ_ONCE(dcp->hdmi_yielded))
  			dcp_dptx_connect(dcp, 0);
  		else if (!connected)
-@@ -8392,6 +8394,9 @@ static int dcp_platform_probe_pipe(struct platform_device *pdev)
+@@ -8397,6 +8399,9 @@ static int dcp_platform_probe_pipe(struct platform_device *pdev)
  		ret = dcp_hdmi_init(dcp);
  		if (ret)
  			return ret;
@@ -787,10 +787,10 @@ index a8610b695c82..8a91c9c80090 100644
  			int irq = gpiod_to_irq(dcp->hdmi_hpd);
  			if (irq < 0 && dcp->external_native) {
 diff --git a/drivers/gpu/drm/apple/iomfb.c b/drivers/gpu/drm/apple/iomfb.c
-index 7ee00f20b7a3..16ad0d33901a 100644
+index cbc093e132fc..9cb043c7c8a5 100644
 --- a/drivers/gpu/drm/apple/iomfb.c
 +++ b/drivers/gpu/drm/apple/iomfb.c
-@@ -4483,6 +4483,46 @@ static void iomfb_queue_atomic(struct apple_dcp *dcp, struct drm_crtc *crtc,
+@@ -4484,6 +4484,46 @@ static void iomfb_queue_atomic(struct apple_dcp *dcp, struct drm_crtc *crtc,
  	schedule_work(&dcp->vblank_wq);
  }
  
@@ -837,7 +837,7 @@ index 7ee00f20b7a3..16ad0d33901a 100644
  void dcp_flush(struct drm_crtc *crtc, struct drm_atomic_commit *commit)
  {
  	struct platform_device *pdev = to_apple_crtc(crtc)->dcp;
-@@ -4512,6 +4552,11 @@ void dcp_flush(struct drm_crtc *crtc, struct drm_atomic_commit *commit)
+@@ -4513,6 +4553,11 @@ void dcp_flush(struct drm_crtc *crtc, struct drm_atomic_commit *commit)
  		return;
  	}
  
@@ -850,10 +850,10 @@ index 7ee00f20b7a3..16ad0d33901a 100644
  		iomfb_v26_6_flush(dcp, crtc, commit);
  		return;
 diff --git a/drivers/gpu/drm/apple/iomfb_template.c b/drivers/gpu/drm/apple/iomfb_template.c
-index ea8519b767ce..0f8281d32e9f 100644
+index 909510ffe500..6b67d84c8584 100644
 --- a/drivers/gpu/drm/apple/iomfb_template.c
 +++ b/drivers/gpu/drm/apple/iomfb_template.c
-@@ -2580,6 +2580,7 @@ void DCP_FW_NAME(iomfb_poweron)(struct apple_dcp *dcp)
+@@ -2603,6 +2603,7 @@ void DCP_FW_NAME(iomfb_poweron)(struct apple_dcp *dcp)
  #endif
  	dev_info(dcp->dev, "dcp_poweron() starting\n");
  	WRITE_ONCE(dcp->pipe_off, false);
@@ -864,7 +864,7 @@ index ea8519b767ce..0f8281d32e9f 100644
 -- 
 2.56.1
 
-From 364650f5e1fe541297c613470261c86a54488359 Mon Sep 17 00:00:00 2001
+From 7b9fc28fc60f2b827f5c2de7804e7a641d44fd62 Mon Sep 17 00:00:00 2001
 From: FatBoy721 <203330788+FatBoy721@users.noreply.github.com>
 Date: Mon, 16 Nov 2026 21:13:51 -0500
 Subject: [PATCH 07/11] drm/apple: T6050 HDMI: set the fixed output up again
@@ -935,10 +935,10 @@ Signed-off-by: FatBoy721 <203330788+FatBoy721@users.noreply.github.com>
  2 files changed, 30 insertions(+), 8 deletions(-)
 
 diff --git a/drivers/gpu/drm/apple/dcp-fabric.c b/drivers/gpu/drm/apple/dcp-fabric.c
-index d045aae1a4da..6e60d75d9367 100644
+index 9f5e8fc2a2ad..848af7da0a96 100644
 --- a/drivers/gpu/drm/apple/dcp-fabric.c
 +++ b/drivers/gpu/drm/apple/dcp-fabric.c
-@@ -1393,19 +1393,39 @@ void dcp_fabric_hdmi_resume(struct apple_dcp *dcp)
+@@ -1396,19 +1396,39 @@ void dcp_fabric_hdmi_resume(struct apple_dcp *dcp)
  }
  
  /*
@@ -984,10 +984,10 @@ index d045aae1a4da..6e60d75d9367 100644
  	dev_info(dcp->dev, "HDMI: setting up the output again (%s)\n", why);
  	if (dcp->hdmi_pwren)
 diff --git a/drivers/gpu/drm/apple/dcp.c b/drivers/gpu/drm/apple/dcp.c
-index 8a91c9c80090..f9f6abc5197e 100644
+index 638021c4bb6b..65fadc8f7436 100644
 --- a/drivers/gpu/drm/apple/dcp.c
 +++ b/drivers/gpu/drm/apple/dcp.c
-@@ -10871,9 +10871,11 @@ static int dcp_platform_resume(struct device *dev)
+@@ -10967,9 +10967,11 @@ static int dcp_platform_resume(struct device *dev)
  	if (dcp_is_external_h17p(dcp))
  		dcp_typec_route_unpark(dcp);
  	dcp_enable_typec_work(dcp);
@@ -1005,7 +1005,7 @@ index 8a91c9c80090..f9f6abc5197e 100644
 -- 
 2.56.1
 
-From c8c2168ab25c5bd1006f7e729bc1474c2c91895f Mon Sep 17 00:00:00 2001
+From f7df08eb76c88097041de02ce723913c32b703de Mon Sep 17 00:00:00 2001
 From: Julian Arango <95070226+ja-818@users.noreply.github.com>
 Date: Sun, 22 Nov 2026 16:54:15 -0500
 Subject: [PATCH 08/11] wifi: apple: centauri: t6050: join WPA/WPA2 mixed
@@ -1033,7 +1033,7 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
  1 file changed, 22 insertions(+), 2 deletions(-)
 
 diff --git a/drivers/net/wireless/apple/centauri/t6050/centauri_wifi.c b/drivers/net/wireless/apple/centauri/t6050/centauri_wifi.c
-index 81c6593c8e86..b0acf329ffde 100644
+index 7e338ac938a8..854a1de83c32 100644
 --- a/drivers/net/wireless/apple/centauri/t6050/centauri_wifi.c
 +++ b/drivers/net/wireless/apple/centauri/t6050/centauri_wifi.c
 @@ -162,8 +162,22 @@ static const u32 akm_suites[] = { WLAN_AKM_SUITE_PSK, WLAN_AKM_SUITE_SAE };
@@ -1059,7 +1059,7 @@ index 81c6593c8e86..b0acf329ffde 100644
  /* The firmware's band numbers: 0 is 2.4 GHz, 1 is 5 GHz, 2 is 6 GHz. */
  static int firmware_band(enum nl80211_band band)
  {
-@@ -1455,7 +1469,7 @@ static int select_rsn(const u8 *body, size_t size, u32 akm, u8 *selected)
+@@ -1572,7 +1586,7 @@ static int select_rsn(const u8 *body, size_t size, u32 akm, u8 *selected)
  	tail = offset + 2 + 4 * get_unaligned_le16(body + offset);
  	if (tail + 2 > size)
  		return -EINVAL;
@@ -1068,7 +1068,7 @@ index 81c6593c8e86..b0acf329ffde 100644
  	    get_unaligned_le16(body + 6) != 1 ||
  	    get_unaligned_be32(body + 8) != WLAN_CIPHER_SUITE_CCMP)
  		return -EOPNOTSUPP;
-@@ -1607,7 +1621,7 @@ static int wifi_connect(struct wiphy *wiphy, struct net_device *netdev,
+@@ -1724,7 +1738,7 @@ static int wifi_connect(struct wiphy *wiphy, struct net_device *netdev,
  	    params->crypto.sae_pwd_len > SAE_PASSWORD_MAX_LEN ||
  	    params->crypto.n_ciphers_pairwise != 1 ||
  	    params->crypto.ciphers_pairwise[0] != WLAN_CIPHER_SUITE_CCMP ||
@@ -1077,7 +1077,7 @@ index 81c6593c8e86..b0acf329ffde 100644
  	    params->ie_len > sizeof(wifi->request_ie)) {
  		dev_dbg(dev, "connect refused: %d pairwise ciphers, first %08x, group %08x, %zu bytes of elements\n",
  			params->crypto.n_ciphers_pairwise,
-@@ -1643,6 +1657,12 @@ static int wifi_connect(struct wiphy *wiphy, struct net_device *netdev,
+@@ -1760,6 +1774,12 @@ static int wifi_connect(struct wiphy *wiphy, struct net_device *netdev,
  	}
  	rsn_size = ret;
  	sae = akm == WLAN_AKM_SUITE_SAE;
@@ -1093,7 +1093,7 @@ index 81c6593c8e86..b0acf329ffde 100644
 -- 
 2.56.1
 
-From 4a4cb2c6f87d4a4abf3c2768a9d3d1f217a93aff Mon Sep 17 00:00:00 2001
+From 20775c50a773f57257594769cac83c3f1c962677 Mon Sep 17 00:00:00 2001
 From: Julian Arango <95070226+ja-818@users.noreply.github.com>
 Date: Sun, 22 Nov 2026 21:46:25 -0500
 Subject: [PATCH 09/11] arm64: dts: apple: t6050-j716s: front camera
@@ -1177,7 +1177,7 @@ index 7eb3a3415d8d..d6cf011a7786 100644
 -- 
 2.56.1
 
-From e64d35082a9ee516a367290553aa543a70105766 Mon Sep 17 00:00:00 2001
+From a988784770b319633398b3e7e9ecca30677ff6a3 Mon Sep 17 00:00:00 2001
 From: Julian Arango <95070226+ja-818@users.noreply.github.com>
 Date: Sun, 22 Nov 2026 21:46:25 -0500
 Subject: [PATCH 10/11] ASoC: apple: macaudio: add the J716 (16-inch M5 Pro),
@@ -1200,55 +1200,26 @@ wired headphones at hand). The device tree card follows once the AOP
 Signed-off-by: Julian Arango <95070226+ja-818@users.noreply.github.com>
 Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
 ---
- sound/soc/apple/macaudio.c | 24 ++++++++++++++++++++++++
- 1 file changed, 24 insertions(+)
+ sound/soc/apple/macaudio.c | 2 ++
+ 1 file changed, 2 insertions(+)
 
 diff --git a/sound/soc/apple/macaudio.c b/sound/soc/apple/macaudio.c
-index ae4c96a816fe..3a025c915bf8 100644
+index 215621c4cf92..8e192b151012 100644
 --- a/sound/soc/apple/macaudio.c
 +++ b/sound/soc/apple/macaudio.c
-@@ -4191,6 +4191,28 @@ struct macaudio_platform_cfg macaudio_j714_cfg = {
- 	.tweeter_hpf_granted = true,
- };
- 
-+/*
-+ * J716s (T6050, MacBook Pro 16" M5 Pro): the J714s's AOP-fed card for the
-+ * headphone jack only. Its ADT describes the same jack codec, AOP audio
-+ * service and six SN012776 as the J714s's, but its speakers have no
-+ * protection profile that has played on this board, so they stay off as on
-+ * the J873: no safe level and speakers disabled, so
-+ * macaudio_speakers_allowed() refuses a speaker link however the DT is
-+ * written. The jack frame is the J714s's.
-+ */
-+struct macaudio_platform_cfg macaudio_j716_cfg = {
-+	.enable_speakers = false,
-+	.amp = AMP_SN012776,
-+	.speakers = SPKR_2W1T,
-+	.stereo = true,
-+	.safe_vol = 0,
-+	.fe_dai_names = { "j873-pcm-0", "j873-pcm-1", "j873-pcm-2" },
-+	.dai_fmt = SND_SOC_DAIFMT_DSP_A | SND_SOC_DAIFMT_CBC_CFC | SND_SOC_DAIFMT_IB_NF,
-+	.spk_dai_fmt = SND_SOC_DAIFMT_I2S | SND_SOC_DAIFMT_CBC_CFC |
-+		       SND_SOC_DAIFMT_GATED | SND_SOC_DAIFMT_NB_IF,
-+	.spk_secondary_only = true,
-+};
-+
- /*
-  * J815 (T8142, MacBook Air M5 15"): J813's AOP-fed card with six SN012776,
-  * two woofers and a tweeter per side, in ADT speaker-config order (left
-@@ -4502,6 +4524,8 @@ static const struct of_device_id macaudio_snd_device_id[]  = {
- 	{ .compatible = "apple,j714-macaudio", .data = &macaudio_j714_cfg },
- 	/* k116    -       sn012776    15      2x 2W+1T (AOP-fed, V/I sense; the 16" PROLED chassis, J714's amps and frame) */
+@@ -4525,6 +4525,8 @@ static const struct of_device_id macaudio_snd_device_id[]  = {
  	{ .compatible = "apple,k116-macaudio", .data = &macaudio_j714_cfg },
-+	/* j716    -       sn012776    15      2x 2W+1T (AOP-fed; jack only, speakers off until bring-up) */
-+	{ .compatible = "apple,j716-macaudio", .data = &macaudio_j716_cfg },
+ 	/* k114    -       sn012776    -       2x 2W+1T (AOP-fed; jack only, speakers off) */
+ 	{ .compatible = "apple,k114-macaudio", .data = &macaudio_k114_cfg },
++	/* j716    -       sn012776    -       2x 2W+1T (AOP-fed; jack only, speakers off; the K114s jack frame) */
++	{ .compatible = "apple,j716-macaudio", .data = &macaudio_k114_cfg },
  	/* j713    -       sn012776    15      2x 1W+1T (AOP-fed, one serializer) */
  	{ .compatible = "apple,j713-macaudio", .data = &macaudio_j713_cfg },
  	/* The J713 jack runs on the AOP like the J616s one. */
 -- 
 2.56.1
 
-From c43fb59b093a88050760088532d680ca888335ff Mon Sep 17 00:00:00 2001
+From ad562d5528760b17b22d81a8189638dc2e83c1cb Mon Sep 17 00:00:00 2001
 From: Julian Arango <95070226+ja-818@users.noreply.github.com>
 Date: Sun, 22 Nov 2026 21:46:25 -0500
 Subject: [PATCH 11/11] arm64: dts: apple: t6050-j716s: jack, microphones and

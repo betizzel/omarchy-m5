@@ -2,6 +2,11 @@
 # macOS 27.2 stub (UniversalMac_27.2_26B123, mBoot-20457.41.3), booted from a padded Aura Mach-O
 # Stage 1 with SPTM off: Linux at EL2 on every CPU inside the CTXR execute window.
 #
+# v272-21 (2026-11-26): re-pinned on aurora-silicon/linux main 7f00dc6bc52c (98 merged PRs: G17 M5 GPU
+# direct render, multi-queue, idle housekeeping and sibling compute; funkzy #2501 render-pair memory and #2884
+# 6 GHz behind another beacon; jgoyvaerts #2732 #3016 #3119; ja-818 #2939; m0d16l14n1 #2192 #3165; satchlj #3018;
+# chrisohearn #3103 #3104); the same 11 patches, 0010's J716 entry now uses upstream's identical K114 config.
+#
 # v272-20 (2026-11-25): re-pinned on aurora-silicon/linux main 7a4afed5b4d1 (adds #2190 WFI idle once
 # built-in drivers probe, #3110 N1 commands gated during host sleep, #3120 centauri scan lock/abort
 # sync/BT ring); the same 11 patches, 0006 with a context-only fix. Booted on the J714s 2026-11-25.
@@ -66,9 +71,9 @@
 
 _auroraver=7.3.0
 _aurorarel=17.v272
-pkgrel=20
+pkgrel=21
 
-_commit=7a4afed5b4d1df7489c4be316d05e3b6c98b23dc
+_commit=7f00dc6bc52c3ba7cf0168740183876f71770531
 
 # Any m1n1 1.6.1 loads these device trees. The Neo's own Stage 2 comes from the
 # image, so the floor stays where M1 and M2 users' m1n1-aurora already meets it.
@@ -94,11 +99,11 @@ source=(validate-config.py configure.sh "linux-${_commit}.tar.gz::https://github
         speakersafetyd-hold.conf)
 sha256sums=('aca7420a18139474da62a81c77fc6e5c3f25001f872b6e11e18605cd892aa4c3'
             'b95c0f0ddf106f3861e0e62a746af6a881fb8e0f356a892961f9e86062877400'
-            '7974251f956ba46a56c49b15d37f59d15674addd23fe31a92f4c597e64ec849c'
+            'cfb22a6851875051e5274be523e340be04ec19e96f1b009c203d0c3ba5545b79'
             'd71a5756f6803008c92fd5b14bb377baa538cd56a5674970bfaea3584a60d291'
             '84a03d5fea19cae243c89f50c1736c639622d25d4d1de8d7d53ebd8f603c0f62'
             'c784712b49e495ee40a2aaaddacd4ffaf3beb62654f571cead7673eb17eae11d'
-            '3e64fbd931c512c6649ea875684adee4127f54caa1f75b9fa735fcac6d127764'
+            'de16bb6a58849d6a55ffc287fdf4ee08999df4859d7f5bb25758bfd7b463e4ec'
             '7175fecb20dc8e8801ce7b5a7aeb02fb4c4cb259104465b2361b92ab1c3f5468'
             'd3e222ba146df83ab33a4cfa344534c13d125525c2a6d63747452bbce3302669')
 

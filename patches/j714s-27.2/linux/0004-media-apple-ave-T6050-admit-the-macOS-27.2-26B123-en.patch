@@ -1,4 +1,4 @@
-From 6729b58c77deec9dc03d97a96ff6dfaad6b53737 Mon Sep 17 00:00:00 2001
+From fa27aaae0ebf3b327e4f7fd2614198c4209226ec Mon Sep 17 00:00:00 2001
 From: TripleU <182648541+TripleU613@users.noreply.github.com>
 Date: Tue, 24 Nov 2026 14:34:19 -0500
 Subject: [PATCH 04/11] media: apple: ave: T6050: admit the macOS 27.2 (26B123)
@@ -22,10 +22,10 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
  4 files changed, 25 insertions(+)
 
 diff --git a/drivers/media/platform/apple/ave/ave-drv.c b/drivers/media/platform/apple/ave/ave-drv.c
-index a5897fe998f6..6f102c4b5dcc 100644
+index bd3568d34dea..fd8b1ed76428 100644
 --- a/drivers/media/platform/apple/ave/ave-drv.c
 +++ b/drivers/media/platform/apple/ave/ave-drv.c
-@@ -219,6 +219,12 @@ static const struct ave_fw_build ave_t6050_builds[] = {
+@@ -229,6 +229,12 @@ static const struct ave_fw_build ave_t6050_builds[] = {
  	 * layout (ave_layout_for_crc()).
  	 */
  	{ "26C5035", 0x158000, 0x134000, AVE_FW_TEXT_CRC_T6050_26C5035 },
@@ -37,9 +37,9 @@ index a5897fe998f6..6f102c4b5dcc 100644
 +	{ "26B123", 0x158000, 0x134000, AVE_FW_TEXT_CRC_T6050_26B123 },
  };
  
- static const struct ave_variant ave_t6050 = {
+ const struct ave_variant ave_t6050 = {
 diff --git a/drivers/media/platform/apple/ave/ave-fw.c b/drivers/media/platform/apple/ave/ave-fw.c
-index 49f1da033411..e6cda771c3ed 100644
+index 952267204071..c7ecb2645f0e 100644
 --- a/drivers/media/platform/apple/ave/ave-fw.c
 +++ b/drivers/media/platform/apple/ave/ave-fw.c
 @@ -47,6 +47,7 @@ static const u32 ave_known_text_crc[] = {
@@ -51,10 +51,10 @@ index 49f1da033411..e6cda771c3ed 100644
  	0x25bfd039, /* encoder firmware 6070.11.1 / T8112 */
  };
 diff --git a/drivers/media/platform/apple/ave/ave-layout.c b/drivers/media/platform/apple/ave/ave-layout.c
-index 377406027f9a..d664c9fbd8e1 100644
+index b05103511532..3f57419e6ad6 100644
 --- a/drivers/media/platform/apple/ave/ave-layout.c
 +++ b/drivers/media/platform/apple/ave/ave-layout.c
-@@ -969,6 +969,11 @@ const struct ave_fw_layout ave_layout_6070_11_1 = {
+@@ -981,6 +981,11 @@ const struct ave_fw_layout ave_layout_6070_11_1 = {
  	},
  };
  
@@ -66,7 +66,7 @@ index 377406027f9a..d664c9fbd8e1 100644
  const struct ave_fw_layout *ave_layout_for_crc(u32 crc)
  {
  	/*
-@@ -994,6 +999,13 @@ const struct ave_fw_layout *ave_layout_for_crc(u32 crc)
+@@ -1006,6 +1011,13 @@ const struct ave_fw_layout *ave_layout_for_crc(u32 crc)
  	 */
  	if (crc == AVE_FW_TEXT_CRC_T6050_26C5035)
  		return &ave_layout_26a428;
@@ -81,7 +81,7 @@ index 377406027f9a..d664c9fbd8e1 100644
  	    crc == AVE_FW_TEXT_CRC_T8122_26B123 ||
  	    crc == AVE_FW_TEXT_CRC_T8112_26B123)
 diff --git a/drivers/media/platform/apple/ave/ave.h b/drivers/media/platform/apple/ave/ave.h
-index a0bda7749166..9595ddea2271 100644
+index 331c86638139..e3007e2c874f 100644
 --- a/drivers/media/platform/apple/ave/ave.h
 +++ b/drivers/media/platform/apple/ave/ave.h
 @@ -176,6 +176,12 @@ enum ave_opcode {

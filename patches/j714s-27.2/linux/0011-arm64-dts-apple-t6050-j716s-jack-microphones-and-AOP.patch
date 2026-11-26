@@ -1,4 +1,4 @@
-From c43fb59b093a88050760088532d680ca888335ff Mon Sep 17 00:00:00 2001
+From ad562d5528760b17b22d81a8189638dc2e83c1cb Mon Sep 17 00:00:00 2001
 From: Julian Arango <95070226+ja-818@users.noreply.github.com>
 Date: Sun, 22 Nov 2026 21:46:25 -0500
 Subject: [PATCH 11/11] arm64: dts: apple: t6050-j716s: jack, microphones and

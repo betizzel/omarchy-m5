@@ -1,4 +1,4 @@
-From 364650f5e1fe541297c613470261c86a54488359 Mon Sep 17 00:00:00 2001
+From 7b9fc28fc60f2b827f5c2de7804e7a641d44fd62 Mon Sep 17 00:00:00 2001
 From: FatBoy721 <203330788+FatBoy721@users.noreply.github.com>
 Date: Mon, 16 Nov 2026 21:13:51 -0500
 Subject: [PATCH 07/11] drm/apple: T6050 HDMI: set the fixed output up again
@@ -69,10 +69,10 @@ Signed-off-by: FatBoy721 <203330788+FatBoy721@users.noreply.github.com>
  2 files changed, 30 insertions(+), 8 deletions(-)
 
 diff --git a/drivers/gpu/drm/apple/dcp-fabric.c b/drivers/gpu/drm/apple/dcp-fabric.c
-index d045aae1a4da..6e60d75d9367 100644
+index 9f5e8fc2a2ad..848af7da0a96 100644
 --- a/drivers/gpu/drm/apple/dcp-fabric.c
 +++ b/drivers/gpu/drm/apple/dcp-fabric.c
-@@ -1393,19 +1393,39 @@ void dcp_fabric_hdmi_resume(struct apple_dcp *dcp)
+@@ -1396,19 +1396,39 @@ void dcp_fabric_hdmi_resume(struct apple_dcp *dcp)
  }
  
  /*
@@ -118,10 +118,10 @@ index d045aae1a4da..6e60d75d9367 100644
  	dev_info(dcp->dev, "HDMI: setting up the output again (%s)\n", why);
  	if (dcp->hdmi_pwren)
 diff --git a/drivers/gpu/drm/apple/dcp.c b/drivers/gpu/drm/apple/dcp.c
-index 8a91c9c80090..f9f6abc5197e 100644
+index 638021c4bb6b..65fadc8f7436 100644
 --- a/drivers/gpu/drm/apple/dcp.c
 +++ b/drivers/gpu/drm/apple/dcp.c
-@@ -10871,9 +10871,11 @@ static int dcp_platform_resume(struct device *dev)
+@@ -10967,9 +10967,11 @@ static int dcp_platform_resume(struct device *dev)
  	if (dcp_is_external_h17p(dcp))
  		dcp_typec_route_unpark(dcp);
  	dcp_enable_typec_work(dcp);

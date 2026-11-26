@@ -7,7 +7,7 @@ been tested, nothing that hasn't. Builds live on ush (`~/m5/work/k21`, `~/m5/wor
 
 | Piece | From | State |
 | --- | --- | --- |
-| Kernel linux-aurora v272-21 | aurora-silicon/linux main `7f00dc6bc52c` (98 merged PRs since v272-20's `7a4afed5b4d1`) plus our 11 patches | built on ush; boot test on the J714s pending (needs the owner at the disk passphrase) |
+| Kernel linux-aurora v272-21 | aurora-silicon/linux main `7f00dc6bc52c` (98 merged PRs since v272-20's `7a4afed5b4d1`) plus our 11 patches | built on ush 2026-11-26 (sha256 `2026eef5…`, draft release `build-linux-v272-21`); boot test on the J714s pending (needs the owner at the disk passphrase) |
 | `omarchy-brightness-auto` | joshuaswarren (omacom/omarchy-mac-pkgs #144, open), MIT | packaged unchanged from his commit `2d2ecbc1`; off by default. **Tested on our J714s and published in `[omarchy-m5]` 2026-11-26** |
 | `wluma` 5.0.4 for aarch64 | AUR package (torculus), upstream maximbaz/wluma, ISC | built on ush in alarm-builder (`--nocheck`); **published 2026-11-26** |
 
