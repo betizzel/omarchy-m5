@@ -141,6 +141,13 @@ Recipes: [`installer/recipes/linux-aurora-j714s`](../../installer/recipes/linux-
 [`installer/recipes/m1n1-aurora-j714s`](../../installer/recipes/m1n1-aurora-j714s)
 (`aura-j714s-27.2.patch` is `aura/*.patch` concatenated).
 
+## v272-21 (2026-11-26): re-pinned on aurora-silicon/linux main `7f00dc6bc52c`
+
+98 merged upstream PRs since `7a4afed5b4d1` (list in docs/work/release-11.md). The same 11 patches; 0010
+conflicted with upstream's K114 macaudio entry in the same table. The two configs were identical, so the J716
+compatible now uses `macaudio_k114_cfg` and our duplicate struct is gone. Booted on the J714s 2026-11-26
+(docs/work/release-11.md).
+
 ## v272-20 (2026-11-25): re-pinned on aurora-silicon/linux main `7a4afed5b4d1`
 
 Adds #2190 (WFI idle once built-in drivers probe), #3110, #3120 and about 100 other upstream commits. The

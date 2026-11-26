@@ -2,6 +2,13 @@
 
 Pull requests and issues on this repo: what came in, what we did, where it stands. Newest first.
 
+## 2026-11-26: release 11
+
+| Item | Who | What happened | State |
+| --- | --- | --- | --- |
+| v272-21 kernel: 98 upstream PRs since v272-20 | aurora-silicon/linux upstream | Re-pinned on main 7f00dc6bc52c, same 11 patches (0010's J716 jack now points at upstream's identical K114 config). Booted on our J714s with the owner 2026-11-26: Wi-Fi, Bluetooth, 120 Hz panel, GPU (Mesa through the aurora driver), camera capture, sound cards, Touch ID, s2idle (23 s, key wake), no failed units. v272-20 kept as the Limine fallback | published to [omarchy-m5] 2026-11-26 |
+| `omarchy-brightness-auto` and `wluma` | joshuaswarren (omacom/omarchy-mac-pkgs #144); wluma from the AUR | Packaged unchanged, off by default; on our J714s the panel followed the light sensor (450 to 93 at 2 lux), `off` stopped it | published to [omarchy-m5] 2026-11-26 |
+
 ## 2026-11-19 to 2026-11-24: #27 to #32
 
 | Item | Who | What happened | State |

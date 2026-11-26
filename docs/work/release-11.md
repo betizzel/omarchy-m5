@@ -7,7 +7,7 @@ been tested, nothing that hasn't. Builds live on ush (`~/m5/work/k21`, `~/m5/wor
 
 | Piece | From | State |
 | --- | --- | --- |
-| Kernel linux-aurora v272-21 | aurora-silicon/linux main `7f00dc6bc52c` (98 merged PRs since v272-20's `7a4afed5b4d1`) plus our 11 patches | built on ush 2026-11-26 (sha256 `2026eef5…`, draft release `build-linux-v272-21`); boot test on the J714s pending (needs the owner at the disk passphrase) |
+| Kernel linux-aurora v272-21 | aurora-silicon/linux main `7f00dc6bc52c` (98 merged PRs since v272-20's `7a4afed5b4d1`) plus our 11 patches | built on ush 2026-11-26 (sha256 `2026eef5…`); **booted, tested and published in `[omarchy-m5]` 2026-11-26** |
 | `omarchy-brightness-auto` | joshuaswarren (omacom/omarchy-mac-pkgs #144, open), MIT | packaged unchanged from his commit `2d2ecbc1`; off by default. **Tested on our J714s and published in `[omarchy-m5]` 2026-11-26** |
 | `wluma` 5.0.4 for aarch64 | AUR package (torculus), upstream maximbaz/wluma, ISC | built on ush in alarm-builder (`--nocheck`); **published 2026-11-26** |
 
@@ -53,6 +53,15 @@ Release when 1-4 pass: sign both packages into `repo-aarch64`, then README, docs
   `t6050-j714s.dtb`; that tree still has the HDMI and macaudio nodes, and against v272-20 it only gains three
   `apple,bw-scratch` properties on dcpext1-3 (upstream's shared dcpext properties). Staged on the Mac as
   `/root/linux-aurora-7.3.0.aurora17.v272-21-aarch64.pkg.tar.zst` (sha256 matches), not installed.
+
+- 2026-11-26, tests 1-3 on v272-21 (owner at the passphrase): v272-20's UKI copied to `omarchy_v272-20-proven.efi` as the
+  Limine fallback (v272-19's moved to `/boot/esp-overflow`), `pacman -U` of the staged package, reboot. `uname -r`
+  7.3.0-17.v272-21-ARCH, no failed units; Wi-Fi joined, Bluetooth powered, eDP-1 3024x1964 at 120 Hz, Hyprland on
+  OpenGL ES 3.2 Mesa through the aurora driver (the `bootstrap failed at session: EPROBE_DEFER` lines are the same on
+  v272-20), camera (apple-isp) captured 5 frames, the three audio cards and the DisplayPort audio, Touch ID lists the
+  enrolled finger. s2idle: entry 10:34:23, key wake 10:34:46, Wi-Fi, Bluetooth and the panel back. Signed into
+  `repo-aarch64` (v272-20 package retired from the database; its release asset stays). The Mac sees
+  `7.3.0.aurora17.v272-21` in the published database. Demo hold removed.
 
 ## Watching (not in release 11)
 

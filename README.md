@@ -15,9 +15,12 @@ v272-19 on a newer aurora-silicon/linux (M5 Pro sleep work, DisplayPort and Wi-F
 firmware j714s16 (`omarchy update` works again, #34; VRR off by default, #25), Wi-Fi on WPA/WPA2 mixed routers (#30)
 and a new developer signer. The camera's green light stays off on v272-19 (#33).
 
-**Kernel v272-20 (2026-11-25), through `omarchy update` with [`[omarchy-m5]`](tools/update-source/README.md) on:** upstream's
-WFI idle on the M5 Pro (aurora-silicon/linux #2190, less power at idle), N1 Wi-Fi commands held during sleep (#3110) and Wi-Fi
-scan and Bluetooth ring fixes (#3120). Booted on our J714s: Wi-Fi, s2idle, camera, speaker protection and video decoding pass.
+**Release 11 (2026-11-26), through `omarchy update` with [`[omarchy-m5]`](tools/update-source/README.md) on:** kernel
+v272-21 on aurora-silicon/linux main `7f00dc6bc52c` (98 merged upstream PRs since v272-20: M5 GPU submission and recovery
+work, T6050 AOP ring per endpoint, N1 6 GHz networks, Thunderbolt NHI credits, deep-sleep wake fix and more; credits in
+[docs/work/release-11.md](docs/work/release-11.md)), plus auto-brightness from the light sensor (joshuaswarren's
+`omarchy-brightness-auto` with `wluma`, off until `omarchy brightness auto on`). Booted on our J714s: Wi-Fi, Bluetooth,
+120 Hz panel, GPU, camera, sound cards, Touch ID and s2idle pass. v272-20 stays available as the fallback.
 
 **Release 10's installer ran on hardware (2026-11-25):** a from-scratch install on our J714s (macOS shrunk to 160 GB, 769 GB for
 Omarchy) booted, including release 10's new Stage 1. If you keep a fallback kernel, set `LIMIT_USAGE_PERCENT=50` in
