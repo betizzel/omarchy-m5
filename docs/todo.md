@@ -4,10 +4,13 @@ What's next, roughly in order. Anyone with an M5 Mac can take one: open an issue
 
 **Being worked on here**
 
-- **Screensaver burns about 40 W.** Omarchy's screensaver (a full-screen ghostty) keeps the M5 GPU at full load
-  through zink: SoC power 40 W instead of 1.9 W, GPU sensors at 90-97 C, fans at 4400 rpm, and the battery drains
-  while you're away. Likely uncapped frame rate (no vsync through zink). Workaround: set `idle.screensaver` to `0`
-  and `idle.lockScreensaver` to `false` in `~/.config/omarchy/shell.json`. Find the cause, then report it to Mesa.
+- **Screensaver burns about 40 W.** Omarchy's screensaver (a full-screen ghostty) keeps the M5 GPU at full load:
+  measured 2026-11-27 with the owner watching, both GPU engines 195% busy and SoC power (Heatpipe) 40.6 W against
+  about 2-3 W without it, GPU sensors 90-97 C, fans 4400 rpm, while ghostty itself uses 7% CPU. No custom shader is
+  involved: the M5 has no native OpenGL driver, so ghostty's GL renderer runs through zink on the Vulkan driver, and
+  each full-screen redraw is expensive there. Workaround: `idle.screensaver` `0` and `idle.lockScreensaver` `false`
+  in `~/.config/omarchy/shell.json`. Next: compare with foot (CPU-rendered) and a plain GL client, then report to
+  aurora-silicon/mesa with the numbers.
 - **Power-saver pins the CPUs to 300 MHz.** The kernel's low-power profile has a 15 W package budget (CLPC, PHPC);
   any load above it (like the screensaver) steps every cluster down to the minimum and holds it. Measure the J714s's
   real package power to see whether 15 W fits, then propose a value upstream.
