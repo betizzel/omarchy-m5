@@ -1,0 +1,149 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: TripleU <182648541+TripleU613@users.noreply.github.com>
+Date: Thu, 26 Nov 2026 22:48:04 -0500
+Subject: [PATCH] J714s release 11: kernel v272-21 and Mesa e705eca833f (M5 Pro
+ GPU)
+
+Re-pinned from betizzel/omarchy-m5:
+- linux-aurora 7.3.0.aurora17.v272-21 (2026eef5..., 44765819 bytes) from
+  d3b70d2: aurora-silicon/linux main 7f00dc6bc52c plus
+  patches/j714s-27.2/linux 0001-0011. Booted and tested on the J714s
+  2026-11-26. The qualification pins follow 7.3.0-17.v272-21-ARCH.
+- mesa-aurora and vulkan-aurora 1:26.3.0_devel.20261122.232644.e705eca833f-1
+  (a62773a5..., 4c231780...), omacom/omarchy-pkgs 9e1c6ef1 as published in
+  Omarchy edge. The j714s2 build (043a4c5) does not implement the G17S
+  HAL300 command stream, so the desktop fell back to llvmpipe; this build
+  runs OpenGL 4.6 and Vulkan 1.4 on the M5 Pro (glmark2 3003 against 89,
+  27 validated scenes, vkcube) on our J714s.
+Nothing else changes.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+---
+ .../build-input-provenance.json               |  9 ++---
+ .../candidate-package-manifest.json           | 38 +++++++++----------
+ image-builder/builder/stage1_qualification.py |  4 +-
+ 3 files changed, 25 insertions(+), 26 deletions(-)
+
+diff --git a/Integration/M5/J714s-Normal-System/build-input-provenance.json b/Integration/M5/J714s-Normal-System/build-input-provenance.json
+index 2b06b63..e3c7286 100644
+--- a/Integration/M5/J714s-Normal-System/build-input-provenance.json
++++ b/Integration/M5/J714s-Normal-System/build-input-provenance.json
+@@ -27,11 +27,10 @@
+     "inventory_sha256": "7347ba8acf50c664cb0acea69967abd791ebf94be358d36305088b644b656cfb"
+   },
+   "native_mesa": {
+-    "repository": "TripleU613/omarchy-pkgs",
+-    "commit": "9c88bed7a7cc6b69d230ebb2279becaac9d14840",
+-    "run": 42649339647,
+-    "artifact_id": 13688964867,
+-    "artifact_sha256": "507b72a3aae1c6c8a5d8923e4e43100f470bc771ec8466905f57b2fc03fcc43c"
++    "repository": "omacom/omarchy-pkgs",
++    "commit": "9e1c6ef1e8f8c854ec956cff3bd7ff4b5564a5c9",
++    "package_url": "https://pkgs.omarchy.org/edge/aarch64/mesa-aurora-1:26.3.0_devel.20261122.232644.e705eca833f-1-aarch64.pkg.tar.zst",
++    "package_sha256": "a62773a5c75cc02d1fbeda58170522c3b5129973afae7fdd80fcc565a571dce7"
+   },
+   "candidate_set_signer_tool": {
+     "repository": "omacom/omarchy-mac-pkgs",
+diff --git a/Integration/M5/J714s-Normal-System/candidate-package-manifest.json b/Integration/M5/J714s-Normal-System/candidate-package-manifest.json
+index 4fcc4b0..2a973bd 100644
+--- a/Integration/M5/J714s-Normal-System/candidate-package-manifest.json
++++ b/Integration/M5/J714s-Normal-System/candidate-package-manifest.json
+@@ -1,7 +1,7 @@
+ {
+   "schema": 1,
+   "candidate_only": true,
+-  "set": "j714s-dev-runtime-07717f8c82db",
++  "set": "j714s-dev-runtime-4ed118ccfd92",
+   "source": {
+     "repository": "omacom/omarchy",
+     "commit": "a948d8a6871f446b335258c827648ac5f4e9428b",
+@@ -114,15 +114,15 @@
+     },
+     {
+       "name": "linux-aurora",
+-      "version": "7.3.0.aurora17.v272-19",
++      "version": "7.3.0.aurora17.v272-21",
+       "arch": "aarch64",
+-      "filename": "linux-aurora-7.3.0.aurora17.v272-19-aarch64.pkg.tar.zst",
+-      "sha256": "7ddee3625675547e5bb563104fa7cf7d57827c1981a4423559cee6022b1ea293",
++      "filename": "linux-aurora-7.3.0.aurora17.v272-21-aarch64.pkg.tar.zst",
++      "sha256": "2026eef5859570271555c9c81e8b35e13f146fa4c0b39229f83b83f3553907a7",
+       "source": {
+         "repository": "betizzel/omarchy-m5",
+-        "commit": "731670d48dde07b08d4c958fb70063d8af9e2e39"
++        "commit": "d3b70d23c6b6369c4a20d63a6487547425a938a2"
+       },
+-      "size_bytes": 44635498
++      "size_bytes": 44765819
+     },
+     {
+       "name": "m1n1-aurora",
+@@ -138,15 +138,15 @@
+     },
+     {
+       "name": "mesa-aurora",
+-      "version": "1:26.3.0_devel.20261109.j714s2.043a4c5-1",
++      "version": "1:26.3.0_devel.20261122.232644.e705eca833f-1",
+       "arch": "aarch64",
+-      "filename": "mesa-aurora-1:26.3.0_devel.20261109.j714s2.043a4c5-1-aarch64.pkg.tar.zst",
+-      "sha256": "699631582c7206c94292a0486a6829e476f35489874ef58eeb72bf2f402bbc87",
++      "filename": "mesa-aurora-1:26.3.0_devel.20261122.232644.e705eca833f-1-aarch64.pkg.tar.zst",
++      "sha256": "a62773a5c75cc02d1fbeda58170522c3b5129973afae7fdd80fcc565a571dce7",
+       "source": {
+-        "repository": "betizzel/omarchy-m5",
+-        "commit": "e06233b540fa41534bb2ae5cf0daf336efae9ec3"
++        "repository": "omacom/omarchy-pkgs",
++        "commit": "9e1c6ef1e8f8c854ec956cff3bd7ff4b5564a5c9"
+       },
+-      "size_bytes": 7307523
++      "size_bytes": 7538146
+     },
+     {
+       "name": "omarchy",
+@@ -247,15 +247,15 @@
+     },
+     {
+       "name": "vulkan-aurora",
+-      "version": "1:26.3.0_devel.20261109.j714s2.043a4c5-1",
++      "version": "1:26.3.0_devel.20261122.232644.e705eca833f-1",
+       "arch": "aarch64",
+-      "filename": "vulkan-aurora-1:26.3.0_devel.20261109.j714s2.043a4c5-1-aarch64.pkg.tar.zst",
+-      "sha256": "5810bcbd25cce15fcb230e58979ebea955d2fccbbf5c21a03caacca4d6844aa4",
++      "filename": "vulkan-aurora-1:26.3.0_devel.20261122.232644.e705eca833f-1-aarch64.pkg.tar.zst",
++      "sha256": "4c231780096c16f14862a15cf6466d4df5b45720b98bf33c01e4a0a1d1bff674",
+       "source": {
+-        "repository": "betizzel/omarchy-m5",
+-        "commit": "e06233b540fa41534bb2ae5cf0daf336efae9ec3"
++        "repository": "omacom/omarchy-pkgs",
++        "commit": "9e1c6ef1e8f8c854ec956cff3bd7ff4b5564a5c9"
+       },
+-      "size_bytes": 4812285
++      "size_bytes": 5052936
+     }
+   ],
+   "limitations": [
+@@ -264,5 +264,5 @@
+     "No physical installer or hardware qualification",
+     "No supported release or catalog promotion"
+   ],
+-  "set_sha256": "07717f8c82dbfc1415eb5b03ef088c1824e401920c9fd2d29b3645b99a4b76c2"
++  "set_sha256": "4ed118ccfd92eb398ecd9953463581143dd4f11de64c34e0a98ae4f005260b69"
+ }
+diff --git a/image-builder/builder/stage1_qualification.py b/image-builder/builder/stage1_qualification.py
+index e570cd0..575d279 100644
+--- a/image-builder/builder/stage1_qualification.py
++++ b/image-builder/builder/stage1_qualification.py
+@@ -65,8 +65,8 @@ SYSTEM_FIRMWARE = re.compile(r"(?:mBoot|iBoot)-[0-9]+(?:\.[0-9]+)*\Z")
+ # _aurorarel=17.v272; pkgrel 2 is release 2's re-pin on integration/aurora a34d26c2; "v272"
+ # sorts above "up273"). Checked against the built archive's pkgver-pkgrel and its
+ # usr/lib/modules/<release> directory; candidate-package-manifest.json matches.
+-J714S_KERNEL_VERSION = "7.3.0.aurora17.v272-19"
+-J714S_KERNEL_RELEASE = "7.3.0-17.v272-19-ARCH"
++J714S_KERNEL_VERSION = "7.3.0.aurora17.v272-21"
++J714S_KERNEL_RELEASE = "7.3.0-17.v272-21-ARCH"
+ J714S_ARGUMENTS = ("macsmc.m5_pcio_budget=2", "macsmc.m5_n1_budget=3")
+ # What the merged kernel (betizzel/omarchy-m5 linux-aurora-n1 0001-0008) was verified
+ # with on bare metal, besides the budgets: PMGR domains read-only except the ones its
+-- 
+2.56.1
+
