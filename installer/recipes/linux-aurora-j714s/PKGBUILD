@@ -71,11 +71,15 @@
 # Patch 0012 (v272-23, v2 in v272-24): the sleep driver admits the 15-core M5 Pro J714s (profile measured on
 #   18 cores; inventory from the DT CPU nodes; s2idle stays the default there).
 # Patch 0013 (v272-25): the J714s opts into the software camera indicator (#2561), DCP slot 3 (#33).
+# Patches 0014-0017 (v272-26): aurora-silicon/linux #3084 (Erik Bourget, merged on main after our pin), the four
+#   commits unchanged. Speaker V/I sense from a driver-owned ring armed on a stopped serializer, so the 12 sense
+#   slots keep their amplifiers across stream starts and re-prepares; before it, PipeWire's restarts rotated them
+#   (seen on our J714s: shifts of 2 to 10 under speakerguardd v2, so the protection read the wrong speakers).
 # Same package name as the image's kernel (linux-aurora); the version sorts above up273.
 
 _auroraver=7.3.0
 _aurorarel=17.v272
-pkgrel=25
+pkgrel=26
 
 _commit=7f00dc6bc52c3ba7cf0168740183876f71770531
 
@@ -107,7 +111,7 @@ sha256sums=('aca7420a18139474da62a81c77fc6e5c3f25001f872b6e11e18605cd892aa4c3'
             'd71a5756f6803008c92fd5b14bb377baa538cd56a5674970bfaea3584a60d291'
             '84a03d5fea19cae243c89f50c1736c639622d25d4d1de8d7d53ebd8f603c0f62'
             'ebe90bc95e6d0873e3da99daa9de778c9e041688a3585ee4163a751c6687df94'
-            'de16bb6a58849d6a55ffc287fdf4ee08999df4859d7f5bb25758bfd7b463e4ec'
+            '47f08c3d4cffb1ae84efc43015d7bf10410605cea0bf93740986d0e94d3a5483'
             '7175fecb20dc8e8801ce7b5a7aeb02fb4c4cb259104465b2361b92ab1c3f5468'
             'd3e222ba146df83ab33a4cfa344534c13d125525c2a6d63747452bbce3302669')
 

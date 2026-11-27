@@ -141,6 +141,19 @@ Recipes: [`installer/recipes/linux-aurora-j714s`](../../installer/recipes/linux-
 [`installer/recipes/m1n1-aurora-j714s`](../../installer/recipes/m1n1-aurora-j714s)
 (`aura-j714s-27.2.patch` is `aura/*.patch` concatenated).
 
+## v272-26 (2026-11-27): speaker sense from a driver-owned ring (0014-0017)
+
+Same pin (`7f00dc6bc52c`). 0014-0017 are aurora-silicon/linux #3084 (Erik Bourget, merged on main
+2026-11-26, after our pin), the four commits unchanged; with them `t8152_aop_audio.rs` is byte-identical to
+upstream main's. Before, the 12 V/I sense words of the J714s's six amplifiers kept whatever word offset the
+ADMAC restarted at when PipeWire restarted the sense capture under a running serializer, so speakerguardd v2
+modelled each speaker from another amplifier's voltage and current until the next restart. On our J714s, a
+tone test with the sense read from the protect stage's input (4 kHz on one side, PipeWire stalled 150 ms to
+force restarts): v272-24 held shifts of 2, 3, 4, 6 and 10 (0 is right); v272-26 held 0 in every steady
+stretch, over two runs and six forced restarts. After 2 of those 6 restarts the shift was off for under a
+second (4, then 2) and came back to 0 with no further restart; to report on #3084. Amp fault status 0 on all
+six amplifiers in both kernels.
+
 ## v272-21 (2026-11-26): re-pinned on aurora-silicon/linux main `7f00dc6bc52c`
 
 98 merged upstream PRs since `7a4afed5b4d1` (list in docs/work/release-11.md). The same 11 patches; 0010
