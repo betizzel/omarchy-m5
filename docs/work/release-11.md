@@ -110,4 +110,9 @@ Wi-Fi power save: Omarchy's `omarchy-wifi-powersave.conf` sets `wifi.powersave =
   loader changes, not run on a J714s here: candidates for the next m1n1-aurora, tested on their own boot.
 - Open upstream for the J714s: aurora-silicon/linux #2007 (PMIC RTC alarm), #2277 (jack codec on every T6050 board),
   aura #506 (PMP values on aliasless nodes).
+- aurora-silicon/asahi-audio #45 (Isaac-Duarte, J714 microphones on the t8152-aop-audio card) merged 2026-11-27 as
+  `b2ad98a3`; one WirePlumber file. To test on our J714s as a user override before it reaches a package.
+- aurora-silicon/linux #1699 (joshuaswarren, FatBoy721's patch): keeps the T6050 USB DARTs live across system sleep,
+  because force-suspending them reset a J714s under `pm_test=devices`. Draft, compile-only. Relevant to the v272-22
+  deep sleep test: a reset at lid close points here (v272-21 stays the fallback).
 - #12: andyholst offered a second J714s for testing (asked to install release 10 and file a test report).
