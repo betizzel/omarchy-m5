@@ -87,6 +87,22 @@ Release when 1-4 pass: sign both packages into `repo-aarch64`, then README, docs
 - Image: `installer-image.yml` run 45936405605 (image-version 11).
 - Not in the image: `omarchy-brightness-auto` and `wluma` (no role in the profile); they come from `[omarchy-m5]`.
 
+## v272-22: deep sleep (built 2026-11-27, not booted)
+
+`CONFIG_APPLE_SOC_SLEEP` was off in our config since v272-12, so `/sys/power/mem_sleep` offered `[s2idle]` only.
+Upstream builds it in (`asahi.config`, `aurora_defconfig`), and the driver treats T6050 as a tested SoC
+(`sleep-t6050.h`: `early_context`, not `untested`, so no `apple_sleep.deep` or `untested_commit` is needed). The
+J714s tree carries its sleep nodes (`t6050-j714s-sleep*.dtsi`, `apple,display-method-sleep`), and our Aura already
+passes `/chosen/aurora,s2r-mailbox`. v272-22 = v272-21 with `CONFIG_APPLE_SOC_SLEEP=y` (d35a0bb): 1754 modules,
+`7.3.0-17.v272-22-ARCH`, sha256 `b6e16533…`, draft release `build-linux-v272-22`, staged on the Mac as
+`/root/linux-aurora-7.3.0.aurora17.v272-22-aarch64.pkg.tar.zst`. Test with the owner: `mem_sleep` shows `deep`,
+lid sleep for some minutes, key wake, Wi-Fi/Bluetooth/panel/sound back, battery drop during the sleep; v272-21 as
+the Limine fallback (copy its UKI to `omarchy_v272-21-proven.efi`, v272-20's moves to `/boot/esp-overflow`).
+
+Wi-Fi power save: Omarchy's `omarchy-wifi-powersave.conf` sets `wifi.powersave = 2` (off); erikwb measured about
+-0.35 W with it on (weirdware.io/aurora/j716c-energy.html). On our J714s `zz-j714s-wifi-powersave.conf` sets 3;
+`iw` reports power save on, ping 0% loss.
+
 ## Watching (not in release 11)
 
 - aurora-silicon/aura main `d833bf40` (2026-11-26) has T6050 changes since our m1n1 pin: funkzy's AOP handoff (#474)
