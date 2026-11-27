@@ -89,7 +89,10 @@ Release when 1-4 pass: sign both packages into `repo-aarch64`, then README, docs
   `~/.config/wireplumber/wireplumber.conf.d/70-j714-hpai-mic.conf` matches `alsa.card_name = "MacBook Pro J714 HPAI"`
   (capture) and attaches the same J714 graph (`/usr/share/omarchy-mac/j714/mic.json`). After: `effect_output.j714-mic`
   is up, the default source `omarchy_asahi_mic` records speech at -37.4 dBFS peak (RMS -51.6), +17.5 dB.
-  Not yet in a package.
+  Then packaged: omarchy-aurora-firmware `20261014.j714s16-2` (sha256 `a42c35ce…`, built in `alarm-builder` on
+  ush; file list identical to -1) carries the card-name match in `j714-mic.conf`. Installed, the user file removed,
+  WirePlumber restarted: `effect_output.j714-mic` comes up from the package. Signed into `repo-aarch64` (-1
+  retired). Test note on asahi-audio #45.
 
 ## Release 11 image (2026-11-26)
 
@@ -120,6 +123,12 @@ profile (`sleep-t6050.h`, `.machine = "apple,j714s"`) was measured on the 18-cor
 `apple_sleep_validate_cpu_topology()` refuses it. No upstream PR covers the 15-core part yet (searched 2026-11-27).
 Lowering `cpu_count` would run a power sequence measured on other hardware, so it is left for upstream. v272-21 is the
 Limine fallback (`omarchy_v272-21-proven.efi`), its modules restored next to v272-22's.
+
+v272-23 (patch 0012, ea5cac9): the inventory check accepts fewer possible CPUs than the profile's 18; the per-core
+loop still checks each core's cluster, core, MPIDR and CPU-start bit, and `cpu_count` is used nowhere else in the
+driver. Built on ush 2026-11-27 (sha256 `413a9018…`, 1754 modules), staged on the Mac as
+`/root/linux-aurora-7.3.0.aurora17.v272-23-aarch64.pkg.tar.zst`, not installed. The sleep sequence itself was measured
+on the 18-core part.
 
 Wi-Fi power save: Omarchy's `omarchy-wifi-powersave.conf` sets `wifi.powersave = 2` (off); erikwb measured about
 -0.35 W with it on (weirdware.io/aurora/j716c-energy.html). On our J714s `zz-j714s-wifi-powersave.conf` sets 3;

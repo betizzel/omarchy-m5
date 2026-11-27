@@ -1,6 +1,6 @@
 pkgname=omarchy-aurora-firmware
 pkgver=20261014.j714s16
-pkgrel=1
+pkgrel=2
 pkgdesc='Order Apple peripheral admission after device firmware extraction'
 arch=('aarch64')
 groups=('omarchy-platform-apple-silicon')
@@ -13,7 +13,7 @@ source=(aurora-firmware-order.conf aurora-peripheral-firmware.sh
         95-aurora-vendor-order.conf aurora-vendor-order-cryptsetup.conf
         20-aurora-vendor-order.conf aurora-regdom-fallback
         aurora-regdom-fallback.service 86-aurora-regdom-fallback.rules
-        # J714 microphones: edimoldovan/omarchy-mac-pkgs j714-speaker-route-volume 0a00f7a88711
+        # J714 microphones: edimoldovan/omarchy-mac-pkgs j714-speaker-route-volume 0a00f7a88711; the HPAI card (pkgrel 2): asahi-audio #45
         j714-mic.json wireplumber-j714-mic.conf
         # N1 6 GHz: edimoldovan/omarchy-mac-pkgs iwd-6ghz-bcm4388-only 702a6ec363
         iwd-n1-main.conf 30-aurora-n1-6ghz.conf
@@ -46,7 +46,7 @@ sha256sums=('e2d6d6008bfde44ba871da2fcaae22b409d52ea8695fcf672bc3b06d786f823e'
             '5aeb12c046553b53e5edd75a7c94a082e8c4edc4ee1226f5163d5ce9774f4d3c'
             '3b994ae27fd1a14ccd569cfc103b205807fe262fe2487446de02d870455e1ec8'
             '2ed01ea6fc1139f5c24bde4385fd5c7ec2f7dcd1fa53d056f5afe40d148d93d8'
-            'b6a234e472009913a4b44203fb3a1834f3e5904d67ccd949b2f840307279180b'
+            '0965bd9545124ca8b1ae1b9da93c303aaa9a242726b377d7e34af4a96833ef91'
             '345282cf4827e1324ab454fba40c6693a828899ef1fe3c8a461918f2b785076f'
             'bd8c5c3d03ba3678e08b328fee603cbfd89e76241e029f6e80e90fc1dcff7294'
             '88d8f67c2066aab9abd738c83da5a89bf5be653e4e5d102bca6e6c9cfceefb3c'
