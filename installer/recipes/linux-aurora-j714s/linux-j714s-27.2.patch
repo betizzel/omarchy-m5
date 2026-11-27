@@ -1375,3 +1375,37 @@ index d6cf011a7786..216f7f37762d 100644
 -- 
 2.56.1
 
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: TripleU <182648541+TripleU613@users.noreply.github.com>
+Date: Fri, 27 Nov 2026 11:35:00 -0500
+Subject: [PATCH 12/12] soc: apple: sleep: admit a binned part with fewer cores
+ than the profile's machine
+
+The J714s profile was measured on the 18-core M5 Pro. The 15-core M5 Pro
+J714s has the same boot MPIDR and three clusters of five cores, and the
+CPU inventory check refused it ("unsupported CPU inventory"), so it only
+offered s2idle. Accept fewer possible CPUs than the profile's count; the
+loop below still checks each core's cluster, core number, MPIDR and
+CPU-start bit.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+---
+--- a/drivers/soc/apple/sleep.c
++++ b/drivers/soc/apple/sleep.c
+@@ -2219,8 +2219,12 @@
+ 		return dev_err_probe(s->dev, -EINVAL, "invalid CPU-start geometry\n");
+ 
+ 	/* The node's compatible chose the profile: its machine is where it was measured */
++	/*
++	 * A binned part of the same machine has fewer cores (the 15-core M5 Pro J714s against the
++	 * 18-core one the profile was measured on); every core it does have is checked below.
++	 */
+ 	if (soc->machine && (cpu_logical_map(0) != soc->boot_mpidr ||
+-			     num_possible_cpus() != soc->cpu_count))
++			     num_possible_cpus() > soc->cpu_count))
+ 		return dev_err_probe(s->dev, -EINVAL, "unsupported CPU inventory\n");
+ 
+ 	index = of_property_match_string(np, "reg-names", "cpu-start");
+-- 
+2.47.0
+
