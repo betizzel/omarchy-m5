@@ -66,12 +66,13 @@
 # Config (v272-9): BT_RFCOMM, BT_RFCOMM_TTY, PKCS8_PRIVATE_KEY_PARSER (chrisohearn, betizzel/omarchy-m5#9)
 # Config (#14): BBR and fq, policy routing, connmark and masquerade (tailscaled), BNEP, the other ufw IPv6
 #   header matches (chrisohearn, betizzel/omarchy-m5#14)
-# Config: CONFIG_APPLE_SOC_SLEEP stays off (deep sleep not offered; /sys/power/mem_sleep is [s2idle] only).
+# Config (v272-22): CONFIG_APPLE_SOC_SLEEP=y, upstream's default: deep sleep (s2r) on T6050 when Aura passes
+#   /chosen/aurora,s2r-mailbox (ours does). Was off since v272-12.
 # Same package name as the image's kernel (linux-aurora); the version sorts above up273.
 
 _auroraver=7.3.0
 _aurorarel=17.v272
-pkgrel=21
+pkgrel=22
 
 _commit=7f00dc6bc52c3ba7cf0168740183876f71770531
 
@@ -102,7 +103,7 @@ sha256sums=('aca7420a18139474da62a81c77fc6e5c3f25001f872b6e11e18605cd892aa4c3'
             'cfb22a6851875051e5274be523e340be04ec19e96f1b009c203d0c3ba5545b79'
             'd71a5756f6803008c92fd5b14bb377baa538cd56a5674970bfaea3584a60d291'
             '84a03d5fea19cae243c89f50c1736c639622d25d4d1de8d7d53ebd8f603c0f62'
-            'c784712b49e495ee40a2aaaddacd4ffaf3beb62654f571cead7673eb17eae11d'
+            'ebe90bc95e6d0873e3da99daa9de778c9e041688a3585ee4163a751c6687df94'
             'de16bb6a58849d6a55ffc287fdf4ee08999df4859d7f5bb25758bfd7b463e4ec'
             '7175fecb20dc8e8801ce7b5a7aeb02fb4c4cb259104465b2361b92ab1c3f5468'
             'd3e222ba146df83ab33a4cfa344534c13d125525c2a6d63747452bbce3302669')
