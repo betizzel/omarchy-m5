@@ -130,6 +130,16 @@ driver. Built on ush 2026-11-27 (sha256 `413a9018…`, 1754 modules), staged on 
 `/root/linux-aurora-7.3.0.aurora17.v272-23-aarch64.pkg.tar.zst`, not installed. The sleep sequence itself was measured
 on the 18-core part.
 
+**v272-23 on our J714s, 2026-11-27:** `mem_sleep` = `s2idle [deep]`, `apple-sleep: deep sleep is the default`.
+Lid close 12:31:33 `PM: suspend entry (deep)`; 14 coprocessors stopped; 930 s asleep; lid-open wake, no reset, no
+failed units. Back: Wi-Fi (ping), Bluetooth, eDP-1 at 120 Hz, speakerguardd v2, the J714 mic graph. Not back:
+**the PMP** (`apple_pmp: RTKit: endpoint discovery failed: -62`, `firmware did not come back from sleep`), so after
+30 s cpufreq caps every cluster at 1.31-1.34 GHz ("fast die-temperature limit unavailable") until a reboot; and the
+SD reader's root port (`pcieport 0000:00:01.0: Unable to change power state from D3hot to D0`). The battery drop was
+not measured (AC reported online). Not published. On our Mac `/etc/tmpfiles.d/j714s-mem-sleep-s2idle.conf` keeps
+s2idle as the default so a lid close doesn't cap the CPUs; deep stays selectable. Upstream: no PR found for the
+T6050 PMP coming back from deep sleep (#2476, keep the PMP bound, is already in this pin).
+
 Wi-Fi power save: Omarchy's `omarchy-wifi-powersave.conf` sets `wifi.powersave = 2` (off); erikwb measured about
 -0.35 W with it on (weirdware.io/aurora/j716c-energy.html). On our J714s `zz-j714s-wifi-powersave.conf` sets 3;
 `iw` reports power save on, ping 0% loss.
