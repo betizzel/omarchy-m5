@@ -1,6 +1,7 @@
-# hyprland-m5: Omarchy's Hyprland 0.57.2-2 for the M5 Pro MacBook's DCP display.
+# hyprland-m5: Omarchy's Hyprland 0.57.2-7 for the M5 Pro MacBook's DCP display.
 #
-# Gathered. The recipe is omacom/omarchy-pkgs pkgbuilds/hyprland 0.57.2-2 (its three patches kept)
+# Gathered. The recipe is omacom/omarchy-pkgs pkgbuilds/hyprland 0.57.2-7 (167f408d, its four patches kept;
+# pkgrel 5 here = their rebuild against hyprgraphics 0.7.0 and the held-pointer patch, #3604)
 # built as hyprland-m5 with three more patches:
 #  0001 rolotrealanis98's direct-scanout failed-candidate latch (m5pro-linux contrib/validated/
 #       desktop/hyprland, 46d3b2e): a fullscreen client the DCP cannot scan out was re-tested every
@@ -20,8 +21,8 @@
 pkgname=hyprland-m5
 pkgver=0.57.2
 # Above Arch's 0.57.2-1, so an x86_64 machine that took Arch's build moves to this one
-pkgrel=4
-pkgdesc='Hyprland for the M5 Pro MacBook DCP (Omarchy 0.57.2-2 + direct-scanout latch + alpha-only primary planes + EDID primaries guard)'
+pkgrel=5
+pkgdesc='Hyprland for the M5 Pro MacBook DCP (Omarchy 0.57.2-7 + direct-scanout latch + alpha-only primary planes + EDID primaries guard)'
 # Built for x86_64 too, so PCs get the patches below and move with the titlebars plugin: see README.md
 arch=(x86_64 aarch64)
 url="https://github.com/hyprwm/Hyprland"
@@ -89,6 +90,7 @@ source=("$_archive.tar.gz::$url/releases/download/v$pkgver/source-v$pkgver.tar.g
         nvidia-egl-teardown.patch
         wl-output-global-grace.patch
         monitor-rule-vrr.patch
+        held-pointer-without-keyboard-focus.patch
         0001-direct-scanout-latch-failed-candidate.patch
         0002-output-support-alpha-only-scanout.patch
         0003-output-treat-degenerate-edid-primaries-as-missing.patch)
@@ -96,6 +98,7 @@ sha256sums=('34dbec0738ab88c8228caf89385662688ab1601ea58fbe5c60a6b6ab383db46d'
             '26d62139b8ae55e286bcdff1838a6bc01a021d8f1039b40b8fa523df83f61610'
             '8fa0f57dc1b3246ab4e30ae81419150f4af7767fb31e739e36c824c6d99fab73'
             'c14fb0ec02d97100bcfa4e5c8daaf524972fa5c665e04960619744ba01c73c39'
+            '87b9af2452d79ff23c88864dabab962ac361dda8c8e18a2c3bf5289e19cbe9b0'
             'a919446a8fe92d4c251c5310ee2f1a6c567136e8b4d450d1fac08526e552b849'
             '5fcd37fc0193223d10d309441f87acd82552fb497d5d9fc7f34f874a40bfdd42'
             '2b04efbf7957c45cb23cc3df56e2228e26465eddf99f07b01db0d133686bb850')
@@ -110,6 +113,9 @@ prepare() {
 	patch -Np1 --fuzz=0 -i "$srcdir/wl-output-global-grace.patch"
 	# A reload ignored a monitor rule's vrr unless something else about the rule changed
 	patch -Np1 --fuzz=0 -i "$srcdir/monitor-rule-vrr.patch"
+	# A pressed surface lost the pointer once it left the surface whenever nothing
+	# held keyboard focus, so a drag from a layer over an empty workspace died
+	patch -Np1 --fuzz=0 -i "$srcdir/held-pointer-without-keyboard-focus.patch"
 	# M5 DCP: rolotrealanis98's direct-scanout latch, then pick an alpha format first
 	patch -Np1 --fuzz=0 -i "$srcdir/0001-direct-scanout-latch-failed-candidate.patch"
 	patch -Np1 -i "$srcdir/0002-output-support-alpha-only-scanout.patch"
