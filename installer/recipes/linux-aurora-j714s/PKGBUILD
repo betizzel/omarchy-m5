@@ -70,11 +70,12 @@
 #   /chosen/aurora,s2r-mailbox (ours does). Was off since v272-12.
 # Patch 0012 (v272-23, v2 in v272-24): the sleep driver admits the 15-core M5 Pro J714s (profile measured on
 #   18 cores; inventory from the DT CPU nodes; s2idle stays the default there).
+# Patch 0013 (v272-25): the J714s opts into the software camera indicator (#2561), DCP slot 3 (#33).
 # Same package name as the image's kernel (linux-aurora); the version sorts above up273.
 
 _auroraver=7.3.0
 _aurorarel=17.v272
-pkgrel=24
+pkgrel=25
 
 _commit=7f00dc6bc52c3ba7cf0168740183876f71770531
 

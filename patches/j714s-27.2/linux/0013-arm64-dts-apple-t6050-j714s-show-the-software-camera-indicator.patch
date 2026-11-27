@@ -1,0 +1,36 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: TripleU <182648541+TripleU613@users.noreply.github.com>
+Date: Fri, 27 Nov 2026 15:05:00 -0500
+Subject: [PATCH 13/13] arm64: dts: apple: t6050-j714s: Show the software camera
+ indicator (slot 3)
+
+The J714s camera light stays off: upstream replaced the light with a
+software indicator the DCP draws while the camera streams (#2561), which a
+board opts into. DRM owns swap slots 0 and 1 on the J714s DCP (no
+apple,iomfb-surfaces), so the indicator takes slot 3, as on J615.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+---
+--- a/arch/arm64/boot/dts/apple/t6050-j714s.dts
++++ b/arch/arm64/boot/dts/apple/t6050-j714s.dts
+@@ -1123,3 +1123,17 @@
+ 
+ /* HDMI, through ATC3 and the on-board DP-to-HDMI converter */
+ #include "t6050-j714s-hdmi.dtsi"
++
++/*
++ * The camera has no light the kernel drives here; the DCP draws upstream's software indicator
++ * (#2561) while the camera streams. DRM owns swap slots 0 and 1 on this DCP (no
++ * apple,iomfb-surfaces), so the indicator takes slot 3, as on J615: in slot 2 it would only
++ * show where the desktop is transparent.
++ */
++&dcp {
++	apple,camera-indicator-surface = <3>;
++};
++
++&isp0 {
++	apple,camera-indicator = <&dcp>;
++};
+-- 
+2.47.0
+
