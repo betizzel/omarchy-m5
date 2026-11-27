@@ -17,6 +17,9 @@ What's next, roughly in order. Anyone with an M5 Mac can take one: open an issue
   battery drop over a night.
 - **Next kernel:** re-pin on upstream main with erikwb's power set and axboe's GPU voltages from the loader
   (aurora-silicon/linux #3255, aura #534), measured before and after with the SMC's Total System Power.
+- **Camera indicator:** the green LED stays off since v272-19; upstream draws a software indicator on the display
+  instead (aurora-silicon/linux #2561, in v272-23). The J714s needs the small device-tree opt-in (as #2651 did for
+  the J700); test it here, then send it upstream ([#33](https://github.com/betizzel/omarchy-m5/issues/33)).
 - **Next loader (m1n1):** aura's T6050 changes since our pin (funkzy's AOP handoff #474, framebuffer checks #492).
 
 **Needs testing (owners welcome)**
