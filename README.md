@@ -3,7 +3,7 @@
 </p>
 
 <p align="center">
-<a href="https://github.com/betizzel/omarchy-m5/stargazers"><img alt="Stars" src="https://img.shields.io/github/stars/betizzel/omarchy-m5?style=for-the-badge&logo=github&color=7aa2f7&labelColor=1a1b26"></a> <a href="https://github.com/betizzel/omarchy-m5/watchers"><img alt="Watchers" src="https://img.shields.io/github/watchers/betizzel/omarchy-m5?style=for-the-badge&logo=github&color=bb9af7&labelColor=1a1b26"></a> <a href="tools/update-source/README.md"><img alt="omarchy update: signed repo" src="https://img.shields.io/badge/omarchy%20update-signed%20repo-9ece6a?style=for-the-badge&labelColor=1a1b26"></a> <a href="docs/news.md"><img alt="Kernel v272-23" src="https://img.shields.io/badge/kernel-v272--23-bb9af7?style=for-the-badge&labelColor=1a1b26"></a> <a href="https://github.com/betizzel/omarchy-m5/releases"><img alt="Latest release" src="https://img.shields.io/github/v/release/betizzel/omarchy-m5?include_prereleases&filter=omarchy-j714s-*&style=for-the-badge&color=7aa2f7&labelColor=1a1b26&label=image"></a> <a href="https://github.com/betizzel/omarchy-m5/commits/main"><img alt="Last commit" src="https://img.shields.io/github/last-commit/betizzel/omarchy-m5?style=for-the-badge&color=e0af68&labelColor=1a1b26"></a> <a href="LICENSE"><img alt="License" src="https://img.shields.io/github/license/betizzel/omarchy-m5?style=for-the-badge&color=7dcfff&labelColor=1a1b26"></a>
+<a href="https://github.com/betizzel/omarchy-m5/stargazers"><img alt="Stars" src="https://img.shields.io/github/stars/betizzel/omarchy-m5?style=for-the-badge&logo=github&color=7aa2f7&labelColor=1a1b26"></a> <a href="https://github.com/betizzel/omarchy-m5/watchers"><img alt="Watchers" src="https://img.shields.io/github/watchers/betizzel/omarchy-m5?style=for-the-badge&logo=github&color=bb9af7&labelColor=1a1b26"></a> <a href="tools/update-source/README.md"><img alt="omarchy update: signed repo" src="https://img.shields.io/badge/omarchy%20update-signed%20repo-9ece6a?style=for-the-badge&labelColor=1a1b26"></a> <a href="docs/news.md"><img alt="Kernel v272-24" src="https://img.shields.io/badge/kernel-v272--24-bb9af7?style=for-the-badge&labelColor=1a1b26"></a> <a href="https://github.com/betizzel/omarchy-m5/releases"><img alt="Latest release" src="https://img.shields.io/github/v/release/betizzel/omarchy-m5?include_prereleases&filter=omarchy-j714s-*&style=for-the-badge&color=7aa2f7&labelColor=1a1b26&label=image"></a> <a href="https://github.com/betizzel/omarchy-m5/commits/main"><img alt="Last commit" src="https://img.shields.io/github/last-commit/betizzel/omarchy-m5?style=for-the-badge&color=e0af68&labelColor=1a1b26"></a> <a href="LICENSE"><img alt="License" src="https://img.shields.io/github/license/betizzel/omarchy-m5?style=for-the-badge&color=7dcfff&labelColor=1a1b26"></a>
 </p>
 
 <p align="center">
@@ -45,7 +45,7 @@ Turned it on before 2026-11-27? Run `bash enable` once more to get the GPU drive
 | **GPU acceleration** | OpenGL 4.6 and Vulkan 1.4 on the M5 Pro's GPU; the desktop renders on it (glmark2 3003 against 89) |
 | **Microphones** | about 17 dB louder, from Isaac-Duarte's fix |
 | **Wi-Fi power save** | on by default, about -0.35 W (erikwb's measurement) |
-| **Kernel v272-23** | the M5 Pro deep sleep driver, opt-in for now; lid sleep stays s2idle |
+| **Kernel v272-24** | the M5 Pro deep sleep driver, opt-in for now; lid sleep stays s2idle |
 
 All of it through `omarchy update` since 2026-11-27. Earlier releases: [what's new](docs/news.md).
 
