@@ -9,6 +9,7 @@ been tested, nothing that hasn't. Builds live on ush (`~/m5/work/k21`, `~/m5/wor
 | --- | --- | --- |
 | Kernel linux-aurora v272-21 | aurora-silicon/linux main `7f00dc6bc52c` (98 merged PRs since v272-20's `7a4afed5b4d1`) plus our 11 patches | built on ush 2026-11-26 (sha256 `2026eef5…`); **booted, tested and published in `[omarchy-m5]` 2026-11-26** |
 | `omarchy-brightness-auto` | joshuaswarren (omacom/omarchy-mac-pkgs #144, open), MIT | packaged unchanged from his commit `2d2ecbc1`; off by default. **Tested on our J714s and published in `[omarchy-m5]` 2026-11-26** |
+| Mesa / Vulkan `e705eca833f` (2026-11-22) | omacom edge channel (omacom/omarchy-pkgs 9e1c6ef1; the Asahi/Borealis M5 work of DjDeveloperr, jgoyvaerts, funkzy and others) | **tested on our J714s 2026-11-26, installed; in the release 11 image** |
 | `wluma` 5.0.4 for aarch64 | AUR package (torculus), upstream maximbaz/wluma, ISC | built on ush in alarm-builder (`--nocheck`); **published 2026-11-26** |
 
 ### Kernel: what the re-pin brings (merged upstream after v272-20)
@@ -57,11 +58,34 @@ Release when 1-4 pass: sign both packages into `repo-aarch64`, then README, docs
 - 2026-11-26, tests 1-3 on v272-21 (owner at the passphrase): v272-20's UKI copied to `omarchy_v272-20-proven.efi` as the
   Limine fallback (v272-19's moved to `/boot/esp-overflow`), `pacman -U` of the staged package, reboot. `uname -r`
   7.3.0-17.v272-21-ARCH, no failed units; Wi-Fi joined, Bluetooth powered, eDP-1 3024x1964 at 120 Hz, Hyprland on
-  OpenGL ES 3.2 Mesa through the aurora driver (the `bootstrap failed at session: EPROBE_DEFER` lines are the same on
-  v272-20), camera (apple-isp) captured 5 frames, the three audio cards and the DisplayPort audio, Touch ID lists the
+  OpenGL ES 3.2 Mesa (the `bootstrap failed at session: EPROBE_DEFER` lines are the same on v272-20; **correction,
+  later the same day: that Mesa, j714s2 043a4c5, was rendering in software, see below**), camera (apple-isp) captured 5 frames, the three audio cards and the DisplayPort audio, Touch ID lists the
   enrolled finger. s2idle: entry 10:34:23, key wake 10:34:46, Wi-Fi, Bluetooth and the panel back. Signed into
   `repo-aarch64` (v272-20 package retired from the database; its release asset stays). The Mac sees
   `7.3.0.aurora17.v272-21` in the published database. Demo hold removed.
+
+- 2026-11-26 evening, Mesa: `eglinfo` showed `llvmpipe` on every platform and `vulkaninfo` found no GPU. With
+  `EGL_LOG_LEVEL=debug` the j714s2 build (043a4c5, 2026-11-09, pinned since release 2) says "Apple G17S uses the
+  HAL300 command stream, which this driver does not implement", so the desktop and every app drew on the CPU on
+  every release so far (earlier "GPU desktop" results only saw Hyprland start). omacom's edge Mesa e705eca833f,
+  run from a scratch directory first: OpenGL 4.6 / ES 3.2 on "Apple M5 Pro (G17S B1)"; glmark2-es2-wayland
+  (800x600, build/texture/phong/refract/terrain) 3003 against llvmpipe's 89; `--validate` 27 Success, 6 Unknown,
+  0 failures; no kernel GPU errors. Installed with `pacman -U` (the j714s2 files kept in `/root/rollback-mesa`);
+  Vulkan 1.4.363 on the GPU (Borealis), vkcube 600 frames. Hyprland moves to the GPU at the next login.
+- Bar GPU widgets (Argus, hw-monitor) read amdgpu, NVIDIA or Intel counters only. The aurora driver lists
+  per-client `drm-engine-*` in fdinfo, but the times stay 0 ns while vkcube runs, so there is nothing to show yet.
+- Idle CPU: with nothing playing, PipeWire holds about half a core (speakerguardd-v2's protection stage runs on
+  the dummy driver by design, DESIGN.md) and speakersafetyd about 11%. Speaker safety is left as it is.
+
+## Release 11 image (2026-11-26)
+
+- `installer/patches-j714s-r2` 0015: kernel v272-21 (from d3b70d2) and Mesa/Vulkan e705eca833f as omacom edge
+  channel packages (the epoch's colon written as a dot in the set's file names); set `j714s-dev-runtime-52a694e7fa94`;
+  qualification pins `7.3.0-17.v272-21-ARCH`; TREE `7001f8d0`.
+- Inputs: [`installer-build-inputs-j714s-1602c9eab948`](https://github.com/betizzel/omarchy-m5/releases/tag/installer-build-inputs-j714s-1602c9eab948),
+  20 packages signed by 547AF6CC...BC5DF9F6; the other 17 are release 10's.
+- Image: `installer-image.yml` run 45936405605 (image-version 11).
+- Not in the image: `omarchy-brightness-auto` and `wluma` (no role in the profile); they come from `[omarchy-m5]`.
 
 ## Watching (not in release 11)
 
