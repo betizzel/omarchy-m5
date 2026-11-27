@@ -17,30 +17,30 @@
 | 116–160 | Plan: `need = stub + EFI + Linux + 64 MiB` (decimal G/M, so 6e9 + 5e8 + N + 64 MiB). Shrinks `disk0s2` by the shortfall, rounded down to 1 MiB, passing **bytes** to diskutil | With `--linux-size 20G`: need ≈ 26.567 GB, so new size ≈ 994.6 − 26.6 ≈ **968.0 GB** |
 | 166–186 | `find_stub`: an `Apple_APFS` partition on disk0 other than disk0s2 with a volume named `Omarchy*` (re-runnable; it resumes) | Selects by type and name, never by number. ISC/Recovery are excluded by type |
 | 188–207 | Prints the plan, then **`Proceed? [y/N]`**. Anything but `y` aborts | **This is the dry run**: answer `N` (nothing changed except the temporary Recovery mount) |
-| 213–214 | ⚠ `diskutil apfs resizeContainer disk0s2 <NEW_SIZE>B` | Shrinks macOS. Works with FileVault on |
-| 219–220 | ⚠ `diskutil addPartition disk0s2 apfs Omarchy 6G` | New container right after s2 |
-| 233–298 | ⚠ Turns the default volume into Data (`changeVolumeRole … D`, rename `Omarchy - Data`), adds System (`-role S -groupWith Data`), Preboot (`-role B`) and Recovery (`-role R`), deletes stray no-role volumes, **requires exactly 4 volumes**, prints the **stub VGID** | — |
-| 300–309 | ⚠ If no `EFI`/"Microsoft Basic" partition exists on disk0: `diskutil addPartition <stub> %EFI% %noformat% 500M`, then `newfs_msdos -F 32 -v OMARCHY /dev/r<efi>` | Ours has none, so it creates one. The `awk '$2=="EFI"'` match is simple; check the result in the post-check |
-| 312–320 | ⚠ If `--linux-size`: `diskutil addPartition <efi> %Linux% %noformat% 20G` (unformatted) | — |
-| 324–340 | ⚠ Stub Preboot: `ditto` the macOS **`restore` bundle** into `<stubVGID>/restore`, then copies **`AdminUserRecoveryInfo.plist`** and sets `schg` | This is what makes the stub's recoveryOS accept *our* admin/FileVault users |
-| 342–356 | ⚠ Stub Recovery: copies the macOS **`arm64eBaseSystem.dmg`** (recoveryOS image) | — |
-| 358–369 | ⚠ Stub System: copies `SystemVersion.plist`, `PlatformSupport.plist`, `bootcaches.plist`; sets ProductName "Omarchy Linux (stub)" | — |
+| 213–214 | (!) `diskutil apfs resizeContainer disk0s2 <NEW_SIZE>B` | Shrinks macOS. Works with FileVault on |
+| 219–220 | (!) `diskutil addPartition disk0s2 apfs Omarchy 6G` | New container right after s2 |
+| 233–298 | (!) Turns the default volume into Data (`changeVolumeRole … D`, rename `Omarchy - Data`), adds System (`-role S -groupWith Data`), Preboot (`-role B`) and Recovery (`-role R`), deletes stray no-role volumes, **requires exactly 4 volumes**, prints the **stub VGID** | — |
+| 300–309 | (!) If no `EFI`/"Microsoft Basic" partition exists on disk0: `diskutil addPartition <stub> %EFI% %noformat% 500M`, then `newfs_msdos -F 32 -v OMARCHY /dev/r<efi>` | Ours has none, so it creates one. The `awk '$2=="EFI"'` match is simple; check the result in the post-check |
+| 312–320 | (!) If `--linux-size`: `diskutil addPartition <efi> %Linux% %noformat% 20G` (unformatted) | — |
+| 324–340 | (!) Stub Preboot: `ditto` the macOS **`restore` bundle** into `<stubVGID>/restore`, then copies **`AdminUserRecoveryInfo.plist`** and sets `schg` | This is what makes the stub's recoveryOS accept *our* admin/FileVault users |
+| 342–356 | (!) Stub Recovery: copies the macOS **`arm64eBaseSystem.dmg`** (recoveryOS image) | — |
+| 358–369 | (!) Stub System: copies `SystemVersion.plist`, `PlatformSupport.plist`, `bootcaches.plist`; sets ProductName "Omarchy Linux (stub)" | — |
 
 - **Downloads:** **none**. Everything is cloned from this Mac's own install. So **the stub OS = this Mac's macOS 26.6.2 boot objects / mBoot-18000.161.10**, which suits this Mac by construction. betizzel's stub was 26.5 / 18000.120.36; the only difference is that ours is newer and matches our firmware.
 - **What it leaves for later:** the bless, the install-media marker, the m1n1 boot object and the 1TR ceremony. Those are all in `finish-install.sh` + `step2.sh`.
 
-### `finish-install.sh`: 🔒 **owner step, because it embeds m1n1**
+### `finish-install.sh`: [owner-only] **owner step, because it embeds m1n1**
 - 129–141: preflight. It needs an m1n1 image (`--m1n1 PATH`; it refuses a CHAINLOADING vendor build). It also re-checks the restore bundle, AdminUserRecoveryInfo and BaseSystem in the stub.
-- 158–305: writes `Finish Installation.app` (launcher → Terminal → `step2.sh`, with VGID/Preboot substituted), then **`cp m1n1 → Resources/boot.bin`** 🔒.
+- 158–305: writes `Finish Installation.app` (launcher → Terminal → `step2.sh`, with VGID/Preboot substituted), then **`cp m1n1 → Resources/boot.bin`** [owner-only].
 - 313–327: creates `Data/private/var/db/dslocal`; sets the APFS bootable flag via `fsctl(APFSIOC_VOL_BOOTABLE)`.
-- 331–339: ⚠ **`bless --setBoot --device /dev/<stubSys> --user <admin>`**. This makes the stub the **global default boot volume**. `bless` will ask for the admin password.
+- 331–339: (!) **`bless --setBoot --device /dev/<stubSys> --user <admin>`**. This makes the stub the **global default boot volume**. `bless` will ask for the admin password.
 - 343–360: hides `SystemVersion.plist` and writes `.IAPhysicalMedia` (AppName "Finish Installation.app"), so the picker boots the stub's *paired recoveryOS* and auto-launches the app.
 - `--undo`: removes the app, re-shows `SystemVersion.plist`, disables the marker. **It does not re-bless macOS.**
 
 ### `step2.sh` (runs in the stub's 1TR)
 1. Checks `bputil -d -v <VGID>` for `: Paired` and `one true recoveryOS`. If those are missing it re-blesses and shuts down.
-2. ⚠ `bputil -nc -v <VGID>`: Permissive, stub only.
-3. ⚠🔒 `kmutil configure-boot -c boot.bin --raw --entry-point 2048 --lowest-virtual-address 0 -v <stubSys>`.
+2. (!) `bputil -nc -v <VGID>`: Permissive, stub only.
+3. (!)[owner-only] `kmutil configure-boot -c boot.bin --raw --entry-point 2048 --lowest-virtual-address 0 -v <stubSys>`.
 4. Renames `.IAPhysicalMedia` away, restores `SystemVersion.plist`, reboots.
 
 **It does not run `csrutil disable` / `nvram boot-args=-v`.** That's the proxy backdoor, a separate owner step (§3).
@@ -88,8 +88,8 @@ Expect `macOS container free space: ~715 GB` and a Plan with:
 
 **STOP if** there's any `ERROR:`, the plan names anything other than disk0s2, or the shrink is ≠ ~26.6 GB.
 
-### (b) Changes: ⚠ each needs owner approval
-1. ⚠ `cd ~/omarchy-m5 && sudo scripts/prep-stub.sh --linux-size 20G` and answer **y**.
+### (b) Changes: (!) each needs owner approval
+1. (!) `cd ~/omarchy-m5 && sudo scripts/prep-stub.sh --linux-size 20G` and answer **y**.
    - *Expect, in order:* `==> Resizing macOS container to <bytes> bytes` → `==> Creating stub APFS container (6G)` → `stub container: diskN (partition disk0s3)` → `==> Creating stub volumes` → `stub VGID: <UUID>` (record it) → `==> Creating EFI partition (500M)` + newfs_msdos output → `==> Creating Linux partition (20G)` → `Populating stub Preboot/Recovery/System` → `==> Done`.
    - **STOP on:** any `ERROR:`, `expected 4 stub volumes`, or a non-zero exit. The script is re-runnable and resumes an existing stub.
 2. Post-check (read-only): `diskutil list disk0`. Expect:
@@ -101,13 +101,13 @@ Expect `macOS container free space: ~715 GB` and a Plan with:
    - s6 Apple_APFS_Recovery 5.4 GB
 
    Also `diskutil apfs list` should show the Omarchy container with 4 volumes (Data, System, Preboot, Recovery). Then `sw_vers` and reboot into macOS once, to show macOS still boots. **STOP** if the layout differs.
-3. 🔒 Owner: build stage-1 m1n1 (`CHAINLOADING=0`, see 06B §3), copy it to the Mac as `~/m1n1-stage1.bin`, and at the console run:
+3. [owner-only] Owner: build stage-1 m1n1 (`CHAINLOADING=0`, see 06B §3), copy it to the Mac as `~/m1n1-stage1.bin`, and at the console run:
    ```sh
    cd ~/omarchy-m5 && sudo scripts/finish-install.sh --m1n1 ~/m1n1-stage1.bin
    ```
    *Expect:* `machine-owner admin for bless: <user>`, `Writing Finish Installation.app`, `Installing m1n1 as …/boot.bin`, `APFS bootable flag: 1`, a `bless` password prompt, `Arming the install-media path`, `==> Done. VGID: <same UUID>`.
 
-   ⚠ From now on the default boot volume is the stub.
+   (!) From now on the default boot volume is the stub.
 
 ## 3. The 1TR step (owner, at the Mac)
 
@@ -120,12 +120,12 @@ Credentials asked for: the **macOS admin user with FileVault access** (machine o
 5. **Finish Installation.app** opens Terminal running `step2.sh`. It prints `bputil -d` output and checks `Paired` + `one true recoveryOS`.
    - If it says "not the recoveryOS paired…", it re-blesses and shuts down; repeat from step 1.
    - If no Terminal appears: **Utilities → Terminal**, then run `"/Volumes/Omarchy/Finish Installation.app/Contents/Resources/step2.sh"`.
-6. Press Enter → ⚠ `bputil -nc -v <VGID>`: **admin credentials (twice)**. This lowers the **stub only** to Permissive.
-7. ⚠🔒 `kmutil configure-boot … boot.bin …`: **admin credentials** again. This installs m1n1 as the stub's custom boot object.
-8. "Installation complete. Press enter to reboot into m1n1." Press Enter. *Expect:* the m1n1 logo and log on the panel (🔒 the m1n1 log is read by the owner only).
+6. Press Enter → (!) `bputil -nc -v <VGID>`: **admin credentials (twice)**. This lowers the **stub only** to Permissive.
+7. (!)[owner-only] `kmutil configure-boot … boot.bin …`: **admin credentials** again. This installs m1n1 as the stub's custom boot object.
+8. "Installation complete. Press enter to reboot into m1n1." Press Enter. *Expect:* the m1n1 logo and log on the panel ([owner-only] the m1n1 log is read by the owner only).
 9. **Proxy backdoor** (Asahi tethered-boot doc), a second 1TR session with the stub as default:
    1. Repeat steps 1–3, but this time choose **Options** (gear) → admin auth → **Utilities → Terminal**.
-   2. ⚠ `csrutil disable && nvram boot-args=-v`. When asked, **select the Omarchy volume** and authenticate. SIP is stored in the stub's LocalPolicy only; `boot-args` is a global NVRAM variable (06B §1).
+   2. (!) `csrutil disable && nvram boot-args=-v`. When asked, **select the Omarchy volume** and authenticate. SIP is stored in the stub's LocalPolicy only; `boot-args` is a global NVRAM variable (06B §1).
    3. Shut down.
 
 ## 4. Undo

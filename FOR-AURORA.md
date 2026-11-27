@@ -56,10 +56,10 @@ packaged but untested on hardware, and SMP no longer depends on it.
 
 ## Status at a glance
 
-boot ✅ · **15/15 cores** ✅ · WFI idle (5.6 W vs 15.3 W with `idle=nop`) ✅ ·
-NVMe ✅ · framebuffer (`eDP-1`) ✅ · keyboard+trackpad ✅ · keyboard backlight ✅ ·
-fans/sensors ✅ · P-core DVFS ✅ · USB-net ✅ · Hyprland on llvmpipe ✅ ·
-sleep on the default kernel (lid wake, panel stays lit) ✅ ·
+boot yes · **15/15 cores** yes · WFI idle (5.6 W vs 15.3 W with `idle=nop`) yes ·
+NVMe yes · framebuffer (`eDP-1`) yes · keyboard+trackpad yes · keyboard backlight yes ·
+fans/sensors yes · P-core DVFS yes · USB-net yes · Hyprland on llvmpipe yes ·
+sleep on the default kernel (lid wake, panel stays lit) yes ·
 Aurora DCP console / brightness / display off-on / patched Hyprland desktop / battery telemetry verified ·
 DCP sleep / Wi-Fi (N1) / GPU open
 

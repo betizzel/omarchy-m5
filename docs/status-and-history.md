@@ -139,19 +139,19 @@ The experimental Aurora/DCP path and its limits are described below.
 
 | Area | State |
 | --- | --- |
-| Boot chain | ✅ iBoot → m1n1 → Linux kernel, **all 15 cores** (stub firmware ≥ mBoot-20457.60) |
-| Root filesystem | ✅ Arch on the **internal SSD** (`nvme0n1p5`), dual-boot, macOS preserved |
-| Storage | ✅ NVMe (ANS2 + NVMMU + SARTv4) |
-| Console / display | ✅ simpledrm fallback (`eDP-1`); experimental Aurora DCP (`eDP-2`) with brightness and display off/on. Patched Hyprland 0.57.1 works on DCP at 3024x1890 / 120 Hz, software-rendered (no GPU) |
-| Input | ✅ built-in keyboard **and** trackpad (DockChannel MTP + `tpmtfw`) |
-| Keyboard backlight | ✅ `fpwm0` + pwm-leds (`/sys/class/leds/kbd_backlight`) |
-| CPU frequency | ✅ all three clusters on schedutil; P cores measured 1307 MHz before, about 4.22 GHz after |
-| CPU idle | ✅ WFI on all 15 cores, no `idle=nop` (patches 0012 + 0013): idle draws 5.6 W in total (SoC 1.6 W) against 15.3 W with `idle=nop` |
-| SMC | ✅ hwmon (both fans, temperatures, power rails); lid opens wake the Mac from sleep; RTC registers |
-| Networking | ✅ USB-C gadget (CDC EEM) - host reaches the Mac over the cable |
-| m1n1 on upstream `main` | ✅ USB enumeration unblocked on T6050 (`patches/m1n1/0005`) |
-| **SMP - secondary CPUs** | ✅ 15/15 online (2026-11-06): stub rebuilt from macOS 27.3 beta 1 (`scripts/refresh-stub-firmware.sh`), kernel patches 0009 + 0010 |
-| Sleep (s2idle) | ✅ On the default kernel, `systemctl suspend` or closing the lid sleeps, and opening the lid wakes it (patch 0011 fixes a resume SError in the debug UART). With cpuidle registered (patch 0013) the tick and timekeeping stop during sleep. The default simpledrm path leaves the panel lit |
+| Boot chain | yes iBoot → m1n1 → Linux kernel, **all 15 cores** (stub firmware ≥ mBoot-20457.60) |
+| Root filesystem | yes Arch on the **internal SSD** (`nvme0n1p5`), dual-boot, macOS preserved |
+| Storage | yes NVMe (ANS2 + NVMMU + SARTv4) |
+| Console / display | yes simpledrm fallback (`eDP-1`); experimental Aurora DCP (`eDP-2`) with brightness and display off/on. Patched Hyprland 0.57.1 works on DCP at 3024x1890 / 120 Hz, software-rendered (no GPU) |
+| Input | yes built-in keyboard **and** trackpad (DockChannel MTP + `tpmtfw`) |
+| Keyboard backlight | yes `fpwm0` + pwm-leds (`/sys/class/leds/kbd_backlight`) |
+| CPU frequency | yes all three clusters on schedutil; P cores measured 1307 MHz before, about 4.22 GHz after |
+| CPU idle | yes WFI on all 15 cores, no `idle=nop` (patches 0012 + 0013): idle draws 5.6 W in total (SoC 1.6 W) against 15.3 W with `idle=nop` |
+| SMC | yes hwmon (both fans, temperatures, power rails); lid opens wake the Mac from sleep; RTC registers |
+| Networking | yes USB-C gadget (CDC EEM) - host reaches the Mac over the cable |
+| m1n1 on upstream `main` | yes USB enumeration unblocked on T6050 (`patches/m1n1/0005`) |
+| **SMP - secondary CPUs** | yes 15/15 online (2026-11-06): stub rebuilt from macOS 27.3 beta 1 (`scripts/refresh-stub-firmware.sh`), kernel patches 0009 + 0010 |
+| Sleep (s2idle) | yes On the default kernel, `systemctl suspend` or closing the lid sleeps, and opening the lid wakes it (patch 0011 fixes a resume SError in the debug UART). With cpuidle registered (patch 0013) the tick and timekeeping stop during sleep. The default simpledrm path leaves the panel lit |
 | Battery / charger | Verified on Aurora: battery telemetry, charging/discharging and charger notifications. Still disabled on the default fallback kernel |
 | Wi-Fi / Bluetooth (N1) | Works in the isolated `aurora-gpu-n1` profile (2026-11-09): WPA3 association on 2.4 and 5 GHz, DHCP, DNS and HTTPS; drivers load and the saved network rejoins by themselves at boot; Bluetooth controller up with classic and LE discovery. Pairing, HID, audio, suspend and sustained load are not qualified. Not in the default kernel |
 | GPU | Native GL/compute and Vulkan-backed Zink checks pass on this J714s. Isolated Zink/Borealis Hyprland renders on simpledrm at 3024x1890 / 60 Hz in short automatic checks. Native Gallium desktop rendering is defective; GPU+DCP and sustained-load qualification remain open |

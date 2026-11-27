@@ -61,7 +61,7 @@ planning around it. Aurora Silicon is clean-rooming for upstream.
 
 ## Phases
 
-### Phase 0 - Research ✅
+### Phase 0 - Research yes
 Four reports in `docs/research/`: kernel/boot chain, hardware matrix,
 Omarchy ARM ecosystem, dual-boot mechanics.
 

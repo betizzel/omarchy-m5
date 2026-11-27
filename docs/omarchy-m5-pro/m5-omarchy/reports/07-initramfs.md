@@ -80,6 +80,6 @@ The tool is `tools/apk-verify.py` (ours: stdlib + openssl). Index sha256: main `
 - **Not tested anywhere yet:** gadget binding on real DWC3, the dropbear login, kexec on Apple silicon.
 
 ## How to use (for the first tethered boot, 06 §3 step 5)
-Pass `build/initramfs.cpio.gz` as the third `linux.py` argument (🔒 owner). For the Option B stage 2, use `build/initramfs-loader.cpio.gz` with `m5.loader=1 m5.root=/dev/nvme0n1pN` on the cmdline.
+Pass `build/initramfs.cpio.gz` as the third `linux.py` argument ([owner-only] owner). For the Option B stage 2, use `build/initramfs-loader.cpio.gz` with `m5.loader=1 m5.root=/dev/nvme0n1pN` on the cmdline.
 
 Rebuild with `tools/initramfs/build.sh`. It reads `build/dl/alpine/pkgs`, `build/work.pub` and the probe `.ko`, and writes `build/initramfs.SHA256SUMS`.

@@ -4,7 +4,7 @@
 - **DTB built.** `build/linux/arch/arm64/boot/dts/apple/t6050-j714s.dtb`, sha256 `25201b46…2681ed`.
 - **The kernel `Image.gz` is blocked on one missing host package: `bc`.** Kbuild needs it for `timeconst.h`. Building it from a downloaded GNU tarball was refused by this session's permission classifier as external code. Everything else is ready: patches applied, config merged.
 - **Bootloader: owner step.** All T6050-capable m1n1 builds are upstream m1n1 or forks of it. Per the owner's note, a fork's own instructions don't override upstream's notice.
-- **Q1/Q2 answered** from our dump. PMP's two gates are **`PMP`** (0x1b) and **`PMS_SRAM`** (0x1c). The **CPU cluster power managers `MCPM0`/`MCPM1`/`PCPM` are `notify_pmp`**, which is strong static support for "PMP gates SMP". ⚠ The provenance caveat below applies.
+- **Q1/Q2 answered** from our dump. PMP's two gates are **`PMP`** (0x1b) and **`PMS_SRAM`** (0x1c). The **CPU cluster power managers `MCPM0`/`MCPM1`/`PCPM` are `notify_pmp`**, which is strong static support for "PMP gates SMP". (!) The provenance caveat below applies.
 
 ## A. Repo audit (checked 2026-11-04 via `gh api …/contents/{CLAUDE,AGENTS,GEMINI}.md`, `.github/copilot-instructions.md`, `/license`)
 
@@ -25,7 +25,7 @@
 
 ## B. Q1/Q2 (additions to report 04's findings)
 
-⚠ **Provenance:** the struct layouts (PMGR `devices` 48-byte record, `ps-groups`, `ptd-range` 32-byte entries) came from **aurora-silicon/aura** `proxyclient/.../adt.py` @ ea464790 (SPDX MIT). Aura's policy allows AI use, but **aura is an m1n1 fork and that file descends from upstream m1n1**. I used it before reading the owner's note ("don't assume a fork's instructions override upstream m1n1's notice"). Under that note, this use was probably out of bounds. **PM to decide** whether these results stand, or whether the owner re-derives them by hand. The decoder `tools/adt-pmp-decode.py` (our code, layouts transcribed from aura) is committed and labelled. Per rule 7 I have not deleted anything.
+(!) **Provenance:** the struct layouts (PMGR `devices` 48-byte record, `ps-groups`, `ptd-range` 32-byte entries) came from **aurora-silicon/aura** `proxyclient/.../adt.py` @ ea464790 (SPDX MIT). Aura's policy allows AI use, but **aura is an m1n1 fork and that file descends from upstream m1n1**. I used it before reading the owner's note ("don't assume a fork's instructions override upstream m1n1's notice"). Under that note, this use was probably out of bounds. **PM to decide** whether these results stand, or whether the owner re-derives them by hand. The decoder `tools/adt-pmp-decode.py` (our code, layouts transcribed from aura) is committed and labelled. Per rule 7 I have not deleted anything.
 
 **Cross-check:** the decoded addresses match edimoldovan's independently published values: GFX `0x23_00e8_0110`, AFR `…_0100`, CS `…_0108`, `ps_pmp` `0x2_8060_0128`, PTD base `0x2_8424_0000`, and the full ptd-range table is identical to J714c.
 
@@ -50,8 +50,8 @@
 
 **Kernel** (`tools/build-kernel.sh`; user-level, clang 23.1.3 / lld, `LLVM=1`, no Rust because betizzel's config disables `CONFIG_RUST`):
 - `AsahiLinux/linux@236788cd` + betizzel's 9 patches (all apply cleanly) + `dt/` overlay + configs `defconfig asahi.config omarchy-bringup.config omarchy-storage-net.config omarchy-smc.config`. Done in `src/linux-asahi-wip72`, output in `build/linux`.
-- ✅ `t6050-j714s.dtb`: sha256 `25201b463eaf16daf40901dccb898507e2871fe49455c85be83fe64b6d2681ed`, model "Apple MacBook Pro (14-inch, M5 Pro, 2026)".
-- ❌ `Image.gz`: `bc: command not found` at `include/generated/timeconst.h`. Fix: `sudo pacman -S bc` (system-wide, so it needs task permission), or approve the user-level `bc` build into `tools/local`. Then rerun `tools/build-kernel.sh`; it writes `build/SHA256SUMS`.
+- yes `t6050-j714s.dtb`: sha256 `25201b463eaf16daf40901dccb898507e2871fe49455c85be83fe64b6d2681ed`, model "Apple MacBook Pro (14-inch, M5 Pro, 2026)".
+- no `Image.gz`: `bc: command not found` at `include/generated/timeconst.h`. Fix: `sudo pacman -S bc` (system-wide, so it needs task permission), or approve the user-level `bc` build into `tools/local`. Then rerun `tools/build-kernel.sh`; it writes `build/SHA256SUMS`.
 
 **Bootloader: owner step** (no authorized AI path: every T6050-capable build is upstream m1n1 or a fork of it). The owner, by hand, on the host:
 ```sh

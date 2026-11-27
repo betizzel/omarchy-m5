@@ -28,14 +28,14 @@
    - checks: `hw.model` = Mac17,9; macOS version; `diskutil list` / `apfs list`; free space ≥ stub 6 GB + ESP 500 MB + Linux 120 GB;
    - spots an existing install (stub 'Omarchy', an EFI of 200–1100 MB, a Linux partition of exactly 120 GB), in which case it skips steps 1–2;
    - checks every artifact in the bundle against its **pinned sha256** and aborts on any mismatch.
-1. ⚠ `sudo prep-stub.sh --linux-size 120000000000B`, then record STUB, EFI and LINUX by type and size.
-2. ⚠ `sudo finish-install.sh --m1n1 m5boot-gz16.bin`, then check that the boot.bin size matches.
-3. ⚠ **Rootfs to LINUX only:**
+1. (!) `sudo prep-stub.sh --linux-size 120000000000B`, then record STUB, EFI and LINUX by type and size.
+2. (!) `sudo finish-install.sh --m1n1 m5boot-gz16.bin`, then check that the boot.bin size matches.
+3. (!) **Rootfs to LINUX only:**
    - check `diskutil info` (Linux Filesystem, 120,000,000,000 B, 4096-B blocks);
    - decompress to a file first. macOS has no zstd, so the bundle ships a static zstd or a gzip variant (TODO);
    - `dd of=/dev/r$LINUX bs=4m`;
    - **read back and check**: the first 4,746,384 × 4 KiB blocks must hash to `927400aa…`.
-4. ⚠ **ESP:** mount; `mkdir m5log m5drop`; unpack `m5drop.tar`; optionally an `m5next/` kernel set with its SHA256SUMS. **Never create `m5stay/`** (it disables the guard); unmount.
+4. (!) **ESP:** mount; `mkdir m5log m5drop`; unpack `m5drop.tar`; optionally an `m5next/` kernel set with its SHA256SUMS. **Never create `m5stay/`** (it disables the guard); unmount.
 
 ## Phase 2: the single 1TR step (owner, at the Mac; from report 11 §3)
 1. `sudo shutdown -h now`; wait 15 s.

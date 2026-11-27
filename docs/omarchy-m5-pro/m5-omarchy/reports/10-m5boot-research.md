@@ -20,7 +20,7 @@
 | Source | Pin | AI instructions | License / use |
 |---|---|---|---|
 | apple-oss-distributions/xnu | `f6217f891ac0` (+ tags `xnu-7195.50.7.100.1`, `xnu-8019.41.5`, `xnu-10002.1.13`, `xnu-11215.1.10`) | none | **APSL 2.0.** Read for interface facts; **write your own struct definitions, don't copy the files** (copying makes the copied file APSL Covered Code) |
-| AsahiLinux/docs | `5acb80f` | none | Docs. ⚠ `fw/macho-boot-protocol.md` links to m1n1's `src/xnuboot.h`: **don't follow m1n1 links** |
+| AsahiLinux/docs | `5acb80f` | none | Docs. (!) `fw/macho-boot-protocol.md` links to m1n1's `src/xnuboot.h`: **don't follow m1n1 links** |
 | Linux (AsahiLinux/linux `asahi-wip-7.2` @ `236788cd`) | local `src/linux-asahi-wip72` | none in tree | GPL-2.0. `Documentation/arch/arm64/booting.rst`; `drivers/watchdog/apple_wdt.c` (SPDX `GPL-2.0-only OR MIT`) |
 | libfdt | the kernel copy `scripts/dtc/libfdt/` (upstream dgibson/dtc `54e547173bf0`) | dtc `AGENTS.md`/`CLAUDE.md`: AI allowed; contribution rules (no AI `Signed-off-by`, `Assisted-by` trailer) apply only to contributions | `GPL-2.0-or-later OR BSD-2-Clause`. Choose BSD-2-Clause for an MIT m5boot |
 | Our dumps | `reports/02-j714s-dump.txt`, `reports/04-j714s-full.txt` | — | ours |

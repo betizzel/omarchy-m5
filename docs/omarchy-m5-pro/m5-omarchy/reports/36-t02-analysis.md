@@ -36,12 +36,12 @@ That is the sysfs `bind` write returning the probe's error. The re-probe failed 
 | Prio | Set | What | Writes | Decides |
 |---|---|---|---|---|
 | 1 | **t06** | READ-ONLY time series: PS_PROT, DAPF 0–0x3c, mailbox, ASC, each **twice 2 s apart**, before and after a stock re-probe; then wider read-only windows (wrapper 0x40–0xfc, DAPF 0x40–0x3fc, PS_PROT 0x20–0xfc, ASC 0x0–0x3c, 0x50–0xfc; risky ASC last) | none of ours | Do PS_PROT target/actual change on RUN? Are the DAPF words counters? Where is the DAPF window table? |
-| 2 | **t07** ⚠ | `op=ps_on`: PS_PROT target := 0xf (ACTIVE), other bits kept, W1C flags cleared (as `apple_pmgr_ps_set`), poll actual ≤10 ms; then stock re-probe | **PS_PROT +0x0 (1 write)** | If actual reaches 0xf and RTKit boots (`rtkit-helper` bound, keyboards in /proc/bus/input/devices), the power state was the blocker |
-| 3 | t08 ⚠ | t07 + TCR BYPASS_DAPF on sids 0–4 | PS_PROT + 5 TCR | If t07 boots RTKit but HID or DMA fails |
+| 2 | **t07** (!) | `op=ps_on`: PS_PROT target := 0xf (ACTIVE), other bits kept, W1C flags cleared (as `apple_pmgr_ps_set`), poll actual ≤10 ms; then stock re-probe | **PS_PROT +0x0 (1 write)** | If actual reaches 0xf and RTKit boots (`rtkit-helper` bound, keyboards in /proc/bus/input/devices), the power state was the blocker |
+| 3 | t08 (!) | t07 + TCR BYPASS_DAPF on sids 0–4 | PS_PROT + 5 TCR | If t07 boots RTKit but HID or DMA fails |
 | 4 | t03 | BYPASS_DAPF only (rebuilt, now also dumps PS_PROT) | 5 TCR | Low: no DART/DAPF symptom seen |
 | — | t04 | tunables | — | **Moot** (already applied). t05 removed |
 
-⚠ **t07/t08 need a PM/owner decision.** PS_PROT is a register of the DART-mtp node (ADT reg[2]), so it's inside "MTP/DART-mtp" by address. But it's a **power-state control**, which is what the no-PMGR rule protects against. The worst case I can see is a hang or SError in the MTP/AOP fabric: a watchdog reset, then macOS. It's still a new class of write, so I recommend running t06 first and t07 only with explicit approval.
+(!) **t07/t08 need a PM/owner decision.** PS_PROT is a register of the DART-mtp node (ADT reg[2]), so it's inside "MTP/DART-mtp" by address. But it's a **power-state control**, which is what the no-PMGR rule protects against. The worst case I can see is a hang or SError in the MTP/AOP fabric: a watchdog reset, then macOS. It's still a new class of write, so I recommend running t06 first and t07 only with explicit approval.
 
 ## CORRECTION 2026-11-05 (report 37)
 PS_PROT 0x2890fc000 is a clock-protection block shared by many DARTs. Each DART selects its own slice via `clock-protection-slice-index`, and dart-mtp's is 13. The +0 word decoded above is not the MTP's power state. The t07 write there was ignored (NATIVE). Text above stays as written.

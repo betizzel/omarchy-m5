@@ -86,11 +86,11 @@ ALARM/Omarchy variants collapse boot+root into one Linux partition (see §6).
 ### Current support (verified, 2026-09-21)
 | Family | Installer | Notes |
 |---|---|---|
-| M1 / M1 Pro/Max/Ultra | ✅ shipped (macOS ≥11.0-12.3 min) | Full support; regression platform for Omarchy MX (14" M1 Pro, `apple,j314s`) |
-| M2 / M2 Pro/Max/Ultra | ✅ shipped (≥12.4-13.4) | Full support incl. Mac Pro |
-| M3 family | ✅ just enabled - tag v0.9.2 (2026-09-14), min macOS **14.8.3**, dedicated OTA-asset firmware path | Kernel feature support still partial: GPU/display WIP, sleep broken (framebuffer limits), HDMI out WIP. Feature page still marks "Installer: WIP" - docs lag the tag |
-| M4 family | ❌ `Installer: no`, everything TBA | Early bring-up only (NVMe/PCIe "signs of life"); Apple's changes broke Asahi's RE tooling (39C3, Dec 2025) |
-| M5 / M5 Pro / M5 Max | ❌ not even in tables; no feature page exists | MacBook Pro M5 Pro/Max announced 2026-03-03 ("Fusion Architecture" dual-die, ships macOS 26.x Tahoe, N1 Wi-Fi 7 chip, TB5) |
+| M1 / M1 Pro/Max/Ultra | yes shipped (macOS ≥11.0-12.3 min) | Full support; regression platform for Omarchy MX (14" M1 Pro, `apple,j314s`) |
+| M2 / M2 Pro/Max/Ultra | yes shipped (≥12.4-13.4) | Full support incl. Mac Pro |
+| M3 family | yes just enabled - tag v0.9.2 (2026-09-14), min macOS **14.8.3**, dedicated OTA-asset firmware path | Kernel feature support still partial: GPU/display WIP, sleep broken (framebuffer limits), HDMI out WIP. Feature page still marks "Installer: WIP" - docs lag the tag |
+| M4 family | no `Installer: no`, everything TBA | Early bring-up only (NVMe/PCIe "signs of life"); Apple's changes broke Asahi's RE tooling (39C3, Dec 2025) |
+| M5 / M5 Pro / M5 Max | no not even in tables; no feature page exists | MacBook Pro M5 Pro/Max announced 2026-03-03 ("Fusion Architecture" dual-die, ships macOS 26.x Tahoe, N1 Wi-Fi 7 chip, TB5) |
 
 ### What technically blocks adding a new SoC (all verified in source)
 1. **Device table:** `CHIP_MIN_VER` (chip_id → min macOS) and `DEVICES` (device_class e.g. `j514sap` → min macOS, expert flag) in `src/main.py`. M4/M5 IDs absent → hard exit before any disk work.

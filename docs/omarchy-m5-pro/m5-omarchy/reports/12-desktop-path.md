@@ -32,13 +32,13 @@
 
   Everything else is plain Omarchy.
 
-**⚠ Blocker for "just install it": platform detection.** `omarchy-hw-platform` reads `/proc/device-tree/compatible`; `if [[ $token == "apple,"* ]] … echo aarch64-apple`. Its comment: "'apple,<model>' from Asahi's m1n1 on every Apple Silicon Mac".
+**(!) Blocker for "just install it": platform detection.** `omarchy-hw-platform` reads `/proc/device-tree/compatible`; `if [[ $token == "apple,"* ]] … echo aarch64-apple`. Its comment: "'apple,<model>' from Asahi's m1n1 on every Apple Silicon Mac".
 - Our DT root is `apple,j714s apple,t6050 apple,arm-platform`, so a **booted** J714s is always `aarch64-apple`. The only override is an image manifest (`/var/lib/omarchy/image/target`, `generic-aarch64` → `aarch64`), and it's honoured **only while the root is not booted** (`if … [[ -e $manifest … ]] && ! booted`).
 - `aarch64-apple` pulls `m1n1-aurora`. **Installing or running an m1n1 binary is forbidden for us (rule 7).** It also pulls `omarchy-mac-boot` (Limine/U-Boot/m1n1 deployment to the ESP) and `linux-aurora`, which conflicts with our kernel.
 - **Renaming the root compatible is not an option:** our kernel checks `of_machine_is_compatible("apple,arm-platform")` (`drivers/cpuidle/cpuidle-apple.c:146`, `drivers/cpufreq/apple-soc-cpufreq.c:357`).
 
 **Proposed install (Stage B), on our ALARM root with our kernel.** This is a design, not tested.
-1. **Network for pacman** (work-side ⚠ change, PM approval). `work` routes the Mac via the CDC-EEM link:
+1. **Network for pacman** (work-side (!) change, PM approval). `work` routes the Mac via the CDC-EEM link:
    ```sh
    sudo sysctl -w net.ipv4.ip_forward=1
    sudo nft add table ip m5nat

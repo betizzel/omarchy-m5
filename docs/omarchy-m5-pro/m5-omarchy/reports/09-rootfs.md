@@ -7,7 +7,7 @@
 - `ArchLinuxARM-aarch64-latest.tar.gz`: 829,367,415 B, sha256 `42a4eeaa038994ffd31fa173256ef2f0ef511358eeb41b9ea1f8626391b9b319`; MD5 matches the published `.md5`.
 - **GPG:** `GOODSIG`, `VALIDSIG 68B3537F39A313B3E574D06777193F152BDBE6A6` (Arch Linux ARM Build System), signed 2026-08-05.
 - **Key provenance:** fetched over HTTPS from keyserver.ubuntu.com. Its fingerprint matches the one on `https://archlinuxarm.org/about/package-signing`. The `.sig` fetched from `os.archlinuxarm.org` and from the `fl.us` mirror are byte-identical.
-- ⚠ `https://os.archlinuxarm.org` currently fails TLS (certificate name mismatch), so the tarball came over **HTTP via the mirror redirect**. Integrity rests on the GPG signature.
+- (!) `https://os.archlinuxarm.org` currently fails TLS (certificate name mismatch), so the tarball came over **HTTP via the mirror redirect**. Integrity rests on the GPG signature.
 - **kexec-tools** `2.0.32-1` (`kexec-tools-2.0.32-1-aarch64.pkg.tar.xz`, sha256 `3ad703c3…577c8`, which matches `extra.db`'s `%SHA256SUM%`). GPG `VALIDSIG` by the same key. It ships in `/root/pkgs/` and is **installed by pacman on first boot**, so the pacman DB stays consistent.
 
 **Our additions:**
@@ -72,10 +72,10 @@ ssh root@10.55.0.2 'm5-loader /dev/nvme0n1pN'                    # kexec into th
 - After kexec into ALARM: `ssh root@10.55.0.2`. On first boot, `m5-firstboot` installs kexec-tools (it needs no network).
 - Note: `/boot/cmdline` keeps `maxcpus=1`.
 
-## 3. Option B loader readiness (🔒 owner part)
+## 3. Option B loader readiness ([owner-only] owner part)
 **Superseded in direction by task 10** (our own boot object instead of m1n1). For the record, the m1n1-based stage 2 needs the owner to:
-1. 🔒 Build the m1n1 stage 2 and assemble the payload: m1n1 + `t6050-j714s.dtb` + `Image.gz` + `initramfs-loader.cpio.gz` + a `chosen.bootargs=… m5.loader=1 m5.root=/dev/nvme0n1pN` line.
-2. 🔒 Configure stage 1 to chainload it from the ESP (`m1n1/boot.bin`).
+1. [owner-only] Build the m1n1 stage 2 and assemble the payload: m1n1 + `t6050-j714s.dtb` + `Image.gz` + `initramfs-loader.cpio.gz` + a `chosen.bootargs=… m5.loader=1 m5.root=/dev/nvme0n1pN` line.
+2. [owner-only] Configure stage 1 to chainload it from the ESP (`m1n1/boot.bin`).
 
 Both steps are m1n1 tooling and formats, so they're owner-only (06-evidence §3). Everything after that (kernel/DT iteration via `/boot` + kexec, probes) is ours.
 

@@ -1,8 +1,8 @@
 # 11 — First native boot runbook (m5boot → our Linux on J714s)
 
 This runbook prepares everything around m5boot. m5boot itself is written by the separate implementer session in `~/m5boot`. Results labels: **NATIVE**, **VM**, **REPORTED**. Nothing here has run yet.
-- ⚠ = changes the Mac; needs explicit owner approval.
-- 🖱 = the owner clicks Run or types a password.
+- (!) = changes the Mac; needs explicit owner approval.
+- = the owner clicks Run or types a password.
 
 Assumed state (PM, 2026-11-04):
 - The stub is created (08), and not yet armed.
@@ -22,7 +22,7 @@ sha256sum "$M5BOOT"                                    # record; must equal the 
 scp "$M5BOOT" macbook:~/m5boot.bin
 ssh macbook 'shasum -a 256 ~/m5boot.bin'               # must match
 ```
-**⚠ Arm the stub** 🖱 (the owner types the sudo password, then the admin password for `bless`):
+**(!) Arm the stub** (the owner types the sudo password, then the admin password for `bless`):
 ```sh
 ssh -tt macbook 'cd ~/omarchy-m5 && sudo scripts/finish-install.sh --m1n1 ~/m5boot.bin'
 ```
@@ -89,7 +89,7 @@ ssh -tt macbook 'cd ~/omarchy-m5 && sudo scripts/finish-install.sh --m1n1 ~/m5bo
    ```
    **Success** = a line `SHSH saved to '…/cache/shsh/<ECID>-Mac17,9-26.6.2.shsh'` and exit 0. **Do not add `-e`, `-l`, `-y` or `-z`.**
 
-   ⚠ Don't paste or commit the `.shsh` or its ECID-bearing filename (rule 6: identifiers).
+   (!) Don't paste or commit the `.shsh` or its ECID-bearing filename (rule 6: identifiers).
 5. Leave DFU: hold power ~10 s, then press power to boot normally.
 
 **Status wording:**
@@ -104,8 +104,8 @@ Credentials: the **macOS admin user with FileVault access** (volume owner), name
 4. Terminal opens running `step2.sh`. It prints `bputil -d` output; it must show `Paired` and `one true recoveryOS`.
    - If it says it isn't the paired recoveryOS: it re-blesses and shuts down. Repeat from step 1.
    - If no Terminal appears: **Utilities → Terminal**, then `"/Volumes/Omarchy/Finish Installation.app/Contents/Resources/step2.sh"`.
-5. Enter → ⚠ `bputil -nc -v <VGID>`: credentials **twice**. This sets Permissive Security for the **stub only**.
-6. ⚠ `kmutil configure-boot -c …/boot.bin --raw --entry-point 2048 --lowest-virtual-address 0 -v /Volumes/Omarchy`: credentials. **`boot.bin` is now m5boot**, and its hash goes into the stub's LocalPolicy `coih` ([Apple, LocalPolicy contents](https://support.apple.com/guide/security/contents-a-localpolicy-file-mac-apple-silicon-secc745a0845/web): "when they use the `kmutil configure-boot` command-line tool in 1TR").
+5. Enter → (!) `bputil -nc -v <VGID>`: credentials **twice**. This sets Permissive Security for the **stub only**.
+6. (!) `kmutil configure-boot -c …/boot.bin --raw --entry-point 2048 --lowest-virtual-address 0 -v /Volumes/Omarchy`: credentials. **`boot.bin` is now m5boot**, and its hash goes into the stub's LocalPolicy `coih` ([Apple, LocalPolicy contents](https://support.apple.com/guide/security/contents-a-localpolicy-file-mac-apple-silicon-secc745a0845/web): "when they use the `kmutil configure-boot` command-line tool in 1TR").
 7. "Installation complete. Press enter to reboot into m1n1." Press Enter (the wording is cosmetic). The Mac reboots into m5boot.
 8. **Not needed:** `csrutil disable && nvram boot-args=-v`. That was the m1n1 USB-proxy backdoor, and m5boot has no proxy. Skipped as the conservative choice: fewer security changes.
 
@@ -149,7 +149,7 @@ Credentials: the **macOS admin user with FileVault access** (volume owner), name
 # 1. installer guards only
 ssh root@10.55.0.2 sh /bin/install-rootfs.sh --dry-run
 #    expect: target /dev/nvme0n1pN size ~120000000000 B PARTUUID <uuid> (sector size 4096); "dry run, all guards passed"
-# 2. ⚠ format + install the 120 GB Linux partition (owner approval: destructive to that partition only)
+# 2. (!) format + install the 120 GB Linux partition (owner approval: destructive to that partition only)
 zstd -dc build/rootfs-alarm.tar.zst | ssh root@10.55.0.2 'sh /bin/install-rootfs.sh --yes'
 #    rootfs sha256: see `~/m5boot/spec/inputs.md` (updated in task 14); expect "install-rootfs: done"
 # 3. probes, read-only, one group per load, in order (09 §4)
@@ -160,7 +160,7 @@ After any hang: power-cycle (the machine boots m5boot again), then continue with
 
 **Switching to kernel iteration (loader initramfs + kexec):**
 1. Implementer rebuilds m5boot with **`initramfs-loader.cpio.gz`** (`f11e0a88…`) and bootargs `… m5.loader=1 m5.root=/dev/nvme0n1pN`.
-2. ⚠🖱 Re-arm once: §1 + §3, a new `kmutil` hash.
+2. (!)Re-arm once: §1 + §3, a new `kmutil` hash.
 3. From then on each boot does m5boot → loader initramfs → `m5-loader`, which kexecs `/boot/Image` on the installed root with `--dtb=/sys/firmware/fdt` (the DT m5boot patched).
 4. Iterating on kernel/DT = `scp` a new `Image` (and optionally `m5.dtb` + `touch /boot/USE_FILE_DTB`) to `root@10.55.0.2:/boot/`, then reboot. **No owner step, no re-arm.**
    - Caveat [HYPOTHESIS]: kexec on Apple silicon is untested here.

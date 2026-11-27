@@ -5,7 +5,7 @@
 | Push | m5next/ (Image + initrd + cmdline + SHA256SUMS) | m5drop/ | Writes |
 |---|---|---|---|
 | **1. u0** | `build/usb-v1/m5next-u0/`, usb-v1 Image `6ca13193…`, cmdline `fa31bb75…` | `loop/u0/m5drop/` | none (PMGR reads only) |
-| **2. u2** ⚠ | `build/usb-v1/m5next-u2/`, same Image, cmdline `c1f8c4dd…` | `loop/u2/m5drop/` | PMGR: only atc0_common/usb_aon/usb/phymxwrap (kernel allow-list); ATC0 usb2phy, usb2-digital, pipehandler (logged) |
+| **2. u2** (!) | `build/usb-v1/m5next-u2/`, same Image, cmdline `c1f8c4dd…` | `loop/u2/m5drop/` | PMGR: only atc0_common/usb_aon/usb/phymxwrap (kernel allow-list); ATC0 usb2phy, usb2-digital, pipehandler (logged) |
 | MTP **t15** | `build/loop-v1/m5next-t15/`, loop-v1 Image `0c511a53…`, cmdline `fc10a8d7…` | `loop/t15/m5drop/` | none from us; the kernel sets DART-mtp TCR bypass at attach |
 
 ## What already exists (cite)
@@ -59,7 +59,7 @@
     
     The device-mode parts are a HYPOTHESIS: the DEV tunable in place of HOST, the forced VBUS, and leaving USBCTL as is.
 - **u0 (read-only):** `op=state`. It decides whether ATC0 is off at hand-off, which betizzel guessed but never measured.
-- **u2 ⚠:** state → dt_power → state → dev → dt_dwc3 → configfs gadget `ncm.usb0` + `ecm.usb1` on the first UDC → usb0 10.55.0.1/24, usb1 10.55.1.1/24 → `systemctl start sshd`. Then it logs `udc state` and `operstate` every minute for 10 minutes, so there is an SSH window.
+- **u2 (!):** state → dt_power → state → dev → dt_dwc3 → configfs gadget `ncm.usb0` + `ecm.usb1` on the first UDC → usb0 10.55.0.1/24, usb1 10.55.1.1/24 → `systemctl start sshd`. Then it logs `udc state` and `operstate` every minute for 10 minutes, so there is an SSH window.
   - `m5.autoreboot=900`, and the guard still applies.
   - sshd uses key auth only: `/etc/ssh/m5_authorized_keys` (our public key) through an sshd_config.d drop-in, with passwords off.
   - **Host side:** plug a cable into the **left-rear port by MagSafe** (usb-drd0 = Port-USB-C@1). Then on the host run `ip addr add 10.55.0.2/24 dev <ncm if>` and `ssh -i <key> alarm@10.55.0.1`.

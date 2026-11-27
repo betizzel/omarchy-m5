@@ -50,7 +50,7 @@
   ```sh
   nvram -p | grep -iE 'panicmedic|failboot|boot-volume|boot-note' | sed -E 's/(boot-note|boot-info-payload)\t.*/\1 <omitted>/'
   ```
-  ⚠ Deleting `panicmedic-*` or `failboot-breadcrumbs` is an **NVRAM write**, so it needs owner approval (rule 1). I don't recommend it unless a later boot shows PanicMedic still forcing Recovery.
+  (!) Deleting `panicmedic-*` or `failboot-breadcrumbs` is an **NVRAM write**, so it needs owner approval (rule 1). I don't recommend it unless a later boot shows PanicMedic still forcing Recovery.
 - **Read-only Preboot inspection** (PM, over `ssh -tt macbook`; sudo is read-only here). It checks what kmutil stored and its size against our 49,034,128 B:
   ```sh
   VG=$(diskutil apfs list | awk '/Name:.*Omarchy/{f=1} f&&/Volume Group/{print $NF; exit}'); echo "stub VG: $VG"

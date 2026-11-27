@@ -291,7 +291,7 @@ contributors) and Satya Benson (satchlj, an aurora-silicon member). The #293 com
 >
 > The image is built on aurora-silicon and omacom. Thank you to DjDeveloperr, Ryan Murray (RyanTheTide), Jens Axboe, Diljit Singh, Satya Benson and everyone else working there: the kernel, Aura, the M5 device trees, speaker protection and the GPU driver this image uses are theirs.
 >
-> 🤖 Generated with [Claude Code](https://claude.com/claude-code)
+> Generated with [Claude Code](https://claude.com/claude-code)
 
 ### #293 comment text
 
@@ -301,7 +301,7 @@ contributors) and Satya Benson (satchlj, an aurora-silicon member). The #293 com
 >
 > Anyone who wants to send M5 work there under their own name, or post a test report from their board, is welcome: https://github.com/betizzel/omarchy-m5/issues/12. Upstream pull requests stay the goal; the repo drops its copy of a change once it merges upstream.
 >
-> 🤖 Generated with [Claude Code](https://claude.com/claude-code)
+> Generated with [Claude Code](https://claude.com/claude-code)
 
 ## 2026-11-15
 

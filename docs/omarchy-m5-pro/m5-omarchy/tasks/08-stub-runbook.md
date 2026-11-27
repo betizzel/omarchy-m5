@@ -11,6 +11,6 @@ The PM will run the non-m1n1 disk steps on the Mac over SSH (owner types sudo/Fi
    - what it leaves for the 1TR step.
    Also note any assumptions that don't hold on our Mac.
 2. **Runbook for the PM:** the exact command sequence to run over SSH, split into **(a) read-only pre-checks** (`bputil -d`, `diskutil list`, free space, FileVault/SIP state, `fdesetup`) and **(b) changes**, each with its expected output and a stop condition. Include a dry-run if the script has one.
-3. **The 1TR step for the owner:** exact screens and button presses (power-hold → Options → pick the stub → Terminal / Startup Security Utility?), the exact commands, and which credentials it asks for. Mark the m1n1 parts 🔒.
+3. **The 1TR step for the owner:** exact screens and button presses (power-hold → Options → pick the stub → Terminal / Startup Security Utility?), the exact commands, and which credentials it asks for. Mark the m1n1 parts [owner-only].
 4. **Undo:** exact commands to remove what step (b) creates.
 End with `DONE 08`.

@@ -56,7 +56,7 @@ M3 base: WIP. M3 Pro/Max/Ultra: TBA. M4/M4 Pro/Max/A18 Pro: TBA. M5/M5 Pro/Max: 
 
 | Repo | Role |
 |---|---|
-| omacom/omarchy-mac (★2k) | Original Omarchy-on-Mac desktop (from malik-na, Codeberg mirror `quattro` branch) |
+| omacom/omarchy-mac (stars 2k) | Original Omarchy-on-Mac desktop (from malik-na, Codeberg mirror `quattro` branch) |
 | omacom/omarchy-mac-pkgs | `omarchy-mac`, `omarchy-mac-boot` packages, built via omacom/omarchy-pkgs to pkgs.omarchy.org |
 | omacom/omarchy-mac-installer | Swift macOS app + Asahi v0.9.2 engine overlay; `scripts/supported-models.json` refuses `apple,j614s` ("M4 and later") |
 | omacom/linux-aurora | Kernel (default `integration/aurora`); has `t8142-j813*` DTs; no t605x |
@@ -67,7 +67,7 @@ M3 base: WIP. M3 Pro/Max/Ultra: TBA. M4/M4 Pro/Max/A18 Pro: TBA. M5/M5 Pro/Max: 
 | aurora-silicon/aurora-silicon.github.io | `src/data/support.json` marks j714s works for most features; provenance "Project owner confirmation in this session" |
 | maralcbr/omarchy-m-testing | Hardware test CLI + omarchy-m-testing.org |
 
-Aurora discussion #142 (refreshed 2026-10-16) lists J714S and J716S as "⚪ No matching working-tree DTS or named-board runtime result found". The APIF series is "build- and host-tested only". J716C (MarianoMiguel) and J704 (EliasJernberg) owners have asked about the site/discussion mismatch.
+Aurora discussion #142 (refreshed 2026-10-16) lists J714S and J716S as "- No matching working-tree DTS or named-board runtime result found". The APIF series is "build- and host-tested only". J716C (MarianoMiguel) and J704 (EliasJernberg) owners have asked about the site/discussion mismatch.
 
 ## Other third-party M5 efforts (noise)
 

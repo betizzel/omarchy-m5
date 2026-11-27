@@ -15,7 +15,7 @@ Owner's requirements, verbatim intent: tighten evidence before any change to the
    - Say whether "work" is sufficient and what's missing.
    - Also: can DFU revive/restore be done from Linux (e.g. idevicerestore + macvdmtool or similar), or does it strictly need another Mac? Cite.
 3. **Step-by-step first boot:**
-   - Every step that changes the Mac is marked ⚠ for owner approval, with exact commands.
+   - Every step that changes the Mac is marked (!) for owner approval, with exact commands.
    - Owner steps that are owner-only because of the restriction in A3 are marked with the citation.
    - Give the expected output at each stage (m1n1 banner/log lines, proxy connect, kernel earlycon lines, what "single-core boot reached a shell" looks like) and the known failure modes.
 4. **Recovery procedure:** boot picker → macOS; removing the stub and restoring the partition layout; DFU revive vs restore (what each preserves).

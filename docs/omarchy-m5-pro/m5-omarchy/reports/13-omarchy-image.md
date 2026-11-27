@@ -41,7 +41,7 @@
 - **m1n1 check:** `pacman -Q | grep -iE "m1n1|aurora|asahi"` gives **nothing**. Only firmware/headers names contain `linux-`. The guard is in the final `IgnorePkg`:
   `linux-aarch64 linux-aarch64-headers linux linux-headers linux-aurora linux-aurora-headers m1n1 m1n1-aurora m1n1-neo aura uboot-asahi omarchy-mac omarchy-mac-boot omarchy-apple-boot asahi-* limine-mkinitcpio-hook hyprland`.
 - **Platform:** stable 4.0.6 predates `omarchy-hw-platform`, so there's no device-tree platform detection to defeat. Its "apple" scripts are Intel-Mac-only (T2 via PCI `106b:1801/2`, SPI keyboards via old DMI names) and can't match. The manifest is kept for later runtimes.
-  - ⚠ A future `omarchy` upgrade to a runtime **with** `omarchy-hw-platform` will report `aarch64-apple` on this device tree (report 12). The `IgnorePkg` guards still block every boot package. A local platform override is needed before that upgrade.
+  - (!) A future `omarchy` upgrade to a runtime **with** `omarchy-hw-platform` will report `aarch64-apple` on this device tree (report 12). The `IgnorePkg` guards still block every boot package. A local platform override is needed before that upgrade.
 
 ## Omarchy 4.0.6 problems found and how each was handled
 | Problem | Handling |
@@ -51,7 +51,7 @@
 | `firewall.sh`: ufw → iptables-nft needs netfilter netlink, which **qemu-user doesn't emulate** (an own netns didn't help) | build-time bind-mount of a recorder over `/usr/bin/ufw` (the image's ufw is untouched). The 6 commands (`default deny incoming`, `default allow outgoing`, `allow 53317/udp`, `allow 53317/tcp`, 2× `allow-docker-dns`) are in `/var/lib/m5/ufw-replay`. **`m5-ufw-replay.service`** replays them natively on first boot, before `ufw.service`. ufw-docker's `after.rules` block was written; `ENABLED=yes` and `ufw.service` are enabled |
 | `omarchy-apply-hardware` sources `install/helpers/image-target.sh`, **which stable 4.0.6 doesn't ship**, so deferral silently fails and every hardware step runs at build time | hardware hidden (above): every hardware step ran, found nothing, and changed nothing. Hardware setup is **not** queued for the Mac's first boot. None of 4.0.6's hardware steps cover Apple silicon anyway |
 | Hardware scripts read DMI under `bash -e` and fail on a DMI-less (device-tree) machine (`fix-spi-keyboard.sh`). This would also fail natively on the J714s | the build gets the target's true DMI identity; every regex targets Intel Macs, so none match |
-| `post-install/pacman.sh` copies **x86 templates**: `core/extra/multilib` + mirror `stable-mirror.omarchy.org`, dropping `[alarm]` and our guards | final `/etc/pacman.conf` written at pack: Omarchy's `[options]` + `[omarchy]` stable + ALARM `core/extra/alarm/aur` + guards. `/etc/pacman.d/mirrorlist` restored from the verified ALARM tarball (`mirror.archlinuxarm.org`). ⚠ **Running `omarchy-update`/post-install again on the Mac will re-break pacman.** Use `pacman -Syu` until this is fixed upstream or overridden |
+| `post-install/pacman.sh` copies **x86 templates**: `core/extra/multilib` + mirror `stable-mirror.omarchy.org`, dropping `[alarm]` and our guards | final `/etc/pacman.conf` written at pack: Omarchy's `[options]` + `[omarchy]` stable + ALARM `core/extra/alarm/aur` + guards. `/etc/pacman.d/mirrorlist` restored from the verified ALARM tarball (`mirror.archlinuxarm.org`). (!) **Running `omarchy-update`/post-install again on the Mac will re-break pacman.** Use `pacman -Syu` until this is fixed upstream or overridden |
 | pacman sandbox (Landlock) unsupported under qemu; `CheckSpace` can't find the mount table in the chroot | build-only `DisableSandbox` + `#CheckSpace`, both **restored** at pack |
 
 ## Display / GPU
@@ -72,4 +72,4 @@
 
   Then `pacman -Sy` is needed (the `alarm`/`aur` databases are new in the final config), with network via `work` NAT (report 12 §1).
 - **Install path is unchanged** (09/11): `zstd -dc build/rootfs-omarchy.tar.zst | ssh root@10.55.0.2 'sh /bin/install-rootfs.sh --yes'`. It's about 6 GB over the USB 2 gadget, so expect minutes. 120 GB partition, 13 GB used.
-- ⚠ The pacman keyring's local master key was generated at build time. Fine for this single-machine image; don't reuse the image for other machines.
+- (!) The pacman keyring's local master key was generated at build time. Fine for this single-machine image; don't reuse the image for other machines.

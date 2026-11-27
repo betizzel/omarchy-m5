@@ -1,6 +1,6 @@
 # 03A — Recipe: single-core Linux on our J714s (tethered)
 
-Not yet executed by us. Everything below comes from public sources, and I checked the patch apply status locally on 2026-11-04. ⚠️ marks a step that **changes the MacBook's boot or security setup** (owner only, by hand, after PM approval).
+Not yet executed by us. Everything below comes from public sources, and I checked the patch apply status locally on 2026-11-04. (!) marks a step that **changes the MacBook's boot or security setup** (owner only, by hand, after PM approval).
 
 ## Which stack
 
@@ -41,7 +41,7 @@ Pin `fetch-sources.sh` with `M1N1_REF`/`LINUX_REF`. By default it tracks branch 
    - `aarch64-linux-gnu-gcc` (kernel cross-compile).
    - `rustup default stable && rustup target add aarch64-unknown-none-softfloat`.
    - The kernel's Rust needs `rust-src` and `bindgen` at the versions `make rustavailable` asks for.
-2. ⚠ system-wide: `sudo cp vendor/m1n1/udev/80-m1n1.rules /etc/udev/rules.d/ && sudo udevadm control --reload && sudo usermod -aG uucp $USER` (`dialout` on Debian). Log out and back in.
+2. (!) system-wide: `sudo cp vendor/m1n1/udev/80-m1n1.rules /etc/udev/rules.d/ && sudo udevadm control --reload && sudo usermod -aG uucp $USER` (`dialout` on Debian). Log out and back in.
 3. Get the sources:
    ```sh
    git clone https://github.com/betizzel/omarchy-m5 && cd omarchy-m5 && git checkout 15cd70c1
@@ -65,23 +65,23 @@ Pin `fetch-sources.sh` with `M1N1_REF`/`LINUX_REF`. By default it tracks branch 
 Make a backup first. FileVault is fine for macOS; the stub is separate.
 
 1. Copy `m1n1-stage1.bin` and the omarchy-m5 checkout to the Mac.
-2. ⚠ **Partition:** `sudo scripts/prep-stub.sh` (or `--linux-size 20G` to also carve the Linux root).
+2. (!) **Partition:** `sudo scripts/prep-stub.sh` (or `--linux-size 20G` to also carve the Linux root).
    - This shrinks the macOS container and creates the 6 GB "Omarchy" APFS stub (Data/System/Preboot/Recovery) plus a 500 MB EFI partition.
    - It clones *this* install's restore bundle, so the stub gets **26.6.2 / mBoot-18000.161.10**. betizzel tested on 26.5 / 18000.120.36.
    - It prints the stub VGID; write it down.
-3. ⚠ `sudo scripts/finish-install.sh --m1n1 ~/m1n1-stage1.bin`.
+3. (!) `sudo scripts/finish-install.sh --m1n1 ~/m1n1-stage1.bin`.
    - Writes `Finish Installation.app` with `boot.bin`, blesses the stub, and drops `.IAPhysicalMedia`.
    - It asks for the macOS admin password.
-4. ⚠ **1TR ceremony** (one continuous sequence):
+4. (!) **1TR ceremony** (one continuous sequence):
    1. Shut down and wait 15 s.
    2. **Hold** power until "Loading startup options…". Tapping isn't enough; that reaches the picker, not 1TR.
    3. Pick **Omarchy**. Its recoveryOS auto-opens Terminal running `step2.sh`. If it doesn't, use Utilities → Terminal and run `"/Volumes/Omarchy/Finish Installation.app/Contents/Resources/step2.sh"`.
    4. `step2.sh` checks `bputil -d` for `Paired` and `one true recoveryOS`.
-   5. ⚠ It runs `bputil -nc` (credentials asked twice). This sets Permissive Security **on the stub only**.
-   6. ⚠ It runs `kmutil configure-boot -c boot.bin --raw --entry-point 2048 --lowest-virtual-address 0`.
+   5. (!) It runs `bputil -nc` (credentials asked twice). This sets Permissive Security **on the stub only**.
+   6. (!) It runs `kmutil configure-boot -c boot.bin --raw --entry-point 2048 --lowest-virtual-address 0`.
    7. It renames `.IAPhysicalMedia` away.
-5. ⚠ Proxy backdoor, in the stub's 1TR: `csrutil disable && nvram boot-args=-v`. Pick the Omarchy volume when asked.
-6. **Check:** reboot. You should see the m1n1 logo and log on the native 3024×1964 panel. ⚠ `nvram boot-volume` now points at the stub, so a plain power-on goes to m1n1. To get macOS: hold power → picker → Macintosh HD, which stays at Full Security.
+5. (!) Proxy backdoor, in the stub's 1TR: `csrutil disable && nvram boot-args=-v`. Pick the Omarchy volume when asked.
+6. **Check:** reboot. You should see the m1n1 logo and log on the native 3024×1964 panel. (!) `nvram boot-volume` now points at the stub, so a plain power-on goes to m1n1. To get macOS: hold power → picker → Macintosh HD, which stays at Full Security.
 
 ## 3. Tethered boots (memory only, never writes the Mac)
 
@@ -114,7 +114,7 @@ Make a backup first. FileVault is fine for macOS; the stub is separate.
 ## 6. Rollback to stock
 1. In macOS: System Settings → General → Startup Disk → Macintosh HD.
 2. `diskutil list disk0`. Identify partitions **by type and size**, not number: the 6 GB `Apple_APFS` "Omarchy" container, the `EFI` partition, and the `Linux Filesystem` partition. **Never** touch `Apple_APFS_ISC` (first) or `Apple_APFS_Recovery` (last).
-3. ⚠ Delete them, re-listing between each command:
+3. (!) Delete them, re-listing between each command:
    - `sudo diskutil eraseVolume free free disk0sX` (Linux, then EFI)
    - `sudo diskutil apfs deleteContainer disk0sZ` (stub)
    - `sudo diskutil apfs resizeContainer disk0s2 0`
