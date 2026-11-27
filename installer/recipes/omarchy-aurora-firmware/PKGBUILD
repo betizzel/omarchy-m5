@@ -1,11 +1,12 @@
 pkgname=omarchy-aurora-firmware
 pkgver=20261014.j714s16
-pkgrel=2
+pkgrel=3
 pkgdesc='Order Apple peripheral admission after device firmware extraction'
 arch=('aarch64')
 groups=('omarchy-platform-apple-silicon')
 license=('MIT' 'GPL-2.0-only' 'BSD-3-Clause')
-backup=('etc/mkinitcpio.conf.d/95-aurora-vendor-order.conf' 'etc/sddm.conf.d/60-aurora-m5-display.conf')
+backup=('etc/mkinitcpio.conf.d/95-aurora-vendor-order.conf' 'etc/sddm.conf.d/60-aurora-m5-display.conf'
+        'etc/NetworkManager/conf.d/zz-j714s-wifi-powersave.conf')
 makedepends=('git' 'clang' 'lld' 'llvm')
 url='https://github.com/aurora-silicon/omarchy-mac'
 source=(aurora-firmware-order.conf aurora-peripheral-firmware.sh
@@ -31,6 +32,8 @@ source=(aurora-firmware-order.conf aurora-peripheral-firmware.sh
         # The boot packages stay M5 builds when pacman.conf loses its IgnorePkg pin (#11), one guard
         # for every board (#12; K114s: chrisohearn). j714s-boot-guard is the old name, kept as a shim.
         00-omarchy-m5-boot-guard.hook 01-omarchy-m5-esp-space.hook m5-boot-guard j714s-boot-guard
+        # Wi-Fi power save on (pkgrel 3): erikwb's J716c measurement, about -0.35 W
+        nm-zz-j714s-wifi-powersave.conf
         # The video decoder's v5-t2 firmware (MIT), built from source; avd-fw 0.1 has up to v5-t1
         "avd-fw::git+https://github.com/aurora-silicon/avd-fw.git#commit=ea3a65cc9c0c41907e6ad2714b813e4be6858485"
         # liblzfse (BSD-3-Clause), for apfs_ro: macOS keeps many System files LZFSE-compressed; not in Arch Linux ARM
@@ -65,6 +68,7 @@ sha256sums=('e2d6d6008bfde44ba871da2fcaae22b409d52ea8695fcf672bc3b06d786f823e'
             '2842c15467ea864a7a686590f9bbddbd68f750b3fc7146d6695b91549d837daf'
             '755e870d8a4e782d3593109170b9bb13d0ab323d959b51c1a899eaf8db6ad4d5'
             '14422297991f6055ec06fdb60680123a98895de172f4b2f6df615fa51e029240'
+            '76a8fdb970b551e99de18453805065fd921d4166df8b9f7b9bb2a9a52c2062a7'
             'SKIP'
             'SKIP')
 build() {
@@ -99,6 +103,7 @@ package() {
   # speakers at its floor.
   install -Dm644 j714-mic.json "$pkgdir/usr/share/omarchy-mac/j714/mic.json"
   install -Dm644 wireplumber-j714-mic.conf "$pkgdir/usr/share/wireplumber/wireplumber.conf.d/j714-mic.conf"
+  install -Dm644 nm-zz-j714s-wifi-powersave.conf "$pkgdir/etc/NetworkManager/conf.d/zz-j714s-wifi-powersave.conf"
 
   # 6 GHz Wi-Fi on the N1 (edimoldovan/omarchy-mac-pkgs iwd-6ghz-bcm4388-only
   # 702a6ec363): iwd's own defaults in place of the Apple one that keeps 6 GHz off.

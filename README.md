@@ -137,7 +137,7 @@ kernel (v272-7) and USB-C DisplayPort was last seen there too.
 | Fans | **Works**: Linux can set fan targets (tested: target 3000 gave 2989 rpm) | Isaac-Duarte (#1944) |
 | Sustained CPU load | **Works**: the clusters follow the fast-die limit; the die held 107–109 C with 15 busy cores | DjDeveloperr (#1950) |
 | Updates (`omarchy update`) | **Works**: checked in CI ([`update-check`](.github/workflows/update-check.yml)); our tested kernel, firmware, m1n1, Hyprland and GPU drivers come from the signed [`[omarchy-m5]`](tools/update-source/README.md) repository | this repo |
-| Wi-Fi power save | **Partly**: works when set (`wifi.powersave = 3` in NetworkManager), `iw` reports it on, no ping loss; set by hand on our J714s, not in a package yet; erikwb measured about -0.35 W with it on a J716c | erikwb (measurement) |
+| Wi-Fi power save | **Works**: on by default since firmware j714s16-3 (2026-11-27, `zz-j714s-wifi-powersave.conf`, after Omarchy's file that turns it off); `iw` reports it on, no ping loss; erikwb measured about -0.35 W with it on a J716c | erikwb (measurement) |
 | Two Omarchy installs on one disk | **Works**: each mounts its own boot partitions ([why](docs/duplicate-boot-ids.md)) | this repo |
 
 **Works** · **Partly** · **No**
