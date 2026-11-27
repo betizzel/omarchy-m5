@@ -104,6 +104,14 @@ passes `/chosen/aurora,s2r-mailbox`. v272-22 = v272-21 with `CONFIG_APPLE_SOC_SL
 lid sleep for some minutes, key wake, Wi-Fi/Bluetooth/panel/sound back, battery drop during the sleep; v272-21 as
 the Limine fallback (copy its UKI to `omarchy_v272-21-proven.efi`, v272-20's moves to `/boot/esp-overflow`).
 
+**Result 2026-11-27: no deep sleep on our J714s, not published.** v272-22 boots (no failed units), but
+`mem_sleep` stays `[s2idle]`: `apple-sleep 280600000.sleep-controller: unsupported CPU inventory`. Upstream's J714s
+profile (`sleep-t6050.h`, `.machine = "apple,j714s"`) was measured on the 18-core M5 Pro (`cpu_count = 18`, boot MPIDR
+0x40000); our machine is the 15-core M5 Pro (15 possible CPUs, the same boot MPIDR), so
+`apple_sleep_validate_cpu_topology()` refuses it. No upstream PR covers the 15-core part yet (searched 2026-11-27).
+Lowering `cpu_count` would run a power sequence measured on other hardware, so it is left for upstream. v272-21 is the
+Limine fallback (`omarchy_v272-21-proven.efi`), its modules restored next to v272-22's.
+
 Wi-Fi power save: Omarchy's `omarchy-wifi-powersave.conf` sets `wifi.powersave = 2` (off); erikwb measured about
 -0.35 W with it on (weirdware.io/aurora/j716c-energy.html). On our J714s `zz-j714s-wifi-powersave.conf` sets 3;
 `iw` reports power save on, ping 0% loss.
