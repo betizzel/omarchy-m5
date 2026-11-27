@@ -20,9 +20,9 @@ Nothing else changes.
 Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
 ---
  .../build-input-provenance.json               |  9 ++---
- .../candidate-package-manifest.json           | 38 +++++++++----------
+ .../candidate-package-manifest.json           | 40 ++++++++++---------
  image-builder/builder/stage1_qualification.py |  4 +-
- 3 files changed, 25 insertions(+), 26 deletions(-)
+ 3 files changed, 27 insertions(+), 26 deletions(-)
 
 diff --git a/Integration/M5/J714s-Normal-System/build-input-provenance.json b/Integration/M5/J714s-Normal-System/build-input-provenance.json
 index 2b06b63..e3c7286 100644
@@ -45,7 +45,7 @@ index 2b06b63..e3c7286 100644
    "candidate_set_signer_tool": {
      "repository": "omacom/omarchy-mac-pkgs",
 diff --git a/Integration/M5/J714s-Normal-System/candidate-package-manifest.json b/Integration/M5/J714s-Normal-System/candidate-package-manifest.json
-index 4fcc4b0..2a973bd 100644
+index 4fcc4b0..2754e08 100644
 --- a/Integration/M5/J714s-Normal-System/candidate-package-manifest.json
 +++ b/Integration/M5/J714s-Normal-System/candidate-package-manifest.json
 @@ -1,7 +1,7 @@
@@ -53,7 +53,7 @@ index 4fcc4b0..2a973bd 100644
    "schema": 1,
    "candidate_only": true,
 -  "set": "j714s-dev-runtime-07717f8c82db",
-+  "set": "j714s-dev-runtime-4ed118ccfd92",
++  "set": "j714s-dev-runtime-52a694e7fa94",
    "source": {
      "repository": "omacom/omarchy",
      "commit": "a948d8a6871f446b335258c827648ac5f4e9428b",
@@ -78,7 +78,7 @@ index 4fcc4b0..2a973bd 100644
      },
      {
        "name": "m1n1-aurora",
-@@ -138,15 +138,15 @@
+@@ -138,15 +138,16 @@
      },
      {
        "name": "mesa-aurora",
@@ -87,20 +87,21 @@ index 4fcc4b0..2a973bd 100644
        "arch": "aarch64",
 -      "filename": "mesa-aurora-1:26.3.0_devel.20261109.j714s2.043a4c5-1-aarch64.pkg.tar.zst",
 -      "sha256": "699631582c7206c94292a0486a6829e476f35489874ef58eeb72bf2f402bbc87",
-+      "filename": "mesa-aurora-1:26.3.0_devel.20261122.232644.e705eca833f-1-aarch64.pkg.tar.zst",
++      "filename": "mesa-aurora-1.26.3.0_devel.20261122.232644.e705eca833f-1-aarch64.pkg.tar.zst",
 +      "sha256": "a62773a5c75cc02d1fbeda58170522c3b5129973afae7fdd80fcc565a571dce7",
        "source": {
 -        "repository": "betizzel/omarchy-m5",
 -        "commit": "e06233b540fa41534bb2ae5cf0daf336efae9ec3"
-+        "repository": "omacom/omarchy-pkgs",
-+        "commit": "9e1c6ef1e8f8c854ec956cff3bd7ff4b5564a5c9"
++        "channel": "omacom edge aarch64",
++        "url": "https://pkgs.omarchy.org/edge/aarch64/mesa-aurora-1:26.3.0_devel.20261122.232644.e705eca833f-1-aarch64.pkg.tar.zst",
++        "omacom_signature_sha256": "5ea844c4ac123ad9aa4a5e1978f96384454c377106da5ced16febd92ea42100e"
        },
 -      "size_bytes": 7307523
 +      "size_bytes": 7538146
      },
      {
        "name": "omarchy",
-@@ -247,15 +247,15 @@
+@@ -247,15 +248,16 @@
      },
      {
        "name": "vulkan-aurora",
@@ -109,25 +110,26 @@ index 4fcc4b0..2a973bd 100644
        "arch": "aarch64",
 -      "filename": "vulkan-aurora-1:26.3.0_devel.20261109.j714s2.043a4c5-1-aarch64.pkg.tar.zst",
 -      "sha256": "5810bcbd25cce15fcb230e58979ebea955d2fccbbf5c21a03caacca4d6844aa4",
-+      "filename": "vulkan-aurora-1:26.3.0_devel.20261122.232644.e705eca833f-1-aarch64.pkg.tar.zst",
++      "filename": "vulkan-aurora-1.26.3.0_devel.20261122.232644.e705eca833f-1-aarch64.pkg.tar.zst",
 +      "sha256": "4c231780096c16f14862a15cf6466d4df5b45720b98bf33c01e4a0a1d1bff674",
        "source": {
 -        "repository": "betizzel/omarchy-m5",
 -        "commit": "e06233b540fa41534bb2ae5cf0daf336efae9ec3"
-+        "repository": "omacom/omarchy-pkgs",
-+        "commit": "9e1c6ef1e8f8c854ec956cff3bd7ff4b5564a5c9"
++        "channel": "omacom edge aarch64",
++        "url": "https://pkgs.omarchy.org/edge/aarch64/vulkan-aurora-1:26.3.0_devel.20261122.232644.e705eca833f-1-aarch64.pkg.tar.zst",
++        "omacom_signature_sha256": "43d170a16caaa785d9ec99a28ed0fb909550fe4d7f38402ff24d991483241d9f"
        },
 -      "size_bytes": 4812285
 +      "size_bytes": 5052936
      }
    ],
    "limitations": [
-@@ -264,5 +264,5 @@
+@@ -264,5 +266,5 @@
      "No physical installer or hardware qualification",
      "No supported release or catalog promotion"
    ],
 -  "set_sha256": "07717f8c82dbfc1415eb5b03ef088c1824e401920c9fd2d29b3645b99a4b76c2"
-+  "set_sha256": "4ed118ccfd92eb398ecd9953463581143dd4f11de64c34e0a98ae4f005260b69"
++  "set_sha256": "52a694e7fa9490d4a292915f6af2324227d248d6ec4a7e02a9d5ea445e777e90"
  }
 diff --git a/image-builder/builder/stage1_qualification.py b/image-builder/builder/stage1_qualification.py
 index e570cd0..575d279 100644
