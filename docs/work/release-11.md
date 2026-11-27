@@ -77,6 +77,11 @@ Release when 1-4 pass: sign both packages into `repo-aarch64`, then README, docs
 - Idle CPU: with nothing playing, PipeWire holds about half a core (speakerguardd-v2's protection stage runs on
   the dummy driver by design, DESIGN.md) and speakersafetyd about 11%. Speaker safety is left as it is.
 
+- 2026-11-27, session test: SDDM restarted (autologin), new Hyprland 0.57.2-5 process: aquamarine renders on
+  "zink Vulkan 1.4 (Apple M5 Pro (G17S B1) (AURORA_BOREALIS))", eDP-1 3024x1964 at 120 Hz, `grim` screenshot shows the
+  desktop, no failed units. hyprland-m5 -5 and Mesa/Vulkan e705 signed into `repo-aarch64` (-4 retired); `enable`
+  now serves mesa-aurora and vulkan-aurora and unpins them (run again on the Mac).
+
 ## Release 11 image (2026-11-26)
 
 - `installer/patches-j714s-r2` 0015: kernel v272-21 (from d3b70d2) and Mesa/Vulkan e705eca833f as omacom edge

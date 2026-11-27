@@ -1,8 +1,9 @@
 # The [omarchy-m5] package repository
 
 A signed pacman repository on the release [`repo-aarch64`](https://github.com/betizzel/omarchy-m5/releases/tag/repo-aarch64).
-It serves our tested builds of the four J714s boot packages: `linux-aurora`, `omarchy-aurora-firmware`,
-`m1n1-aurora` and `hyprland-m5`. With it on, `omarchy update` brings new J714s builds like any other
+It serves our tested builds of the J714s boot and graphics packages: `linux-aurora`, `omarchy-aurora-firmware`,
+`m1n1-aurora`, `hyprland-m5`, `mesa-aurora` and `vulkan-aurora` (since 2026-11-27), plus the optional
+`omarchy-brightness-auto` and `wluma`. With it on, `omarchy update` brings new J714s builds like any other
 package, with no manual `pacman -U`.
 
 ## Turn it on (once, on the Mac)
@@ -13,15 +14,19 @@ bash enable
 omarchy update
 ```
 
-`enable --disable` turns it off and pins the four packages again.
+`enable --disable` turns it off and pins the served packages again.
+
+**Turned it on before 2026-11-27?** Run `bash enable` once more (the same three lines). The older script kept
+`mesa-aurora` and `vulkan-aurora` pinned, so `omarchy update` stays on the j714s2 Mesa, which draws in software on
+the M5 Pro. The new run unpins them and installs the GPU build (e705eca833f).
 
 What `enable` does, and why it's safe:
 
 - It downloads the repository key and refuses it unless the fingerprint is
   `E86FAF980FDC450871B7EA99FCA533429F69AE22`. Then it adds the key to pacman's keyring and signs it locally.
 - It writes `/etc/pacman.d/omarchy-m5.conf` (`SigLevel = Required`) and includes it **above `[omarchy]`**.
-  pacman takes a package from the first repository that has it, so omacom's builds of the four packages
-  can't replace ours. That's why the four leave `IgnorePkg`; every other pin stays.
+  pacman takes a package from the first repository that has it, so omacom's builds of these packages
+  can't replace ours. That's why they leave `IgnorePkg`; every other pin stays.
 - It installs itself as an Omarchy `pre-refresh-pacman` hook. `omarchy refresh pacman` rewrites
   `/etc/pacman.conf`, and the hook puts the repository line and the pins back.
 

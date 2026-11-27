@@ -1,14 +1,14 @@
 #!/bin/bash
 # Turn on the [omarchy-m5] package repository on a J714s installed from this repo's images.
 #
-# After this, `omarchy update` installs our tested builds of the four J714s boot packages
-# (linux-aurora, omarchy-aurora-firmware, m1n1-aurora, hyprland-m5) from
+# After this, `omarchy update` installs our tested builds of the J714s boot and graphics packages
+# (linux-aurora, omarchy-aurora-firmware, m1n1-aurora, hyprland-m5, mesa-aurora, vulkan-aurora) from
 # https://github.com/betizzel/omarchy-m5/releases/tag/repo-aarch64, signed with key
 # E86FAF980FDC450871B7EA99FCA533429F69AE22.
 #
 # How it stays safe:
 # - The repository is listed above [omarchy]. pacman takes a package from the first repository
-#   that has it, so omacom's generic builds of these four can't replace ours; that's why the four
+#   that has it, so omacom's generic builds of these can't replace ours; that's why they
 #   can leave IgnorePkg. Every other pin from the image stays.
 # - Packages and the database must be signed by that key (SigLevel = Required); the key's
 #   fingerprint is checked before it is trusted.
@@ -25,10 +25,9 @@ BASE=https://github.com/betizzel/omarchy-m5/releases/download/repo-aarch64
 SNIPPET=/etc/pacman.d/omarchy-m5.conf
 CONF=/etc/pacman.conf
 MARKER="Include = $SNIPPET"
-SERVED=(linux-aurora omarchy-aurora-firmware m1n1-aurora hyprland-m5)
+SERVED=(linux-aurora omarchy-aurora-firmware m1n1-aurora hyprland-m5 mesa-aurora vulkan-aurora)
 # The image's other pins (release 10's pacman.conf minus SERVED).
-PINNED=(aurora-sep aurora-speaker-upgrade libfprint-aurora mesa-aurora omarchy omarchy-mac
-  omarchy-mac-boot omarchy-settings speakerguardd-v2 uboot-aurora vulkan-aurora)
+PINNED=(aurora-sep aurora-speaker-upgrade libfprint-aurora omarchy omarchy-mac omarchy-mac-boot omarchy-settings speakerguardd-v2 uboot-aurora)
 
 if [[ $EUID -eq 0 ]]; then SUDO=(); user=${SUDO_USER:-root}; else SUDO=(sudo); user=$USER; fi
 home=$(getent passwd "$user" | cut -d: -f6)
@@ -70,12 +69,12 @@ if [[ ${1:-} == --disable ]]; then
   "${SUDO[@]}" sed -i "\|^$MARKER\$|d" "$CONF"
   "${SUDO[@]}" rm -f "$SNIPPET"
   rm -f "$hook"
-  # Pin the four again, as the images ship them.
+  # Pin the served packages again, as the images ship them.
   tmp=$(mktemp)
   current=$(sed -n 's/^IgnorePkg[[:space:]]*=//p' "$CONF")
   sed -e '/^IgnorePkg[[:space:]]*=/d' -e "0,/^\[options\]/s||[options]\nIgnorePkg = $current ${SERVED[*]}|" "$CONF" >"$tmp"
   "${SUDO[@]}" install -m644 "$tmp" "$CONF"; rm -f "$tmp"
-  echo "[omarchy-m5] is off; the four packages are pinned again."
+  echo "[omarchy-m5] is off; its packages are pinned again."
   exit 0
 fi
 
