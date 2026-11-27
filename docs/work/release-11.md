@@ -82,6 +82,15 @@ Release when 1-4 pass: sign both packages into `repo-aarch64`, then README, docs
   desktop, no failed units. hyprland-m5 -5 and Mesa/Vulkan e705 signed into `repo-aarch64` (-4 retired); `enable`
   now serves mesa-aurora and vulkan-aurora and unpins them (run again on the Mac).
 
+- 2026-11-27, microphones (asahi-audio #45): on v272-22 the array is PCM 0 of card 0 "MacBook Pro J714 HPAI"
+  (t8152-aop-audio), but the image's `j714-mic.conf` matches only `hw:AppleJ714AOP,0`, so apps got the raw
+  multichannel input. Before: speech peaked at -54.9 dBFS (RMS -74.8). On our install the node's path is `hw:0`
+  (ACP profile), so #45's `hw:AppleJ714HPAI,0` match doesn't apply either; the user file
+  `~/.config/wireplumber/wireplumber.conf.d/70-j714-hpai-mic.conf` matches `alsa.card_name = "MacBook Pro J714 HPAI"`
+  (capture) and attaches the same J714 graph (`/usr/share/omarchy-mac/j714/mic.json`). After: `effect_output.j714-mic`
+  is up, the default source `omarchy_asahi_mic` records speech at -37.4 dBFS peak (RMS -51.6), +17.5 dB.
+  Not yet in a package.
+
 ## Release 11 image (2026-11-26)
 
 - `installer/patches-j714s-r2` 0015: kernel v272-21 (from d3b70d2) and Mesa/Vulkan e705eca833f as omacom edge
