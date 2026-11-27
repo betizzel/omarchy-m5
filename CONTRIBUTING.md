@@ -18,7 +18,7 @@ until it merges upstream, then we drop our copy and take it from upstream. That 
 | Aura (stage 1 loader) patches | [`patches/j714s-27.2/aura/`](patches/j714s-27.2/aura) | Same rules |
 | Package recipes | [`installer/recipes/<package>/`](installer/recipes) | PKGBUILD and its files; say in the PKGBUILD comment whose change it is |
 | Installer changes | [`installer/patches-j714s-r2/`](installer/patches-j714s-r2) | Patches on omacom/omarchy-mac-installer; see [`installer/README.md`](installer/README.md) |
-| Docs, status, test results | [`docs/`](docs), [`README.md`](README.md) | The README table only says **Works** for what was seen on hardware |
+| Docs, status, test results | [`docs/`](docs), [`docs/what-works.md`](docs/what-works.md), [`assets/status.svg`](assets/status.svg) | The what-works table only says **Works** for what was seen on hardware |
 
 Other directories under `patches/` are older lines kept for history; new work goes in the ones above.
 
