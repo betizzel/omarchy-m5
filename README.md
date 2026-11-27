@@ -25,7 +25,7 @@ work, T6050 AOP ring per endpoint, N1 6 GHz networks, Thunderbolt NHI credits, d
 **2026-11-27, also through `omarchy update`:** **real GPU acceleration.** Every earlier release drew the desktop on the
 CPU (the pinned Mesa had no M5 Pro support); Mesa/Vulkan `e705eca833f` from the omacom edge channel runs OpenGL 4.6 and
 Vulkan 1.4 on the M5 Pro's GPU (glmark2 3003 against 89 in software) and Hyprland renders on it. **Microphones** about
-17 dB louder (firmware j714s16-2, Isaac-Duarte's asahi-audio #45). Wi-Fi power save on.
+17 dB louder (firmware j714s16-2, Isaac-Duarte's asahi-audio #45).
 
 **Release 10's installer ran on hardware (2026-11-25):** a from-scratch install on our J714s (macOS shrunk to 160 GB, 769 GB for
 Omarchy) booted, including release 10's new Stage 1. If you keep a fallback kernel, set `LIMIT_USAGE_PERCENT=50` in
@@ -79,7 +79,7 @@ kernel (v272-7) and USB-C DisplayPort was last seen there too.
 | Fans | ✅ Linux can set fan targets (tested: target 3000 gave 2989 rpm) | Isaac-Duarte (#1944) |
 | Sustained CPU load | ✅ the clusters follow the fast-die limit; the die held 107–109 C with 15 busy cores | DjDeveloperr (#1950) |
 | Updates (`omarchy update`) | ✅ checked in CI ([`update-check`](.github/workflows/update-check.yml)); our tested kernel, firmware, m1n1, Hyprland and GPU drivers come from the signed [`[omarchy-m5]`](tools/update-source/README.md) repository | this repo |
-| Wi-Fi power save | ✅ on (`wifi.powersave = 3`), `iw` reports it on, no ping loss; erikwb measured about -0.35 W with it on a J716c | erikwb (measurement) |
+| Wi-Fi power save | 🟡 works when set (`wifi.powersave = 3` in NetworkManager), `iw` reports it on, no ping loss; set by hand on our J714s, not in a package yet; erikwb measured about -0.35 W with it on a J716c | erikwb (measurement) |
 | Two Omarchy installs on one disk | ✅ each mounts its own boot partitions ([why](docs/duplicate-boot-ids.md)) | this repo |
 
 ✅ works · 🟡 partly · ❌ no
