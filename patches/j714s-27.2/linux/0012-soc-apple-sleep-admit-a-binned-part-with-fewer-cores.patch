@@ -1,34 +1,81 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: TripleU <182648541+TripleU613@users.noreply.github.com>
-Date: Fri, 27 Nov 2026 11:35:00 -0500
+Date: Fri, 27 Nov 2026 14:30:00 -0500
 Subject: [PATCH 12/12] soc: apple: sleep: admit a binned part with fewer cores
  than the profile's machine
 
 The J714s profile was measured on the 18-core M5 Pro. The 15-core M5 Pro
 J714s has the same boot MPIDR and three clusters of five cores, and the
 CPU inventory check refused it ("unsupported CPU inventory"), so it only
-offered s2idle. Accept fewer possible CPUs than the profile's count; the
-loop below still checks each core's cluster, core number, MPIDR and
-CPU-start bit.
+offered s2idle.
+
+Take the inventory from the DT's CPU nodes, every one of which the boot
+loader started: refuse more than the profile's count, and refuse a
+possible mask that differs from the DT (nr_cpus or NR_CPUS clipping
+would leave started cores out of the sleep). The loop that follows still
+checks every core. On a part with fewer cores, s2idle stays the default
+and deep sleep is offered by name: there a deep-sleep wake has been seen
+to leave the PMP down (aurora-silicon/linux #3419).
 
 Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
 ---
 --- a/drivers/soc/apple/sleep.c
 +++ b/drivers/soc/apple/sleep.c
-@@ -2219,8 +2219,12 @@
+@@ -850,6 +850,8 @@
+ struct apple_sleep {
+ 	struct device *dev;
+ 	const struct apple_sleep_soc *soc;
++	/* The machine has fewer cores than its profile was measured on (a binned part) */
++	bool fewer_cpus;
+ 	struct apple_sleep_region_state *region;
+ 	void __iomem *ps;
+ 	void __iomem *pwrgate;
+@@ -2218,10 +2220,25 @@
+ 		    soc->cpu_cores_per_cluster > 32)
  		return dev_err_probe(s->dev, -EINVAL, "invalid CPU-start geometry\n");
  
- 	/* The node's compatible chose the profile: its machine is where it was measured */
-+	/*
-+	 * A binned part of the same machine has fewer cores (the 15-core M5 Pro J714s against the
-+	 * 18-core one the profile was measured on); every core it does have is checked below.
-+	 */
- 	if (soc->machine && (cpu_logical_map(0) != soc->boot_mpidr ||
+-	/* The node's compatible chose the profile: its machine is where it was measured */
+-	if (soc->machine && (cpu_logical_map(0) != soc->boot_mpidr ||
 -			     num_possible_cpus() != soc->cpu_count))
-+			     num_possible_cpus() > soc->cpu_count))
- 		return dev_err_probe(s->dev, -EINVAL, "unsupported CPU inventory\n");
+-		return dev_err_probe(s->dev, -EINVAL, "unsupported CPU inventory\n");
++	/*
++	 * The node's compatible chose the profile: its machine is where it was measured. A binned
++	 * part of that machine has fewer cores (the 15-core M5 Pro J714s against the 18-core one
++	 * the J714s profile was measured on), so the inventory is the DT's CPU nodes, every one
++	 * of which the boot loader started. The kernel must be able to bring each of them down:
++	 * a possible mask clipped by nr_cpus or NR_CPUS would leave started cores out of the
++	 * sleep, so it is refused. The loop below checks every core.
++	 */
++	if (soc->machine) {
++		struct device_node *cpu_np;
++		unsigned int dt_cpus = 0;
++
++		for_each_of_cpu_node(cpu_np)
++			dt_cpus++;
++		if (cpu_logical_map(0) != soc->boot_mpidr || dt_cpus > soc->cpu_count ||
++		    num_possible_cpus() != dt_cpus)
++			return dev_err_probe(s->dev, -EINVAL, "unsupported CPU inventory\n");
++		s->fewer_cpus = dt_cpus < soc->cpu_count;
++	}
  
  	index = of_property_match_string(np, "reg-names", "cpu-start");
+ 	if (index < 0)
+@@ -8407,6 +8424,15 @@
+ 	apple_sleep = s;
+ 	/* Deep becomes the default sleep state, unless mem_sleep_default= chose another. */
+ 	suspend_set_ops(s->soc->early_context ? &apple_sleep_early_ops : &apple_sleep_ops);
++	/*
++	 * Not the default on a binned part either: there a wake has been seen to leave the PMP
++	 * down, so deep sleep is asked for by name until that resumes.
++	 */
++	if (s->fewer_cpus && mem_sleep_current == PM_SUSPEND_MEM) {
++		mem_sleep_current = PM_SUSPEND_TO_IDLE;
++		dev_info(dev, "%u of the profile's %u CPUs: deep sleep is offered, s2idle stays the default\n",
++			 num_possible_cpus(), s->soc->cpu_count);
++	}
+ 	/* Not on a SoC whose data is derived: there it is asked for by name. */
+ 	if (s->soc->untested) {
+ 		if (mem_sleep_current == PM_SUSPEND_MEM)
 -- 
 2.47.0
 
