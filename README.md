@@ -58,7 +58,7 @@ All of it through `omarchy update` since 2026-11-27. Earlier releases: [what's n
 - The screensaver keeps the GPU at full load (about 40 W); find out why, report to Mesa
 - Power-saver can pin the CPUs at 300 MHz under load; tune the budget with upstream
 - Deep sleep: the power-management coprocessor doesn't come back yet ([#3419](https://github.com/aurora-silicon/linux/pull/3419))
-- Release 11 installer image: needs one from-scratch install on a J714s
+- Release 11 installer image ([out as a prerelease](https://github.com/betizzel/omarchy-m5/releases/tag/omarchy-j714s-11)): needs one from-scratch install on a J714s
 
 [Full TODO](docs/todo.md), with what owners can test.
 

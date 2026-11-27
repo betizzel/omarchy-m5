@@ -6,7 +6,7 @@ It runs on a Mac, not from a Linux PC. You need:
 - **macOS 27.2 or newer** on it, FileVault on, an administrator account.
 - About **35 GB free** on the Mac's disk, the charger, and about an hour.
 
-Steps (the [release page](https://github.com/betizzel/omarchy-m5/releases/tag/omarchy-j714s-9) has every detail):
+Steps (the [release page](https://github.com/betizzel/omarchy-m5/releases/tag/omarchy-j714s-11) has every detail):
 
 1. **Download** the installer package from the release (online: small; offline: the `.partN`
    files joined) and check it against `SHA256SUMS`.

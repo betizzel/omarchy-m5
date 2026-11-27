@@ -2,6 +2,13 @@
 
 Newest first. The full work notes are in [work/](work/).
 
+**The image: [omarchy-j714s 11](https://github.com/betizzel/omarchy-m5/releases/tag/omarchy-j714s-11)** (prerelease,
+2026-11-27, not yet installed from scratch on hardware): kernel v272-23, Mesa/Vulkan e705eca833f (the desktop on the
+GPU), hyprland-m5 0.57.2-5, firmware j714s16-4 (microphones, Wi-Fi power save, s2idle default), auto-brightness. Every
+package was booted and tested on our J714s through `omarchy update`. Image run 46047199618, app run 46049804181 (the
+first attempt hung on the macOS runner after the Recovery template built; the re-run passed). A second J714s owner was
+asked to install it ([#12](https://github.com/betizzel/omarchy-m5/issues/12)).
+
 **2026-11-27, also through `omarchy update`:** **real GPU acceleration.** Every earlier release drew the desktop on the
 CPU (the pinned Mesa had no M5 Pro support); Mesa/Vulkan `e705eca833f` from the omacom edge channel runs OpenGL 4.6 and
 Vulkan 1.4 on the M5 Pro's GPU (glmark2 3003 against 89 in software) and Hyprland renders on it. **Microphones** about

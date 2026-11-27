@@ -14,7 +14,7 @@ What's next, roughly in order. Anyone with an M5 Mac can take one: open an issue
 - **Power-saver pins the CPUs to 300 MHz.** The kernel's low-power profile has a 15 W package budget (CLPC, PHPC);
   any load above it (like the screensaver) steps every cluster down to the minimum and holds it. Measure the J714s's
   real package power to see whether 15 W fits, then propose a value upstream.
-- **Release 11 installer image:** built in CI, needs one from-scratch install on a J714s before it is called tested.
+- **Release 11 installer image:** [published](https://github.com/betizzel/omarchy-m5/releases/tag/omarchy-j714s-11) as a prerelease; needs one from-scratch install on a J714s before it is called tested (asked on #12).
 - **Deep sleep:** works on the 15-core J714s with [#3419](https://github.com/aurora-silicon/linux/pull/3419), but
   the PMP does not come back after the wake (CPUs capped until a reboot). Waiting on upstream; then measure the
   battery drop over a night.
