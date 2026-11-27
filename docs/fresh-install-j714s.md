@@ -600,6 +600,7 @@ ssh-copy-id $K $H                                                    # the owner
 | Layout | `lsblk -b -o NAME,SIZE,FSTYPE,PARTUUID /dev/nvme0n1` | new stub/ESP/boot/root in gap A; p7–p9 unchanged PARTUUIDs; ~55.6 GB free before Recovery |
 | AOP and sound | `lsmod \| grep -w aop; cat /proc/asound/cards` | `aop` loaded; `AppleJ714`, `AppleJ714HPAI` |
 | Speakers | `systemctl is-active speakerguardd-v2; sudo aurora-speaker-upgrade status; speakerguardd-gate explain` | active, v2 owns the speakers. This is a fresh run of v2's checks on this Mac. Loud playback waits for the low-level test in the recipe README |
+| Speaker sense | pause all audio, then `scripts/speaker-sense-test.sh` from this repo (about 45 s, a faint 2.5 kHz tone and two short stutters; it asks first) | `RESULT: shift 0 everywhere`, every fault status 0. Any other shift means speakerguardd v2 is reading another amplifier's voltage and current (kernels before v272-26) |
 | Firewall | `systemctl is-active ufw; sudo ufw status` | active; 22/tcp allowed |
 | ANE, camera | `ls -l /dev/accel/accel0 /dev/video0` | both present |
 | Camera setfiles, ALS | `ls -l /usr/lib/firmware/apple/aop-als-cal.bin /usr/lib/firmware/apple/isp_*.dat; sha256sum` and compare with `usr/lib/firmware/apple/` in the backup; `sudo ls /boot/efi/vendorfw` | files present and the same as the logo install's. Release 5 marks the installer's collection of these as untested, so this is a real check |
