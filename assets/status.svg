@@ -1,0 +1,70 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="370" viewBox="0 0 1200 370" role="img" aria-label="What works on the J714s">
+<rect width="1200" height="370" rx="16" fill="#1a1b26"/>
+<g font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif">
+<text x="32" y="52" font-size="26" font-weight="700" fill="#c0caf5">What works on our J714s</text>
+<text x="1168" y="52" text-anchor="end" font-size="15" fill="#565f89">checked on hardware · 2026-11-27</text>
+<rect x="32" y="80" width="270" height="36" rx="10" fill="#1f2335" stroke="#9ece6a" stroke-opacity="0.45"/>
+<circle cx="52" cy="98" r="6" fill="#9ece6a"/>
+<text x="68" y="103" font-size="15" fill="#c0caf5">Boots, 15 cores</text>
+<rect x="316" y="80" width="270" height="36" rx="10" fill="#1f2335" stroke="#9ece6a" stroke-opacity="0.45"/>
+<circle cx="336" cy="98" r="6" fill="#9ece6a"/>
+<text x="352" y="103" font-size="15" fill="#c0caf5">Keyboard + trackpad</text>
+<rect x="600" y="80" width="270" height="36" rx="10" fill="#1f2335" stroke="#9ece6a" stroke-opacity="0.45"/>
+<circle cx="620" cy="98" r="6" fill="#9ece6a"/>
+<text x="636" y="103" font-size="15" fill="#c0caf5">Wi-Fi</text>
+<rect x="884" y="80" width="270" height="36" rx="10" fill="#1f2335" stroke="#e0af68" stroke-opacity="0.45"/>
+<circle cx="904" cy="98" r="6" fill="#e0af68"/>
+<text x="920" y="103" font-size="15" fill="#c0caf5">Bluetooth</text>
+<rect x="32" y="126" width="270" height="36" rx="10" fill="#1f2335" stroke="#9ece6a" stroke-opacity="0.45"/>
+<circle cx="52" cy="144" r="6" fill="#9ece6a"/>
+<text x="68" y="149" font-size="15" fill="#c0caf5">GPU: GL 4.6, Vulkan 1.4</text>
+<rect x="316" y="126" width="270" height="36" rx="10" fill="#1f2335" stroke="#9ece6a" stroke-opacity="0.45"/>
+<circle cx="336" cy="144" r="6" fill="#9ece6a"/>
+<text x="352" y="149" font-size="15" fill="#c0caf5">Panel 3024x1964 @120Hz</text>
+<rect x="600" y="126" width="270" height="36" rx="10" fill="#1f2335" stroke="#9ece6a" stroke-opacity="0.45"/>
+<circle cx="620" cy="144" r="6" fill="#9ece6a"/>
+<text x="636" y="149" font-size="15" fill="#c0caf5">Speakers (protected)</text>
+<rect x="884" y="126" width="270" height="36" rx="10" fill="#1f2335" stroke="#9ece6a" stroke-opacity="0.45"/>
+<circle cx="904" cy="144" r="6" fill="#9ece6a"/>
+<text x="920" y="149" font-size="15" fill="#c0caf5">Microphones</text>
+<rect x="32" y="172" width="270" height="36" rx="10" fill="#1f2335" stroke="#9ece6a" stroke-opacity="0.45"/>
+<circle cx="52" cy="190" r="6" fill="#9ece6a"/>
+<text x="68" y="195" font-size="15" fill="#c0caf5">Front camera 1080p</text>
+<rect x="316" y="172" width="270" height="36" rx="10" fill="#1f2335" stroke="#9ece6a" stroke-opacity="0.45"/>
+<circle cx="336" cy="190" r="6" fill="#9ece6a"/>
+<text x="352" y="195" font-size="15" fill="#c0caf5">Touch ID</text>
+<rect x="600" y="172" width="270" height="36" rx="10" fill="#1f2335" stroke="#9ece6a" stroke-opacity="0.45"/>
+<circle cx="620" cy="190" r="6" fill="#9ece6a"/>
+<text x="636" y="195" font-size="15" fill="#c0caf5">HW video decode</text>
+<rect x="884" y="172" width="270" height="36" rx="10" fill="#1f2335" stroke="#9ece6a" stroke-opacity="0.45"/>
+<circle cx="904" cy="190" r="6" fill="#9ece6a"/>
+<text x="920" y="195" font-size="15" fill="#c0caf5">HDMI</text>
+<rect x="32" y="218" width="270" height="36" rx="10" fill="#1f2335" stroke="#9ece6a" stroke-opacity="0.45"/>
+<circle cx="52" cy="236" r="6" fill="#9ece6a"/>
+<text x="68" y="241" font-size="15" fill="#c0caf5">USB-C DisplayPort (left)</text>
+<rect x="316" y="218" width="270" height="36" rx="10" fill="#1f2335" stroke="#9ece6a" stroke-opacity="0.45"/>
+<circle cx="336" cy="236" r="6" fill="#9ece6a"/>
+<text x="352" y="241" font-size="15" fill="#c0caf5">Auto-brightness</text>
+<rect x="600" y="218" width="270" height="36" rx="10" fill="#1f2335" stroke="#9ece6a" stroke-opacity="0.45"/>
+<circle cx="620" cy="236" r="6" fill="#9ece6a"/>
+<text x="636" y="241" font-size="15" fill="#c0caf5">Fans</text>
+<rect x="884" y="218" width="270" height="36" rx="10" fill="#1f2335" stroke="#9ece6a" stroke-opacity="0.45"/>
+<circle cx="904" cy="236" r="6" fill="#9ece6a"/>
+<text x="920" y="241" font-size="15" fill="#c0caf5">Lid sleep (s2idle)</text>
+<rect x="32" y="264" width="270" height="36" rx="10" fill="#1f2335" stroke="#7dcfff" stroke-opacity="0.45"/>
+<circle cx="52" cy="282" r="6" fill="#7dcfff"/>
+<text x="68" y="287" font-size="15" fill="#c0caf5">Deep sleep</text>
+<rect x="316" y="264" width="270" height="36" rx="10" fill="#1f2335" stroke="#e0af68" stroke-opacity="0.45"/>
+<circle cx="336" cy="282" r="6" fill="#e0af68"/>
+<text x="352" y="287" font-size="15" fill="#c0caf5">Neural Engine</text>
+<rect x="600" y="264" width="270" height="36" rx="10" fill="#1f2335" stroke="#f7768e" stroke-opacity="0.45"/>
+<circle cx="620" cy="282" r="6" fill="#f7768e"/>
+<text x="636" y="287" font-size="15" fill="#c0caf5">USB-C DisplayPort (right)</text>
+<rect x="884" y="264" width="270" height="36" rx="10" fill="#1f2335" stroke="#f7768e" stroke-opacity="0.45"/>
+<circle cx="904" cy="282" r="6" fill="#f7768e"/>
+<text x="920" y="287" font-size="15" fill="#c0caf5">HW video encode</text>
+<circle cx="38" cy="343" r="6" fill="#9ece6a"/><text x="50" y="348" font-size="14" fill="#a9b1d6">works</text>
+<circle cx="148" cy="343" r="6" fill="#e0af68"/><text x="160" y="348" font-size="14" fill="#a9b1d6">partly</text>
+<circle cx="258" cy="343" r="6" fill="#7dcfff"/><text x="270" y="348" font-size="14" fill="#a9b1d6">testing</text>
+<circle cx="368" cy="343" r="6" fill="#f7768e"/><text x="380" y="348" font-size="14" fill="#a9b1d6">not yet</text>
+</g></svg>

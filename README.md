@@ -1,19 +1,49 @@
-# omarchy-m5
+<p align="center">
+  <img src="assets/header.svg" alt="omarchy-m5: Omarchy on the 14-inch MacBook Pro with M5 Pro" width="100%">
+</p>
 
-**[Omarchy](https://omarchy.org) on the 14-inch MacBook Pro with M5 Pro (J714s).**
+<p align="center">
+<a href="https://github.com/betizzel/omarchy-m5/stargazers"><img alt="Stars" src="https://img.shields.io/github/stars/betizzel/omarchy-m5?style=for-the-badge&logo=github&color=7aa2f7&labelColor=1a1b26"></a> <a href="https://github.com/betizzel/omarchy-m5/watchers"><img alt="Watchers" src="https://img.shields.io/github/watchers/betizzel/omarchy-m5?style=for-the-badge&logo=github&color=bb9af7&labelColor=1a1b26"></a> <a href="https://github.com/betizzel/omarchy-m5/actions/workflows/update-check.yml"><img alt="Update check" src="https://img.shields.io/github/actions/workflow/status/betizzel/omarchy-m5/update-check.yml?style=for-the-badge&label=omarchy%20update&labelColor=1a1b26"></a> <a href="https://github.com/betizzel/omarchy-m5/releases"><img alt="Latest release" src="https://img.shields.io/github/v/release/betizzel/omarchy-m5?include_prereleases&style=for-the-badge&color=9ece6a&labelColor=1a1b26&label=image"></a> <a href="https://github.com/betizzel/omarchy-m5/commits/main"><img alt="Last commit" src="https://img.shields.io/github/last-commit/betizzel/omarchy-m5?style=for-the-badge&color=e0af68&labelColor=1a1b26"></a> <a href="LICENSE"><img alt="License" src="https://img.shields.io/github/license/betizzel/omarchy-m5?style=for-the-badge&color=7dcfff&labelColor=1a1b26"></a>
+</p>
 
-We don't reinvent anything. A lot of people are getting Linux running on the M5 Macs, each
-in their own repo. We collect the parts that already work, put them together in **one image
-with one installer**, test it on a real J714s, and say who made each part.
+<p align="center">
+  <a href="#-the-goal">Goal</a> ·
+  <a href="#-whats-new">What's new</a> ·
+  <a href="#what-works">What works</a> ·
+  <a href="#try-it">Try it</a> ·
+  <a href="#who-we-collect-from">Who we take from</a> ·
+  <a href="CONTRIBUTING.md">Send your work</a>
+</p>
 
-> **Updates:** turn on the signed [`[omarchy-m5]` package repository](tools/update-source/README.md) once (`bash enable`), and `omarchy update` brings our tested J714s kernel, firmware, m1n1, Hyprland and GPU driver (Mesa/Vulkan) builds from then on. Turned it on before 2026-11-27? Run `bash enable` once more to get the GPU drivers.
+## 🎯 The goal
+
+**Omarchy on the M5 Pro MacBook Pro, working like a normal laptop, through plain `omarchy update`.**
+
+We don't reinvent anything. A lot of people are getting Linux running on the M5 Macs, each in their own repo. We
+collect the parts that already work, test them on a real J714s, ship them as one signed update, and say who made
+each part. When their pull request lands upstream, our copy goes away.
+
+<p align="center"><img src="assets/pipeline.svg" alt="Collect, test on a real J714s, ship through omarchy update, send upstream" width="100%"></p>
+
+## ⚡ Get updates
+
+```sh
+curl -fsSLO https://raw.githubusercontent.com/betizzel/omarchy-m5/main/tools/update-source/enable
+bash enable        # once: adds the signed [omarchy-m5] repo (key E86FAF98…9F69AE22)
+omarchy update     # from then on, like any other package
+```
+
+Turned it on before 2026-11-27? Run `bash enable` once more to get the GPU drivers.
+[What it does and why it's safe](tools/update-source/README.md).
 
 > **On release 7 to 9 and `omarchy update` fails with `aurora_drv_video.so exists in filesystem`?** Install [firmware j714s16](https://github.com/betizzel/omarchy-m5/releases/tag/firmware-j714s16) once, then update again ([#34](https://github.com/betizzel/omarchy-m5/issues/34)).
 
-**The image: [omarchy-j714s 10](https://github.com/betizzel/omarchy-m5/releases/tag/omarchy-j714s-10)** (prerelease, 2026-11-24): kernel
-v272-19 on a newer aurora-silicon/linux (M5 Pro sleep work, DisplayPort and Wi-Fi fixes; 11 own patches, was 26),
-firmware j714s16 (`omarchy update` works again, #34; VRR off by default, #25), Wi-Fi on WPA/WPA2 mixed routers (#30)
-and a new developer signer. The camera's green light stays off on v272-19 (#33).
+## ✨ What's new
+
+**2026-11-27, also through `omarchy update`:** **real GPU acceleration.** Every earlier release drew the desktop on the
+CPU (the pinned Mesa had no M5 Pro support); Mesa/Vulkan `e705eca833f` from the omacom edge channel runs OpenGL 4.6 and
+Vulkan 1.4 on the M5 Pro's GPU (glmark2 3003 against 89 in software) and Hyprland renders on it. **Microphones** about
+17 dB louder (firmware j714s16-2, Isaac-Duarte's asahi-audio #45).
 
 **Release 11 (2026-11-26), through `omarchy update` with [`[omarchy-m5]`](tools/update-source/README.md) on:** kernel
 v272-21 on aurora-silicon/linux main `7f00dc6bc52c` (98 merged upstream PRs since v272-20: M5 GPU submission and recovery
@@ -22,20 +52,48 @@ work, T6050 AOP ring per endpoint, N1 6 GHz networks, Thunderbolt NHI credits, d
 `omarchy-brightness-auto` with `wluma`, off until `omarchy brightness auto on`). Booted on our J714s: Wi-Fi, Bluetooth,
 120 Hz panel, camera, sound cards, Touch ID and s2idle pass.
 
-**2026-11-27, also through `omarchy update`:** **real GPU acceleration.** Every earlier release drew the desktop on the
-CPU (the pinned Mesa had no M5 Pro support); Mesa/Vulkan `e705eca833f` from the omacom edge channel runs OpenGL 4.6 and
-Vulkan 1.4 on the M5 Pro's GPU (glmark2 3003 against 89 in software) and Hyprland renders on it. **Microphones** about
-17 dB louder (firmware j714s16-2, Isaac-Duarte's asahi-audio #45).
+**The image: [omarchy-j714s 10](https://github.com/betizzel/omarchy-m5/releases/tag/omarchy-j714s-10)** (prerelease, 2026-11-24): kernel
+v272-19 on a newer aurora-silicon/linux (M5 Pro sleep work, DisplayPort and Wi-Fi fixes; 11 own patches, was 26),
+firmware j714s16 (`omarchy update` works again, #34; VRR off by default, #25), Wi-Fi on WPA/WPA2 mixed routers (#30)
+and a new developer signer. The camera's green light stays off on v272-19 (#33).
 
 **Release 10's installer ran on hardware (2026-11-25):** a from-scratch install on our J714s (macOS shrunk to 160 GB, 769 GB for
 Omarchy) booted, including release 10's new Stage 1. If you keep a fallback kernel, set `LIMIT_USAGE_PERCENT=50` in
 `/etc/limine-snapper-sync.conf` first: otherwise the 500 MB ESP fills up and the next kernel update can't write its boot image
 ([details](docs/work/release-10.md#release-10-installed-on-hardware-2026-11-25)).
 
-**Send your M5 work here.** If you have something working on an M5 Mac, open a pull request
-under your own name ([how](CONTRIBUTING.md)); keep your upstream pull request, and we drop our
-copy when it merges there. Every release is an edge prerelease: it works on the hardware listed
-as tested, and the known gaps are listed, not hidden.
+<p align="center"><img src="assets/status.svg" alt="What works on our J714s" width="100%"></p>
+
+## 🙌 Built from their work
+
+<p align="center">
+<a href="https://github.com/rolotrealanis98" title="rolotrealanis98"><img src="https://github.com/rolotrealanis98.png?size=96" width="56" height="56" alt="rolotrealanis98"></a>
+<a href="https://github.com/edimoldovan" title="edimoldovan"><img src="https://github.com/edimoldovan.png?size=96" width="56" height="56" alt="edimoldovan"></a>
+<a href="https://github.com/DjDeveloperr" title="DjDeveloperr"><img src="https://github.com/DjDeveloperr.png?size=96" width="56" height="56" alt="DjDeveloperr"></a>
+<a href="https://github.com/betizzel" title="betizzel"><img src="https://github.com/betizzel.png?size=96" width="56" height="56" alt="betizzel"></a>
+<a href="https://github.com/TripleU613" title="TripleU613"><img src="https://github.com/TripleU613.png?size=96" width="56" height="56" alt="TripleU613"></a>
+<a href="https://github.com/FatBoy721" title="FatBoy721"><img src="https://github.com/FatBoy721.png?size=96" width="56" height="56" alt="FatBoy721"></a>
+<a href="https://github.com/ja-818" title="ja-818"><img src="https://github.com/ja-818.png?size=96" width="56" height="56" alt="ja-818"></a>
+<a href="https://github.com/Isaac-Duarte" title="Isaac-Duarte"><img src="https://github.com/Isaac-Duarte.png?size=96" width="56" height="56" alt="Isaac-Duarte"></a>
+<a href="https://github.com/joshuaswarren" title="joshuaswarren"><img src="https://github.com/joshuaswarren.png?size=96" width="56" height="56" alt="joshuaswarren"></a>
+<a href="https://github.com/erikwb" title="erikwb"><img src="https://github.com/erikwb.png?size=96" width="56" height="56" alt="erikwb"></a>
+<a href="https://github.com/chrisohearn" title="chrisohearn"><img src="https://github.com/chrisohearn.png?size=96" width="56" height="56" alt="chrisohearn"></a>
+<a href="https://github.com/funkzy" title="funkzy"><img src="https://github.com/funkzy.png?size=96" width="56" height="56" alt="funkzy"></a>
+<a href="https://github.com/jgoyvaerts" title="jgoyvaerts"><img src="https://github.com/jgoyvaerts.png?size=96" width="56" height="56" alt="jgoyvaerts"></a>
+<a href="https://github.com/axboe" title="axboe"><img src="https://github.com/axboe.png?size=96" width="56" height="56" alt="axboe"></a>
+<a href="https://github.com/sithglan" title="sithglan"><img src="https://github.com/sithglan.png?size=96" width="56" height="56" alt="sithglan"></a>
+<a href="https://github.com/RyanTheTide" title="RyanTheTide"><img src="https://github.com/RyanTheTide.png?size=96" width="56" height="56" alt="RyanTheTide"></a>
+<a href="https://github.com/kazuhidet" title="kazuhidet"><img src="https://github.com/kazuhidet.png?size=96" width="56" height="56" alt="kazuhidet"></a>
+<a href="https://github.com/IronsideXXVI" title="IronsideXXVI"><img src="https://github.com/IronsideXXVI.png?size=96" width="56" height="56" alt="IronsideXXVI"></a>
+<a href="https://github.com/satchlj" title="satchlj"><img src="https://github.com/satchlj.png?size=96" width="56" height="56" alt="satchlj"></a>
+<a href="https://github.com/m0d16l14n1" title="m0d16l14n1"><img src="https://github.com/m0d16l14n1.png?size=96" width="56" height="56" alt="m0d16l14n1"></a>
+</p>
+
+<p align="center"><sub>M5 owners, Aurora Silicon and omacom people whose work is in here or watched. Full list with what came from whom: <a href="#who-we-collect-from">who we collect from</a>.</sub></p>
+
+**Send your M5 work here.** If you have something working on an M5 Mac, open a pull request under your own name
+([how](CONTRIBUTING.md)); keep your upstream pull request, and we drop our copy when it merges there. Every release is
+an edge prerelease: it works on the hardware listed as tested, and the known gaps are listed, not hidden.
 
 ---
 
