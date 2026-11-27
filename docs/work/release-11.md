@@ -112,6 +112,9 @@ Wi-Fi power save: Omarchy's `omarchy-wifi-powersave.conf` sets `wifi.powersave =
   aura #506 (PMP values on aliasless nodes).
 - aurora-silicon/asahi-audio #45 (Isaac-Duarte, J714 microphones on the t8152-aop-audio card) merged 2026-11-27 as
   `b2ad98a3`; one WirePlumber file. To test on our J714s as a user override before it reaches a package.
+- Also merged 2026-11-27: asahi-audio #44 (jack switching on every Mac, `c89d3360`) and alsa-ucm-conf-asahi #33
+  (headphone jack on any macaudio card without its own file, `4d1cf44b`) and #30 (J716 UCM). Open: ucm #35 (internal
+  mic jack discovery), #34 (no Speaker device while speakerguardd v2 owns the speakers). All for the same audio test.
 - aurora-silicon/linux #1699 (joshuaswarren, FatBoy721's patch): keeps the T6050 USB DARTs live across system sleep,
   because force-suspending them reset a J714s under `pm_test=devices`. Draft, compile-only. Relevant to the v272-22
   deep sleep test: a reset at lid close points here (v272-21 stays the fallback).
