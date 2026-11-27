@@ -43,7 +43,8 @@ Turned it on before 2026-11-27? Run `bash enable` once more to get the GPU drive
 **2026-11-27, also through `omarchy update`:** **real GPU acceleration.** Every earlier release drew the desktop on the
 CPU (the pinned Mesa had no M5 Pro support); Mesa/Vulkan `e705eca833f` from the omacom edge channel runs OpenGL 4.6 and
 Vulkan 1.4 on the M5 Pro's GPU (glmark2 3003 against 89 in software) and Hyprland renders on it. **Microphones** about
-17 dB louder (firmware j714s16-2, Isaac-Duarte's asahi-audio #45).
+17 dB louder (Isaac-Duarte's asahi-audio #45), **Wi-Fi power save** on (erikwb's measurement), and **kernel v272-23**
+with the M5 Pro deep sleep driver (opt-in for now; lid sleep stays s2idle) in firmware j714s16-4.
 
 **Release 11 (2026-11-26), through `omarchy update` with [`[omarchy-m5]`](tools/update-source/README.md) on:** kernel
 v272-21 on aurora-silicon/linux main `7f00dc6bc52c` (98 merged upstream PRs since v272-20: M5 GPU submission and recovery
