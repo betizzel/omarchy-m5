@@ -21,8 +21,8 @@ What's next, roughly in order. Anyone with an M5 Mac can take one: open an issue
   every cluster down to 1.3 GHz and cluster 0 to 300 MHz within 28 s, for about 1 W. The budget isn't the
   problem: the controller throttles the CPUs for power they don't draw. `policy->cur` can't tell it apart (it
   reads at the cap 50-90% of the time even at 6 W), so the fix needs a real CPU share: the PMC's cluster power,
-  CPU utilisation, or a floor on the step-down. To propose upstream with these numbers (`clpc.c` on main has
-  the same loop).
+  CPU utilisation, or a floor on the step-down. Reported upstream with these numbers and three possible fixes:
+  [aurora-silicon/linux#3450](https://github.com/aurora-silicon/linux/issues/3450); we test whichever they pick.
 - **Release 11 installer image:** [published](https://github.com/betizzel/omarchy-m5/releases/tag/omarchy-j714s-11) as a prerelease; needs one from-scratch install on a J714s before it is called tested (asked on #12).
 - **Deep sleep:** works on the 15-core J714s with [#3419](https://github.com/aurora-silicon/linux/pull/3419), but
   the PMP does not come back after the wake (CPUs capped until a reboot). Waiting on upstream; then measure the
