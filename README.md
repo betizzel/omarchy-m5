@@ -254,6 +254,7 @@ thellmgenius (M4 Air Thunderbolt monitor). Know their GitHub names? Tell us.
 | drm/apple: soft-depend on the T6050 combo PHY module (USB-C external displays) | [aurora-silicon/linux#1745](https://github.com/aurora-silicon/linux/pull/1745) | merged 2026-11-13 |
 | AVE: T6050 encoder on the 27.3 firmware | [aurora-silicon/linux#1747](https://github.com/aurora-silicon/linux/pull/1747) | merged 2026-11-13 |
 | ANE: T6050 on the 27.3 firmware | [aurora-silicon/linux#1746](https://github.com/aurora-silicon/linux/pull/1746) | closed 2026-11-15 (27.3 beta; the 27.2 pin follows after the upstream 27.2 retarget) |
+| Sleep: admit the 15-core M5 Pro J714s (the J714s profile was measured on 18 cores); deep sleep and wake work on our J714s, the PMP doesn't come back (reported in the PR) | [aurora-silicon/linux#3419](https://github.com/aurora-silicon/linux/pull/3419) | open 2026-11-27 (our patch 0012) |
 
 ### Repos we watch
 
