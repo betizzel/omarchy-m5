@@ -1,0 +1,134 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: TripleU <182648541+TripleU613@users.noreply.github.com>
+Date: Thu, 26 Nov 2026 22:55:11 -0500
+Subject: [PATCH] J714s image: auto-brightness roles (omarchy-brightness-auto,
+ wluma)
+
+Two support roles, from betizzel/omarchy-m5 3813ca0 (release 11 part 1):
+- omarchy-brightness-auto 0.1.20261118-1 (any): the script by joshuaswarren
+  from omacom/omarchy-mac-pkgs #144, unchanged; off until
+  "omarchy brightness auto on".
+- wluma 5.0.4-1 (aarch64): the AUR recipe built for aarch64.
+Both tested on our J714s 2026-11-26 (the panel followed the light sensor,
+"off" restored manual). The j714s profile now names 22 roles.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+---
+ .../candidate-package-manifest.json           | 28 +++++++++++++++++--
+ .../tools/finish-inputs.py                    |  2 +-
+ .../j714s/candidate-trust/policy.json         |  2 +-
+ image-builder/test/test_candidate_set.py      |  7 +++--
+ 4 files changed, 32 insertions(+), 7 deletions(-)
+
+diff --git a/Integration/M5/J714s-Normal-System/candidate-package-manifest.json b/Integration/M5/J714s-Normal-System/candidate-package-manifest.json
+index 2754e08..422b2b9 100644
+--- a/Integration/M5/J714s-Normal-System/candidate-package-manifest.json
++++ b/Integration/M5/J714s-Normal-System/candidate-package-manifest.json
+@@ -1,7 +1,7 @@
+ {
+   "schema": 1,
+   "candidate_only": true,
+-  "set": "j714s-dev-runtime-52a694e7fa94",
++  "set": "j714s-dev-runtime-075f2e8a2747",
+   "source": {
+     "repository": "omacom/omarchy",
+     "commit": "a948d8a6871f446b335258c827648ac5f4e9428b",
+@@ -173,6 +173,18 @@
+       },
+       "size_bytes": 55182
+     },
++    {
++      "name": "omarchy-brightness-auto",
++      "version": "0.1.20261118-1",
++      "arch": "any",
++      "filename": "omarchy-brightness-auto-0.1.20261118-1-any.pkg.tar.zst",
++      "sha256": "ca88df426f6c73ddcf7d5d78805cfe1a893b31d8f6ef937b3dede49dec688713",
++      "source": {
++        "repository": "betizzel/omarchy-m5",
++        "commit": "3813ca0281c668a197b04e8550b6be2fdd374377"
++      },
++      "size_bytes": 8155
++    },
+     {
+       "name": "omarchy-mac",
+       "version": "0.2.3-2",
+@@ -258,6 +270,18 @@
+         "omacom_signature_sha256": "43d170a16caaa785d9ec99a28ed0fb909550fe4d7f38402ff24d991483241d9f"
+       },
+       "size_bytes": 5052936
++    },
++    {
++      "name": "wluma",
++      "version": "5.0.4-1",
++      "arch": "aarch64",
++      "filename": "wluma-5.0.4-1-aarch64.pkg.tar.zst",
++      "sha256": "26231fa425be096cc230c04132414a9470cf0fafcc4f88d2fce2845c33a7f1d0",
++      "source": {
++        "repository": "betizzel/omarchy-m5",
++        "commit": "3813ca0281c668a197b04e8550b6be2fdd374377"
++      },
++      "size_bytes": 1630520
+     }
+   ],
+   "limitations": [
+@@ -266,5 +290,5 @@
+     "No physical installer or hardware qualification",
+     "No supported release or catalog promotion"
+   ],
+-  "set_sha256": "52a694e7fa9490d4a292915f6af2324227d248d6ec4a7e02a9d5ea445e777e90"
++  "set_sha256": "075f2e8a274760fbb67d980151a7819fc1f920ee8b810b86034e238d79d0e304"
+ }
+diff --git a/Integration/M5/J714s-Normal-System/tools/finish-inputs.py b/Integration/M5/J714s-Normal-System/tools/finish-inputs.py
+index 7ce9701..728b622 100644
+--- a/Integration/M5/J714s-Normal-System/tools/finish-inputs.py
++++ b/Integration/M5/J714s-Normal-System/tools/finish-inputs.py
+@@ -157,7 +157,7 @@ def main() -> int:
+                 raise ValueError(f'{name} archive must be a regular file')
+             if candidate.member(path, candidate.REVISION_FILES[name]).decode().strip() != runtime_source['commit']:
+                 raise ValueError(f'{name} does not record the pinned runtime source')
+-        # One package per role the developer profile names (20 since speakerguardd-v2 and aurora-speaker-upgrade)
++        # One package per role the developer profile names (22 since omarchy-brightness-auto and wluma)
+         roles = len(policy['runtime_packages'] + policy['boot_packages'] + policy['support_packages'])
+         if len(records) != roles or len({row['name'] for row in records}) != roles:
+             raise ValueError(f'candidate set must contain the checked-in {roles}-package manifest')
+diff --git a/image-builder/builder/profiles/j714s/candidate-trust/policy.json b/image-builder/builder/profiles/j714s/candidate-trust/policy.json
+index 572dc26..a0e69d6 100644
+--- a/image-builder/builder/profiles/j714s/candidate-trust/policy.json
++++ b/image-builder/builder/profiles/j714s/candidate-trust/policy.json
+@@ -87,7 +87,7 @@
+     "mesa-aurora",
+     "vulkan-aurora",
+     "aurora-bless", "hyprland-m5", "aurora-sep", "libfprint-aurora", "speakerguardd-v2",
+-    "aurora-speaker-upgrade"],
++    "aurora-speaker-upgrade", "omarchy-brightness-auto", "wluma"],
+   "device_trees": [
+     "t6000-j314s",
+     "t6000-j316s",
+diff --git a/image-builder/test/test_candidate_set.py b/image-builder/test/test_candidate_set.py
+index 572efb5..f3a043c 100755
+--- a/image-builder/test/test_candidate_set.py
++++ b/image-builder/test/test_candidate_set.py
+@@ -113,7 +113,7 @@ class CandidateSetTest(unittest.TestCase):
+                        public_key_sha256=c.digest(signer.trust / "public.asc"))
+         (signer.trust / "policy.json").write_text(json.dumps(profile))
+         names = profile["runtime_packages"] + profile["boot_packages"] + profile["support_packages"]
+-        self.assertEqual(len(names), 20)
++        self.assertEqual(len(names), 22)
+         release = stage1_qualification.J714S_KERNEL_RELEASE
+         contents = fixtures.default_contents()
+         kernel = contents["linux-aurora"]
+@@ -129,8 +129,9 @@ class CandidateSetTest(unittest.TestCase):
+         receipt = fixtures.make_set(input_set, signer, names=names,
+                                     versions={"linux-aurora": stage1_qualification.J714S_KERNEL_VERSION, "hyprland-m5": "0.57.2-2",
+                                               "aurora-sep": "1.17.g8679514f4dff-1", "libfprint-aurora": "1.94.100-1",
+-                                              "speakerguardd-v2": "1.0.0alpha.1-41.1", "aurora-speaker-upgrade": "0.1-16"},
+-                                    arches={"aurora-sep": "any", "aurora-speaker-upgrade": "any"},
++                                              "speakerguardd-v2": "1.0.0alpha.1-41.1", "aurora-speaker-upgrade": "0.1-16",
++                                              "omarchy-brightness-auto": "0.1.20261118-1", "wluma": "5.0.4-1"},
++                                    arches={"aurora-sep": "any", "aurora-speaker-upgrade": "any", "omarchy-brightness-auto": "any"},
+                                     contents=contents, manifest_edit=developer_sources)
+         output = self.base / "j714s-15-role-import"
+         summary = c.snapshot(input_set, output, receipt, fixtures.SOURCE, trust=signer.trust)
+-- 
+2.56.1
+

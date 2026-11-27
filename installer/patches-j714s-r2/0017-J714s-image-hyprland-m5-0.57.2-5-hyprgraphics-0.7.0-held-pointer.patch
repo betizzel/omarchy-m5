@@ -1,0 +1,62 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: TripleU <182648541+TripleU613@users.noreply.github.com>
+Date: Thu, 26 Nov 2026 23:28:11 -0500
+Subject: [PATCH] J714s image: hyprland-m5 0.57.2-5 (hyprgraphics 0.7.0, held
+ pointer)
+
+The edge channel moved to hyprgraphics 0.7.0 (libhyprgraphics.so=6), and
+hyprland-m5 0.57.2-4 needs libhyprgraphics.so=5, so the set no longer
+resolved. hyprland-m5 0.57.2-5 (797fa9f1..., 53015521 bytes) from
+betizzel/omarchy-m5 eb93d7b5: the same patches on Omarchy's 0.57.2-7 recipe
+(its rebuild against hyprgraphics 0.7.0 and the held-pointer patch, #3604),
+built natively on the J714s in a clean chroot (core, extra, alarm).
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+---
+ .../candidate-package-manifest.json                | 14 +++++++-------
+ 1 file changed, 7 insertions(+), 7 deletions(-)
+
+diff --git a/Integration/M5/J714s-Normal-System/candidate-package-manifest.json b/Integration/M5/J714s-Normal-System/candidate-package-manifest.json
+index 422b2b9..72de8c7 100644
+--- a/Integration/M5/J714s-Normal-System/candidate-package-manifest.json
++++ b/Integration/M5/J714s-Normal-System/candidate-package-manifest.json
+@@ -1,7 +1,7 @@
+ {
+   "schema": 1,
+   "candidate_only": true,
+-  "set": "j714s-dev-runtime-075f2e8a2747",
++  "set": "j714s-dev-runtime-f13acdf9e079",
+   "source": {
+     "repository": "omacom/omarchy",
+     "commit": "a948d8a6871f446b335258c827648ac5f4e9428b",
+@@ -77,15 +77,15 @@
+     },
+     {
+       "name": "hyprland-m5",
+-      "version": "0.57.2-4",
++      "version": "0.57.2-5",
+       "arch": "aarch64",
+-      "filename": "hyprland-m5-0.57.2-4-aarch64.pkg.tar.zst",
+-      "sha256": "38e8bbfd141b6bfaac5d586a1600ddfd6c993d4efc1131eb111e6e2feebfc8e4",
++      "filename": "hyprland-m5-0.57.2-5-aarch64.pkg.tar.zst",
++      "sha256": "797fa9f13a2249892d709d990219211074bfce7a4638db348f9ac93c8b77fba7",
+       "source": {
+         "repository": "betizzel/omarchy-m5",
+-        "commit": "6e48e58ab7bbe0b3f7b53743358871ea60c97fc8"
++        "commit": "eb93d7b5e2102952526339d1372b4fc923701792"
+       },
+-      "size_bytes": 51121267
++      "size_bytes": 53015521
+     },
+     {
+       "name": "libfprint-aurora",
+@@ -290,5 +290,5 @@
+     "No physical installer or hardware qualification",
+     "No supported release or catalog promotion"
+   ],
+-  "set_sha256": "075f2e8a274760fbb67d980151a7819fc1f920ee8b810b86034e238d79d0e304"
++  "set_sha256": "f13acdf9e0796dedc6e86fbc7079f5147ecc1f4e0e512bcd12c315005c7272fa"
+ }
+-- 
+2.56.1
+
