@@ -4,16 +4,25 @@ What's next, roughly in order. Anyone with an M5 Mac can take one: open an issue
 
 **Being worked on here**
 
-- **Screensaver burns about 40 W.** Omarchy's screensaver (a full-screen ghostty) keeps the M5 GPU at full load:
-  measured 2026-11-27 with the owner watching, both GPU engines 195% busy and SoC power (Heatpipe) 40.6 W against
-  about 2-3 W without it, GPU sensors 90-97 C, fans 4400 rpm, while ghostty itself uses 7% CPU. No custom shader is
-  involved: the M5 has no native OpenGL driver, so ghostty's GL renderer runs through zink on the Vulkan driver, and
-  each full-screen redraw is expensive there. Workaround: `idle.screensaver` `0` and `idle.lockScreensaver` `false`
-  in `~/.config/omarchy/shell.json`. Next: compare with foot (CPU-rendered) and a plain GL client, then report to
-  aurora-silicon/mesa with the numbers.
-- **Power-saver pins the CPUs to 300 MHz.** The kernel's low-power profile has a 15 W package budget (CLPC, PHPC);
-  any load above it (like the screensaver) steps every cluster down to the minimum and holds it. Measure the J714s's
-  real package power to see whether 15 W fits, then propose a value upstream.
+- **Screensaver burns 17-40 W.** Omarchy's screensaver keeps the M5 GPU busy. In ghostty (2026-11-27, owner
+  watching): both GPU engines 195% busy, SoC power (PHPC, "Heatpipe") 40.6 W against about 2-3 W without it, GPU
+  sensors 90-97 C, fans 4400 rpm, while ghostty used 7% CPU. In foot, which draws on the CPU (measured the same
+  evening): PHPC 17-18 W with `ttfx` at about 1% CPU, so most of that is Hyprland compositing the full-screen
+  animation, and Hyprland's GL renderer runs through zink on the Vulkan driver (no native OpenGL on the M5). For
+  scale, on an otherwise idle desktop at 6 W: full-screen `es2gears_wayland` (GL through zink) 12.4 W,
+  full-screen `vkgears` (native Vulkan) 7.0 W; not the same work, so only a hint that the zink path is the
+  expensive one. Workaround: `idle.screensaver` `0` and `idle.lockScreensaver` `false` in
+  `~/.config/omarchy/shell.json`. Next: a like-for-like GL vs Vulkan client, then report to aurora-silicon/mesa.
+- **Power-saver drives the CPUs to 300 MHz under a GPU load.** The low-power profile (`clpc.c`, T6050: ceiling
+  2808 MHz, `low_power_mw` 15000) reads the SMC's package power (PHPC, which includes the GPU) every 100 ms and
+  takes one CPU frequency step off for each new reading above 15 W, one back below 13.5 W. Measured on our J714s
+  2026-11-27 (on battery): 15 CPUs busy settle at about 2.0 GHz and 14 W (balanced: 4.38/4.61 GHz, 52 W), so 15 W
+  fits a CPU load. With the foot screensaver PHPC stays at 17 W (18 W in balanced, uncapped), so the loop steps
+  every cluster down to 1.3 GHz and cluster 0 to 300 MHz within 28 s, for about 1 W. The budget isn't the
+  problem: the controller throttles the CPUs for power they don't draw. `policy->cur` can't tell it apart (it
+  reads at the cap 50-90% of the time even at 6 W), so the fix needs a real CPU share: the PMC's cluster power,
+  CPU utilisation, or a floor on the step-down. To propose upstream with these numbers (`clpc.c` on main has
+  the same loop).
 - **Release 11 installer image:** [published](https://github.com/betizzel/omarchy-m5/releases/tag/omarchy-j714s-11) as a prerelease; needs one from-scratch install on a J714s before it is called tested (asked on #12).
 - **Deep sleep:** works on the 15-core J714s with [#3419](https://github.com/aurora-silicon/linux/pull/3419), but
   the PMP does not come back after the wake (CPUs capped until a reboot). Waiting on upstream; then measure the
@@ -28,7 +37,10 @@ What's next, roughly in order. Anyone with an M5 Mac can take one: open an issue
 **Needs testing (owners welcome)**
 
 - Headphone jack on 27.2 (asahi-audio #44 and alsa-ucm-conf-asahi #33 merged upstream).
-- Microphones: still about 19 dB quieter than Isaac-Duarte's measurement; check the gain on more machines.
+- Microphones: speech peaks read about 19 dB below Isaac-Duarte's measurement. The chain isn't the cause: our
+  `mic.json` is upstream's `firs/j714/mic.json` (only the name differs), the source volume is his 70 %, and the
+  `omarchy_asahi_mic` loopback passes 0.00 dB on both channels (measured 2026-11-27). Next: one speech
+  recording his way (p95 over 100 ms frames, `pw-record --target effect_output.j714-mic`).
 - Bluetooth headset audio (RFCOMM loads, nothing played yet).
 - HDMI after a sleep on an external display (FatBoy721's fix is in the kernel).
 - DisplayPort audio (three cards show up, nothing played yet).
